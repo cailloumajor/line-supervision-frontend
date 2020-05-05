@@ -1,0 +1,22 @@
+{
+  "npm.packageManager": "yarn",
+  "eslint.validate": [
+    "javascript", 
+    "javascriptreact", 
+    "vue"
+  ],
+  "vetur.validation.template": false,
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[vue]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "vetur.experimental.templateInterpolationService": true
+}
