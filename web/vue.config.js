@@ -3,5 +3,6 @@ module.exports = {
     if (process.env.NODE_ENV !== "production") {
       config.devtool = "source-map"
     }
-  }
+  },
+  transpileDependencies: ["vuetify"]
 }
