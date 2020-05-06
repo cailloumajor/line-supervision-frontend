@@ -1,57 +1,55 @@
 <template>
   <v-app>
-    <v-app-bar app color="primary" dark>
-      <div class="d-flex align-center">
-        <v-img
-          alt="Vuetify Logo"
-          class="shrink mr-2"
-          contain
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
-          transition="scale-transition"
-          width="40"
-        />
-
-        <v-img
-          alt="Vuetify Name"
-          class="shrink mt-1 hidden-sm-and-down"
-          contain
-          min-width="100"
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-name-dark.png"
-          width="100"
-        />
-      </div>
-
-      <v-spacer></v-spacer>
-
-      <v-btn
-        href="https://github.com/vuetifyjs/vuetify/releases/latest"
-        target="_blank"
-        text
-      >
-        <span class="mr-2">Latest Release</span>
-        <v-icon>mdi-open-in-new</v-icon>
-      </v-btn>
+    <v-app-bar app>
+      <v-app-bar-nav-icon></v-app-bar-nav-icon>
+      <img
+        class="mr-5 py-1"
+        :src="require('@/assets/company-logo.png')"
+        :style="logoStyle"
+      />
+      <v-toolbar-title>***REMOVED***</v-toolbar-title>
     </v-app-bar>
 
     <v-content>
-      <HelloWorld />
+      <v-container fluid>
+        <router-view />
+      </v-container>
     </v-content>
+    <v-footer>
+      <v-spacer />
+      <span class="connection-status d-flex align-center">
+        <kbd>PLC</kbd> ⬅
+        <link-status-icon v-if="linkStatus.ws" :link-status="linkStatus.opc" />
+        <v-icon v-else color="orange" small>mdi-help</v-icon>
+        ⮕ <kbd>OPC|WS</kbd> ⬅
+        <link-status-icon :link-status="linkStatus.ws" />
+        ⮕ <kbd>HMI</kbd>
+      </span>
+    </v-footer>
   </v-app>
 </template>
 
 <script lang="ts">
-import Vue from "vue"
-import HelloWorld from "./components/HelloWorld.vue"
+import * as CSS from "csstype"
+import { Component, Vue } from "vue-property-decorator"
 
-export default Vue.extend({
-  name: "App",
+import LinkStatusIcon from "@/components/LinkStatusIcon.vue"
+import { automationMapper } from "@/store/modules/automation"
 
+const mapped = Vue.extend({
   components: {
-    HelloWorld
+    LinkStatusIcon
   },
-
-  data: () => ({
-    //
-  })
+  computed: automationMapper.mapGetters(["linkStatus"])
 })
+
+@Component
+export default class App extends mapped {
+  get logoStyle(): CSS.Properties {
+    return {
+      filter: this.$vuetify.theme.dark === true ? "brightness(1.5)" : undefined,
+      height: "90%"
+    }
+  }
+}
 </script>

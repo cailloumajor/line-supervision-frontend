@@ -1,4 +1,4 @@
-import { Mutations, Module } from "vuex-smart-module"
+import { createMapper, Getters, Mutations, Module } from "vuex-smart-module"
 
 export interface MachineMetrics {
   machineState: {
@@ -36,6 +36,15 @@ class AutomationState {
   wsLinkActive = false
 }
 
+class AutomationGetters extends Getters<AutomationState> {
+  get linkStatus() {
+    return {
+      opc: this.state.opcLinkActive,
+      ws: this.state.wsLinkActive
+    }
+  }
+}
+
 class AutomationMutations extends Mutations<AutomationState> {
   replaceMetrics(payload: MachineMetrics[]) {
     this.state.machinesMetrics = [...payload]
@@ -50,7 +59,12 @@ class AutomationMutations extends Mutations<AutomationState> {
   }
 }
 
-export const automation = new Module({
+const automation = new Module({
   state: AutomationState,
+  getters: AutomationGetters,
   mutations: AutomationMutations
 })
+
+const automationMapper = createMapper(automation)
+
+export { automation, automationMapper }
