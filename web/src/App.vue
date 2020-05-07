@@ -18,12 +18,16 @@
     <v-footer class="">
       <v-spacer />
       <span class="connection-status d-flex align-center caption">
-        <kbd>PLC</kbd> ⬅
+        <kbd>PLC</kbd>
+        <v-icon small>mdi-arrow-left-bold</v-icon>
         <link-status-icon v-if="linkStatus.ws" :link-status="linkStatus.opc" />
         <v-icon v-else color="orange" small>mdi-help</v-icon>
-        ⮕ <kbd>OPC|WS</kbd> ⬅
+        <v-icon small>mdi-arrow-right-bold</v-icon>
+        <kbd>OPC|WS</kbd>
+        <v-icon small>mdi-arrow-left-bold</v-icon>
         <link-status-icon :link-status="linkStatus.ws" />
-        ⮕ <kbd>HMI</kbd>
+        <v-icon small>mdi-arrow-right-bold</v-icon>
+        <kbd>HMI</kbd>
       </span>
     </v-footer>
   </v-app>
