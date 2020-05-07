@@ -1,9 +1,9 @@
 <template>
   <v-app>
-    <v-app-bar app>
+    <v-app-bar app dense>
       <v-app-bar-nav-icon></v-app-bar-nav-icon>
       <img
-        class="mr-5 py-1"
+        class="ml-1 mr-5 py-1"
         :src="require('@/assets/company-logo.png')"
         :style="logoStyle"
       />
@@ -15,9 +15,9 @@
         <router-view />
       </v-container>
     </v-content>
-    <v-footer>
+    <v-footer class="">
       <v-spacer />
-      <span class="connection-status d-flex align-center">
+      <span class="connection-status d-flex align-center caption">
         <kbd>PLC</kbd> ⬅
         <link-status-icon v-if="linkStatus.ws" :link-status="linkStatus.opc" />
         <v-icon v-else color="orange" small>mdi-help</v-icon>
