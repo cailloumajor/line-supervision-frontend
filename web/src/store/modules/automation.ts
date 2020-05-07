@@ -46,16 +46,24 @@ class AutomationGetters extends Getters<AutomationState> {
 }
 
 class AutomationMutations extends Mutations<AutomationState> {
-  replaceMetrics(payload: MachineMetrics[]) {
+  setMetrics(payload: MachineMetrics[]) {
     this.state.machinesMetrics = [...payload]
   }
 
-  setOPCLinkStatus(payload: boolean) {
-    this.state.opcLinkActive = payload
+  opcLinkUp() {
+    this.state.opcLinkActive = true
   }
 
-  setWSLinkStatus(payload: boolean) {
-    this.state.wsLinkActive = payload
+  opcLinkDown() {
+    this.state.opcLinkActive = false
+  }
+
+  wsLinkUp() {
+    this.state.wsLinkActive = true
+  }
+
+  wsLinkDown() {
+    this.state.wsLinkActive = false
   }
 }
 
