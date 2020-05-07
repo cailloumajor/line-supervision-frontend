@@ -37,13 +37,14 @@ import LinkStatusIcon from "@/components/LinkStatusIcon.vue"
 import { automationMapper } from "@/store/modules/automation"
 
 const mapped = Vue.extend({
-  components: {
-    LinkStatusIcon
-  },
   computed: automationMapper.mapGetters(["linkStatus"])
 })
 
-@Component
+@Component({
+  components: {
+    LinkStatusIcon
+  }
+})
 export default class App extends mapped {
   get logoStyle(): CSS.Properties {
     return {
