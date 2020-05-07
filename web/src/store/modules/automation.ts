@@ -1,18 +1,22 @@
 import { createMapper, Getters, Mutations, Module } from "vuex-smart-module"
 
+export interface MachineState {
+  cycle: boolean
+  alert: boolean
+  alarm: boolean
+  missingParts: boolean
+  saturation: boolean
+}
+
+export interface MachineCounters {
+  production: number
+  toolChangePercent: number
+  partControlPercent: number
+}
+
 export interface MachineMetrics {
-  machineState: {
-    cycle: boolean
-    alert: boolean
-    alarm: boolean
-    missingParts: boolean
-    saturation: boolean
-  }
-  counters: {
-    production: number
-    toolChangePercent: number
-    partControlPercent: number
-  }
+  machineState: MachineState
+  counters: MachineCounters
 }
 
 const defaultMachineMetrics = {
@@ -37,6 +41,10 @@ class AutomationState {
 }
 
 class AutomationGetters extends Getters<AutomationState> {
+  get metricsForIndex() {
+    return (index: number) => this.state.machinesMetrics[index]
+  }
+
   get linkStatus() {
     return {
       opc: this.state.opcLinkActive,
