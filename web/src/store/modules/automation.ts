@@ -35,7 +35,9 @@ const defaultMachineMetrics = {
 }
 
 class AutomationState {
-  machinesMetrics = Array<MachineMetrics>(13).fill(defaultMachineMetrics)
+  machinesMetrics: MachineMetrics[] = [...Array(13)].map(() =>
+    JSON.parse(JSON.stringify(defaultMachineMetrics))
+  )
   opcLinkActive = false
   wsLinkActive = false
 }
