@@ -55,10 +55,7 @@
           d="***REMOVED***"
         />
       </defs>
-      <g
-        v-for="(data, index) in allMachinesData"
-        :key="`machine-group-${index}`"
-      >
+      <g v-for="(data, index) in layoutData" :key="`machine-${index}`">
         <title>{{ `Machine ${index}` }}</title>
         <use
           :class="{ blink: data.stampBlink }"
@@ -89,12 +86,12 @@ function machineStampColor(state: MachineState) {
 }
 
 const mapped = Vue.extend({
-  computed: automationMapper.mapGetters(["metricsForIndex"])
+  computed: automationMapper.mapGetters(["allMachinesMetrics"])
 })
 
 @Component
 export default class LineSynoptics extends mapped {
-  readonly MACHINES_CONSTANT_DATA = [
+  readonly LAYOUT_CONSTANT_DATA = [
     { tagX: 338, tagY: 401, tagText: "***REMOVED***" },
     { tagX: 845, tagY: 1244, tagText: "***REMOVED***" },
     { tagX: 1108, tagY: 637, tagText: "***REMOVED***" },
@@ -110,22 +107,14 @@ export default class LineSynoptics extends mapped {
     { tagX: 4425, tagY: 646, tagText: "***REMOVED***" }
   ]
 
-  get allMachinesData() {
-    return this.MACHINES_CONSTANT_DATA.map((constData, index) => {
-      const stampAttrs = this.stampAttributes(index)
+  get layoutData() {
+    return this.allMachinesMetrics.map((machineMetrics, index) => {
       return {
-        ...constData,
-        ...stampAttrs
+        ...this.LAYOUT_CONSTANT_DATA[index],
+        stampFill: machineStampColor(machineMetrics.machineState),
+        stampBlink: machineMetrics.machineState.alarm
       }
     })
-  }
-
-  stampAttributes(machineIndex: number) {
-    const metrics = this.metricsForIndex(machineIndex)
-    return {
-      stampFill: machineStampColor(metrics.machineState),
-      stampBlink: metrics.machineState.alarm
-    }
   }
 }
 </script>

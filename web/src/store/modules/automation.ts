@@ -43,8 +43,8 @@ class AutomationState {
 }
 
 class AutomationGetters extends Getters<AutomationState> {
-  get metricsForIndex() {
-    return (index: number) => this.state.machinesMetrics[index]
+  get allMachinesMetrics() {
+    return this.state.machinesMetrics
   }
 
   get linkStatus() {
