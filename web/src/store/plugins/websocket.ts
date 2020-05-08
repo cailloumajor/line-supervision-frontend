@@ -3,7 +3,7 @@ import { Plugin } from "vuex"
 
 import { automation } from "../modules/automation"
 
-// @ts-ignore: Unexpected any
+// eslint-disable-next-line
 export default function createVuexPlugin(url: string): Plugin<any> {
   return store => {
     const ctx = automation.context(store)
