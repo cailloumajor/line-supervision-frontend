@@ -1,6 +1,14 @@
-version: "3"
+version: "3.7"
 
 services:
+  influx:
+    volumes:
+      - influxdb:/var/lib/influxdb
+
+  opcua_bridge:
+    environment:
+      - OPC_RECORD_INTERVAL
+
   web:
     build: ./web/.devcontainer
     ports:
@@ -8,3 +16,6 @@ services:
     volumes:
       - .:/workspace:cached
     tty: true
+
+volumes:
+  influxdb:
