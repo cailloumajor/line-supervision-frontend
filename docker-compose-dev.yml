@@ -2,12 +2,16 @@ version: "3.7"
 
 services:
   influx:
+    ports:
+      - "8086:8086"
     volumes:
       - influxdb:/var/lib/influxdb
 
   opcua_bridge:
     environment:
       - OPC_RECORD_INTERVAL
+    ports:
+      - "3000:3000"
 
   web:
     build: ./web/.devcontainer
