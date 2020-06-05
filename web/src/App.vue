@@ -20,18 +20,17 @@
     </v-content>
     <v-footer class="">
       <v-spacer />
-      <span class="connection-status d-flex align-center caption">
-        <kbd>PLC</kbd>
-        <v-icon small>mdi-arrow-left-bold</v-icon>
-        <link-status-icon v-if="linkStatus.ws" :link-status="linkStatus.opc" />
-        <v-icon v-else color="orange" small>mdi-help</v-icon>
-        <v-icon small>mdi-arrow-right-bold</v-icon>
-        <kbd>OPC|WS</kbd>
-        <v-icon small>mdi-arrow-left-bold</v-icon>
-        <link-status-icon :link-status="linkStatus.ws" />
-        <v-icon small>mdi-arrow-right-bold</v-icon>
-        <kbd>HMI</kbd>
-      </span>
+      <v-chip
+        v-for="state of linkStates"
+        :key="`state-${state.text}`"
+        class="mx-1"
+        small
+      >
+        <v-icon :color="state.color" class="mr-1" left small>{{
+          state.icon
+        }}</v-icon>
+        {{ state.text }}
+      </v-chip>
     </v-footer>
   </v-app>
 </template>
@@ -40,19 +39,46 @@
 import * as CSS from "csstype"
 import { Component, Vue } from "vue-property-decorator"
 
-import LinkStatusIcon from "@/components/LinkStatusIcon.vue"
 import { automationMapper } from "@/store/modules/automation"
+
+enum LinkState {
+  Up,
+  Down,
+  Unknown
+}
 
 const mapped = Vue.extend({
   computed: automationMapper.mapGetters(["linkStatus"])
 })
 
-@Component({
-  components: {
-    LinkStatusIcon
-  }
-})
+@Component
 export default class App extends mapped {
+  get linkStates() {
+    function linkState(text: string, ownState: boolean, commonState?: boolean) {
+      let state = ownState ? LinkState.Up : LinkState.Down
+      if (commonState !== undefined) {
+        state = commonState ? state : LinkState.Unknown
+      }
+      return {
+        text,
+        color: {
+          [LinkState.Up]: "green",
+          [LinkState.Down]: "red",
+          [LinkState.Unknown]: "orange"
+        }[state],
+        icon: {
+          [LinkState.Up]: "mdi-swap-horizontal",
+          [LinkState.Down]: "mdi-link-off",
+          [LinkState.Unknown]: "mdi-help"
+        }[state]
+      }
+    }
+    return [
+      linkState("WS", this.linkStatus.ws),
+      linkState("OPC", this.linkStatus.opc, this.linkStatus.ws)
+    ]
+  }
+
   get linkDown() {
     // const { opc, ws } = this.linkStatus
     // return !(opc && ws)

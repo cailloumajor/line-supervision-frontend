@@ -21,7 +21,13 @@ export default function createVuexPlugin(url: string): Plugin<any> {
         const wsMessage = JSON.parse(event.data)
         switch (wsMessage.type) {
           case "opc_data_change":
+            ctx.mutations.opcLinkUp()
             ctx.mutations.setMetrics(wsMessage.data)
+            break
+          case "opc_status":
+            if (wsMessage.data === false) {
+              ctx.mutations.opcLinkDown()
+            }
             break
           case undefined:
             console.error(`Unrecognized message from ${event.origin}`)
