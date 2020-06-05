@@ -14,7 +14,11 @@
       <v-container fluid>
         <router-view />
       </v-container>
-      <v-overlay :value="linkDown" absolute opacity="1">
+      <v-overlay
+        :value="!(linkStatus.opc && linkStatus.ws)"
+        absolute
+        opacity="1"
+      >
         <v-alert type="error">Pas de connection à l'automate</v-alert>
       </v-overlay>
     </v-content>
@@ -79,11 +83,6 @@ export default class App extends mapped {
     ]
   }
 
-  get linkDown() {
-    // const { opc, ws } = this.linkStatus
-    // return !(opc && ws)
-    return false // TODO: remove in production
-  }
   get logoStyle(): CSS.Properties {
     return {
       filter: this.$vuetify.theme.dark === true ? "brightness(1.5)" : undefined,
