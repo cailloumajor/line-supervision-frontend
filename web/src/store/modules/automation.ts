@@ -12,6 +12,7 @@ export interface MachineCounters {
   production: number
   toolChangePercent: number
   partControlPercent: number
+  bufferFillPercent: number
 }
 
 export interface MachineMetrics {
@@ -30,7 +31,8 @@ const defaultMachineMetrics = {
   counters: {
     production: 0,
     toolChangePercent: 0,
-    partControlPercent: 0
+    partControlPercent: 0,
+    bufferFillPercent: 0
   }
 }
 
