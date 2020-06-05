@@ -10,7 +10,7 @@ Vue.use(Vuex)
 const wsURL =
   process.env.NODE_ENV === "production"
     ? `ws://${window.location.host}/ws`
-    : "ws://localhost:3000"
+    : `ws://${window.location.hostname}:3000`
 const wsPlugin = createWebSocketPlugin(wsURL)
 
 const store = createStore(automation, {
