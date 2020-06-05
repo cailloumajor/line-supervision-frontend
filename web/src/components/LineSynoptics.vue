@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <svg viewBox="0 0 4656.293 1396.333">
+  <div class="layout-container" ref="layoutContainer">
+    <svg viewBox="0 0 4720 1396.333">
       <defs>
         <path
           id="machine-0-path"
@@ -61,22 +61,84 @@
           :class="{ blink: data.stampBlink }"
           :fill="data.stampFill"
           :href="`#machine-${index}-path`"
-          ref="machineStamp"
           class="machine-path"
           stroke="#999"
         />
         <text :x="data.tagX" :y="data.tagY" class="machine-name">
           {{ data.tagText }}
         </text>
+        <circle
+          :cx="data.cardX"
+          :cy="data.cardY"
+          r="10"
+          ref="cardAnchor"
+          visibility="hidden"
+        />
       </g>
     </svg>
+    <v-card
+      v-for="(card, cardIndex) in cardsData"
+      :data-card-index="card.index"
+      :key="`machine-card-${cardIndex}`"
+      :style="{ left: `${card.x}px`, top: `${card.y}px` }"
+      class="machine-card"
+      light
+      ref="machineCard"
+    >
+      <v-container class="machine-card-container">
+        <v-row no-gutters>
+          <v-col
+            v-for="(gauge, gaugeIndex) in card.gauges"
+            :key="`machine-card-${cardIndex}-gauge-${gaugeIndex}`"
+          >
+            <v-progress-circular
+              :color="gauge.color"
+              :rotate="-90"
+              :size="32"
+              :value="gauge.value"
+              :width="5"
+              class="gauge"
+            >
+              <v-icon small>{{ gauge.icon }}</v-icon>
+            </v-progress-circular>
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-card>
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator"
+import { Component, Vue, Watch } from "vue-property-decorator"
 
 import { automationMapper, MachineState } from "@/store/modules/automation"
+
+interface CardData {
+  gauges: {
+    value: number
+    icon: string
+    color: string
+  }[]
+  x: number
+  y: number
+  index: number
+}
+
+const LAYOUT_DATA = [
+  { cardX: 434, cardY: 441, tagX: 434, tagY: 401, tagText: "***REMOVED***" },
+  { cardX: 999, cardY: 1284, tagX: 999, tagY: 1244, tagText: "***REMOVED***" },
+  { cardX: 1181, cardY: 677, tagX: 1181, tagY: 637, tagText: "***REMOVED***" },
+  { cardX: 1793, cardY: 676, tagX: 1793, tagY: 636, tagText: "***REMOVED***" },
+  { cardX: 2045, cardY: 293, tagX: 2045, tagY: 253, tagText: "***REMOVED***" },
+  { cardX: 2566, cardY: 524, tagX: 2566, tagY: 484, tagText: "***REMOVED***" },
+  { cardX: 3110, cardY: 763, tagX: 3110, tagY: 723, tagText: "***REMOVED***" },
+  { cardX: 3651, cardY: 780, tagX: 3651, tagY: 740, tagText: "***REMOVED***" },
+  { cardX: 3854, cardY: 312, tagX: 3854, tagY: 272, tagText: "***REMOVED***" },
+  { cardX: 3281, cardY: 304, tagX: 3281, tagY: 264, tagText: "***REMOVED***" },
+  { cardX: 4279, cardY: 551, tagX: 4279, tagY: 511, tagText: "***REMOVED***" },
+  { cardX: 4353, cardY: 338, tagX: 4353, tagY: 298, tagText: "***REMOVED***" },
+  { cardX: 4550, cardY: 686, tagX: 4550, tagY: 646, tagText: "***REMOVED***" }
+]
 
 function machineStampColor(state: MachineState) {
   if (state.alarm) return "#d00"
@@ -91,35 +153,113 @@ const mapped = Vue.extend({
 
 @Component
 export default class LineSynoptics extends mapped {
-  readonly LAYOUT_CONSTANT_DATA = [
-    { tagX: 338, tagY: 401, tagText: "***REMOVED***" },
-    { tagX: 845, tagY: 1244, tagText: "***REMOVED***" },
-    { tagX: 1108, tagY: 637, tagText: "***REMOVED***" },
-    { tagX: 1720, tagY: 636, tagText: "***REMOVED***" },
-    { tagX: 1891, tagY: 253, tagText: "***REMOVED***" },
-    { tagX: 2470, tagY: 484, tagText: "***REMOVED***" },
-    { tagX: 3030, tagY: 723, tagText: "***REMOVED***" },
-    { tagX: 3567, tagY: 740, tagText: "***REMOVED***" },
-    { tagX: 3700, tagY: 272, tagText: "***REMOVED***" },
-    { tagX: 3200, tagY: 264, tagText: "***REMOVED***" },
-    { tagX: 4125, tagY: 511, tagText: "***REMOVED***" },
-    { tagX: 4220, tagY: 298, tagText: "***REMOVED***" },
-    { tagX: 4425, tagY: 646, tagText: "***REMOVED***" }
-  ]
+  private resizeObs!: ResizeObserver
 
-  get layoutData() {
-    return this.allMachinesMetrics.map((machineMetrics, index) => {
-      return {
-        ...this.LAYOUT_CONSTANT_DATA[index],
-        stampFill: machineStampColor(machineMetrics.machineState),
-        stampBlink: machineMetrics.machineState.alarm
+  $refs!: {
+    cardAnchor: SVGCircleElement[]
+    layoutContainer: HTMLDivElement
+    machineCard: Vue[]
+  }
+
+  cardDOMPositions = [...Array(LAYOUT_DATA.length)].map(() => ({ x: 0, y: 0 }))
+
+  mounted() {
+    this.observeResize()
+    this.placeMachineCards()
+  }
+
+  beforeDestry() {
+    this.resizeObs.disconnect()
+  }
+
+  observeResize() {
+    this.resizeObs = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        if (entry.target === this.$refs.layoutContainer) {
+          this.placeMachineCards()
+        }
       }
     })
+    this.resizeObs.observe(this.$refs.layoutContainer)
+  }
+
+  placeMachineCards() {
+    this.cardDOMPositions = this.$refs.cardAnchor.map((anchor, index) => {
+      const card = this.$refs.machineCard.find(
+        card =>
+          (card.$el as HTMLDivElement).dataset.cardIndex == index.toString()
+      )
+      if (card === undefined) {
+        return { x: 0, y: 0 }
+      }
+      const anchorRect = anchor.getBoundingClientRect()
+      const anchorCenterX = anchorRect.x + anchorRect.width / 2
+      const cardRect = card.$el.getBoundingClientRect()
+      const containerRect = this.$refs.layoutContainer.getBoundingClientRect()
+      const x = anchorCenterX - cardRect.width / 2 - containerRect.x
+      const y = anchorRect.y + anchorRect.height / 2 - containerRect.y
+      return { x, y }
+    })
+  }
+
+  get cardsData(): CardData[] {
+    return this.allMachinesMetrics
+      .map(({ counters }, index) => {
+        return {
+          index,
+          ...this.cardDOMPositions[index],
+          gauges: [
+            {
+              value: counters.partControlPercent,
+              icon: "mdi-eye-check",
+              color: "orange"
+            },
+            {
+              value: counters.toolChangePercent,
+              icon: "mdi-tools",
+              color: "blue"
+            },
+            {
+              value: counters.bufferFillPercent,
+              icon: "mdi-robot-industrial",
+              color: "brown"
+            }
+          ].filter(({ value }) => value >= 0)
+        }
+      })
+      .filter(({ gauges }) => gauges.length)
+  }
+
+  get layoutData() {
+    return this.allMachinesMetrics.map(({ machineState }, index) => {
+      return {
+        ...LAYOUT_DATA[index],
+        stampFill: machineStampColor(machineState),
+        stampBlink: machineState.alarm
+      }
+    })
+  }
+
+  @Watch("cardsData")
+  onCardsDataChange(val: CardData[], oldVal: CardData[]) {
+    if (
+      val.length !== oldVal.length ||
+      val.some(
+        (cardData, index) =>
+          cardData.gauges.length !== oldVal[index].gauges.length
+      )
+    ) {
+      this.$nextTick(() => this.placeMachineCards())
+    }
   }
 }
 </script>
 
 <style lang="scss" scoped>
+.layout-container {
+  position: relative;
+}
+
 .machine-path {
   stroke-width: 6px;
 
@@ -137,5 +277,22 @@ export default class LineSynoptics extends mapped {
 .machine-name {
   font-size: 43px;
   font-weight: 700;
+  fill: white;
+  text-anchor: middle;
+}
+
+.machine-card {
+  display: inline-block;
+  position: absolute;
+}
+
+.machine-card-container {
+  padding: 2px;
+}
+
+.gauge {
+  $margin-x: 1px;
+  margin-left: $margin-x;
+  margin-right: $margin-x;
 }
 </style>
