@@ -3,8 +3,10 @@ import { Plugin } from "vuex"
 
 import { automation } from "../modules/automation"
 
-// eslint-disable-next-line
-export default function createVuexPlugin(url: string): Plugin<any> {
+export default function createVuexPlugin(
+  url: string
+  // eslint-disable-next-line
+): Plugin<any> {
   return store => {
     const ctx = automation.context(store)
     const rws = new ReconnectingWebSocket(url)
