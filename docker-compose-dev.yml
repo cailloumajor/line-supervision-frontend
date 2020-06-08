@@ -11,8 +11,6 @@ services:
       - influxdb:/var/lib/influxdb
 
   opcua-bridge:
-    environment:
-      - OPC_RECORD_INTERVAL
     expose:
       - "3000"
     labels:
@@ -20,6 +18,8 @@ services:
       - "traefik.http.middlewares.ws-stripprefix.stripprefix.forceslash=false"
       - "traefik.http.routers.opcua-bridge.middlewares=ws-stripprefix@docker"
       - "traefik.http.routers.opcua-bridge.rule=PathPrefix(`/ws`)"
+    volumes:
+      - ./opcua-webhmi-bridge/.env:/app/.env:ro
 
   web:
     build: ./web/.devcontainer
