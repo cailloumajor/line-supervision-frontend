@@ -7,7 +7,7 @@ services:
     volumes:
       - influxdb:/var/lib/influxdb
 
-  opcua_bridge:
+  opcua-bridge:
     environment:
       - OPC_RECORD_INTERVAL
     ports:
