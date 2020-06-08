@@ -2,24 +2,47 @@ version: "3.7"
 
 services:
   influx:
-    ports:
-      - "8086:8086"
+    labels:
+      - "traefik.http.middlewares.influx-stripprefix.stripprefix.prefixes=/influx"
+      - "traefik.http.middlewares.influx-stripprefix.stripprefix.forceslash=false"
+      - "traefik.http.routers.influx.middlewares=influx-stripprefix@docker"
+      - "traefik.http.routers.influx.rule=PathPrefix(`/influx`)"
     volumes:
       - influxdb:/var/lib/influxdb
 
   opcua-bridge:
     environment:
       - OPC_RECORD_INTERVAL
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
+    labels:
+      - "traefik.http.middlewares.ws-stripprefix.stripprefix.prefixes=/ws"
+      - "traefik.http.middlewares.ws-stripprefix.stripprefix.forceslash=false"
+      - "traefik.http.routers.opcua-bridge.middlewares=ws-stripprefix@docker"
+      - "traefik.http.routers.opcua-bridge.rule=PathPrefix(`/ws`)"
 
   web:
     build: ./web/.devcontainer
-    ports:
-      - "8080:8080"
+    expose:
+      - "8080"
+    labels:
+      - "traefik.http.routers.web.rule=PathPrefix(`/`)"
     volumes:
       - .:/workspace:cached
     tty: true
+
+  reverse-proxy:
+    image: traefik:v2.2
+    command:
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+      - "--entryPoints.http.address=:80"
+      - "--providers.docker=true"
+    ports:
+      - "8080:80"
+      - "8088:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
 
 volumes:
   influxdb:

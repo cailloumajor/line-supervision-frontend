@@ -7,11 +7,7 @@ import createWebSocketPlugin from "./plugins/websocket"
 
 Vue.use(Vuex)
 
-const wsURL =
-  process.env.NODE_ENV === "production"
-    ? `ws://${window.location.host}/ws`
-    : `ws://${window.location.hostname}:3000`
-const wsPlugin = createWebSocketPlugin(wsURL)
+const wsPlugin = createWebSocketPlugin(`ws://${window.location.host}/ws`)
 
 const store = createStore(automation, {
   plugins: [wsPlugin],
