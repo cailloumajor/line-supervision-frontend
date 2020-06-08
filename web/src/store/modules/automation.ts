@@ -40,6 +40,7 @@ class AutomationState {
   machinesMetrics: MachineMetrics[] = [...Array(13)].map(() =>
     JSON.parse(JSON.stringify(defaultMachineMetrics))
   )
+  influxLinkActive = false
   opcLinkActive = false
   wsLinkActive = false
 }
@@ -51,6 +52,7 @@ class AutomationGetters extends Getters<AutomationState> {
 
   get linkStatus() {
     return {
+      influx: this.state.influxLinkActive,
       opc: this.state.opcLinkActive,
       ws: this.state.wsLinkActive
     }
@@ -60,6 +62,14 @@ class AutomationGetters extends Getters<AutomationState> {
 class AutomationMutations extends Mutations<AutomationState> {
   setMetrics(payload: MachineMetrics[]) {
     this.state.machinesMetrics = [...payload]
+  }
+
+  influxLinkUp() {
+    this.state.influxLinkActive = true
+  }
+
+  influxLinkDown() {
+    this.state.influxLinkActive = false
   }
 
   opcLinkUp() {

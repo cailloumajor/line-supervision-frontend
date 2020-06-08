@@ -31,3 +31,5 @@ services:
   web:
     depends_on:
       - opcua-bridge
+    environment:
+      - *influx_db_name

@@ -79,7 +79,8 @@ export default class App extends mapped {
     }
     return [
       linkState("WS", this.linkStatus.ws),
-      linkState("OPC", this.linkStatus.opc, this.linkStatus.ws)
+      linkState("OPC", this.linkStatus.opc, this.linkStatus.ws),
+      linkState("InfluxDB", this.linkStatus.influx)
     ]
   }
 
