@@ -1,17 +1,19 @@
+# Configuration common to development and production
 version: "3.7"
-
-x-aliases:
-  - &influx_db_name INFLUX_DB_NAME=***REMOVED***
 
 services:
   influx:
     image: influxdb:1.8
     environment:
-      - *influx_db_name
       - INFLUX_RP_DURATION=7d
       - INFLUXDB_HTTP_FLUX_ENABLED=true
       - INFLUXDB_SUBSCRIBER_ENABLED=false
       - INFLUXDB_CONTINUOUS_QUERIES_ENABLED=false
+    labels:
+      - "traefik.http.middlewares.influx-stripprefix.stripprefix.prefixes=/influx"
+      - "traefik.http.middlewares.influx-stripprefix.stripprefix.forceslash=false"
+      - "traefik.http.routers.influx.middlewares=influx-stripprefix@docker"
+      - "traefik.http.routers.influx.rule=PathPrefix(`/influx`)"
     volumes:
       - ./influx/start.sh:/docker-entrypoint-initdb.d/start.sh:ro
       - /data/influxdb:/var/lib/influxdb
@@ -21,15 +23,20 @@ services:
     depends_on:
       - influx
     environment:
-      - *influx_db_name
       - INFLUX_HOST=influx
-      # Following environment variables will be obtained from `.env` file
-      - OPC_SERVER_URL
-      - OPC_MONITOR_NODE
-      - OPC_RECORD_NODE
+    labels:
+      - "traefik.http.middlewares.ws-stripprefix.stripprefix.prefixes=/ws"
+      - "traefik.http.middlewares.ws-stripprefix.stripprefix.forceslash=false"
+      - "traefik.http.routers.opcua-bridge.middlewares=ws-stripprefix@docker"
+      - "traefik.http.routers.opcua-bridge.rule=PathPrefix(`/ws`)"
 
   web:
     depends_on:
       - opcua-bridge
-    environment:
-      - *influx_db_name
+    labels:
+      - "traefik.http.routers.web.rule=PathPrefix(`/`)"
+
+  reverse-proxy:
+    image: traefik:v2.2
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro

@@ -1,38 +1,31 @@
 version: "3.7"
 
+x-aliases:
+  - &common-env-file ./.env.common
+
 services:
   influx:
-    labels:
-      - "traefik.http.middlewares.influx-stripprefix.stripprefix.prefixes=/influx"
-      - "traefik.http.middlewares.influx-stripprefix.stripprefix.forceslash=false"
-      - "traefik.http.routers.influx.middlewares=influx-stripprefix@docker"
-      - "traefik.http.routers.influx.rule=PathPrefix(`/influx`)"
+    env_file:
+    - *common-env-file
     volumes:
       - influxdb:/var/lib/influxdb
 
   opcua-bridge:
-    expose:
-      - "3000"
-    labels:
-      - "traefik.http.middlewares.ws-stripprefix.stripprefix.prefixes=/ws"
-      - "traefik.http.middlewares.ws-stripprefix.stripprefix.forceslash=false"
-      - "traefik.http.routers.opcua-bridge.middlewares=ws-stripprefix@docker"
-      - "traefik.http.routers.opcua-bridge.rule=PathPrefix(`/ws`)"
-    volumes:
-      - ./opcua-webhmi-bridge/.env:/app/.env:ro
+    env_file:
+      - *common-env-file
+      - ./.env.opc
 
   web:
+    env_file:
+      - *common-env-file
     build: ./web/.devcontainer
     expose:
       - "8080"
-    labels:
-      - "traefik.http.routers.web.rule=PathPrefix(`/`)"
     volumes:
       - .:/workspace:cached
     tty: true
 
   reverse-proxy:
-    image: traefik:v2.2
     command:
       - "--api.dashboard=true"
       - "--api.insecure=true"
@@ -41,8 +34,6 @@ services:
     ports:
       - "8080:80"
       - "8088:8080"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
 
 volumes:
   influxdb:

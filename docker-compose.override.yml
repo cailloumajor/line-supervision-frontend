@@ -1,0 +1,36 @@
+# Override file for production
+version: "3.7"
+
+services:
+  influx:
+    environment:
+      # Following environment variables will be obtained from `.env` file
+      - INFLUX_DB_NAME
+    labels:
+      - "traefik.enable=true"
+
+  opcua-bridge:
+    environment:
+      # Following environment variables will be obtained from `.env` file
+      - INFLUX_DB_NAME
+      - OPC_SERVER_URL
+      - OPC_MONITOR_NODE
+      - OPC_RECORD_NODE
+    labels:
+      - "traefik.enable=true"
+
+  web:
+    build: ./web
+    environment:
+      # Following environment variables will be obtained from `.env` file
+      - INFLUX_DB_NAME
+    labels:
+      - "traefik.enable=true"
+
+  reverse-proxy:
+    command:
+      - "--entryPoints.http.address=:80"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedByDefault=false"
+    ports:
+      - "80:80"
