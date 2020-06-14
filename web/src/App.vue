@@ -28,6 +28,7 @@
         v-for="state of linkStates"
         :key="`state-${state.text}`"
         class="mx-1"
+        href="logs/"
         small
       >
         <v-icon :color="state.color" class="mr-1" left small>{{
