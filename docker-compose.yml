@@ -11,6 +11,7 @@ services:
       - INFLUXDB_CONTINUOUS_QUERIES_ENABLED=false
     labels:
       - "dozzle.enable=true"
+      - "traefik.enable=true"
       - "traefik.http.middlewares.influx-stripprefix.stripprefix.prefixes=/influx"
       - "traefik.http.middlewares.influx-stripprefix.stripprefix.forceslash=false"
       - "traefik.http.routers.influx.middlewares=influx-stripprefix@docker"
@@ -27,6 +28,7 @@ services:
     expose:
       - "8080"
     labels:
+      - "traefik.enable=true"
       - "traefik.http.routers.logging.rule=PathPrefix(`/logs`)"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -39,6 +41,7 @@ services:
       - INFLUX_HOST=influx
     labels:
       - "dozzle.enable=true"
+      - "traefik.enable=true"
       - "traefik.http.middlewares.ws-stripprefix.stripprefix.prefixes=/ws"
       - "traefik.http.middlewares.ws-stripprefix.stripprefix.forceslash=false"
       - "traefik.http.routers.opcua-bridge.middlewares=ws-stripprefix@docker"
@@ -49,6 +52,7 @@ services:
       - opcua-bridge
     labels:
       - "dozzle.enable=true"
+      - "traefik.enable=true"
       - "traefik.http.routers.web.rule=PathPrefix(`/`)"
 
   reverse-proxy:
