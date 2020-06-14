@@ -9,6 +9,10 @@ services:
     labels:
       - "traefik.enable=true"
 
+  log-viewer:
+    labels:
+      - "traefik.enable=true"
+
   opcua-bridge:
     environment:
       # Following environment variables will be obtained from `.env` file
