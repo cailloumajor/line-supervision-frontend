@@ -17,7 +17,7 @@ export default function createVuexPlugin(
       from(bucket: "${bucket}")
         |> range(start: -8h)
         |> increase()
-        |> yield()`.toString()
+        |> yield()`
 
     function influxQuery() {
       queryAPI.queryRows(query, {
