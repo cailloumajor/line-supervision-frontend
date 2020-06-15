@@ -1,24 +1,6 @@
 import { createMapper, Getters, Mutations, Module } from "vuex-smart-module"
 
-export interface MachineState {
-  cycle: boolean
-  alert: boolean
-  alarm: boolean
-  missingParts: boolean
-  saturation: boolean
-}
-
-export interface MachineCounters {
-  production: number
-  toolChangePercent: number
-  partControlPercent: number
-  bufferFillPercent: number
-}
-
-export interface MachineMetrics {
-  machineState: MachineState
-  counters: MachineCounters
-}
+import { MachineMetrics } from "./types"
 
 const defaultMachineMetrics = {
   machineState: {
@@ -89,12 +71,12 @@ class AutomationMutations extends Mutations<AutomationState> {
   }
 }
 
-const automation = new Module({
+export const automation = new Module({
   state: AutomationState,
   getters: AutomationGetters,
   mutations: AutomationMutations
 })
 
-const automationMapper = createMapper(automation)
+export const automationMapper = createMapper(automation)
 
-export { automation, automationMapper }
+export * from "./types"
