@@ -1,4 +1,4 @@
-import { createMapper, Getters, Mutations, Module } from "vuex-smart-module"
+import { createMapper, Getters, Module, Mutations } from "vuex-smart-module"
 
 import { MachineMetrics } from "./types"
 
