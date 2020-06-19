@@ -9,12 +9,14 @@
         Variable d'environnement {{ envVar }} manquante
       </v-alert>
     </div>
-    <div v-else></div>
+    <apex-chart :options="chartOptions" :series="dataSeries" type="line" />
   </div>
 </template>
 
 <script lang="ts">
 import { flux, InfluxDB } from "@influxdata/influxdb-client"
+import { ApexOptions } from "apexcharts"
+import VueApexCharts from "vue-apexcharts"
 import { Component, Vue } from "vue-property-decorator"
 
 import { automationMapper } from "@/store/modules/automation"
@@ -28,11 +30,52 @@ const mapped = Vue.extend({
   methods: automationMapper.mapMutations(["influxLinkUp", "influxLinkDown"])
 })
 
-@Component
+@Component({
+  components: {
+    "apex-chart": VueApexCharts
+  }
+})
 export default class RecordedDataGraph extends mapped {
   private fetchInterval!: number
 
   dataSeries: RecordedDataSerie[] = []
+  chartOptions: ApexOptions = {
+    chart: {
+      fontFamily: "Roboto",
+      foreColor: "white",
+      selection: {
+        enabled: false
+      },
+      toolbar: {
+        show: false
+      },
+      zoom: {
+        enabled: false
+      }
+    },
+    dataLabels: {
+      enabled: false
+    },
+    grid: {
+      xaxis: {
+        lines: {
+          show: true
+        }
+      }
+    },
+    title: {
+      text: process.env.VUE_APP_INFLUX_MEASUREMENT.toUpperCase()
+    },
+    tooltip: {
+      enabled: false
+    },
+    xaxis: {
+      labels: {
+        datetimeUTC: false
+      },
+      type: "datetime"
+    }
+  }
   envVars: {
     [key: string]: {
       varName: string

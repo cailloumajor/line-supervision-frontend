@@ -10,9 +10,11 @@
   },
   "dependencies": {
     "@influxdata/influxdb-client": "^1.4.0",
+    "apexcharts": "^3.19.2",
     "core-js": "^3.6.4",
     "reconnecting-websocket": "^4.4.0",
     "vue": "^2.6.11",
+    "vue-apexcharts": "^1.5.3",
     "vue-class-component": "^7.2.3",
     "vue-property-decorator": "^8.4.1",
     "vue-router": "^3.1.6",
