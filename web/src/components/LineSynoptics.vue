@@ -289,7 +289,7 @@ export default class LineSynoptics extends mapped {
 }
 
 .machine-name {
-  font-size: 60px;
+  font-size: 55px;
   font-weight: 700;
   text-anchor: middle;
 }
