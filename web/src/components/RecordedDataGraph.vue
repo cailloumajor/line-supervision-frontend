@@ -14,8 +14,12 @@
 </template>
 
 <script lang="ts">
-import { flux, InfluxDB } from "@influxdata/influxdb-client"
+import { InfluxDB } from "@influxdata/influxdb-client"
 import { ApexOptions } from "apexcharts"
+import add from "date-fns/add"
+import format from "date-fns/format"
+import parse from "date-fns/parse"
+import sub from "date-fns/sub"
 import VueApexCharts from "vue-apexcharts"
 import { Component, Vue, Watch } from "vue-property-decorator"
 
@@ -25,6 +29,8 @@ interface RecordedDataSerie {
   name: string
   data: [number, number][]
 }
+
+const shiftObjective = 1000 // TODO: make it configurable
 
 const mapped = Vue.extend({
   methods: automationMapper.mapMutations(["influxLinkUp", "influxLinkDown"])
@@ -73,6 +79,9 @@ export default class RecordedDataGraph extends mapped {
         datetimeUTC: false
       },
       type: "datetime"
+    },
+    yaxis: {
+      max: shiftObjective
     }
   }
   envVars: {
@@ -92,6 +101,10 @@ export default class RecordedDataGraph extends mapped {
       value: "",
       missing: false
     }
+  }
+  timeRange = {
+    start: new Date(),
+    end: new Date()
   }
 
   created(): void {
@@ -113,13 +126,22 @@ export default class RecordedDataGraph extends mapped {
   }
 
   fetchRecordedData(): void {
-    const result: RecordedDataSerie[] = []
+    this.updateTimeRange()
+    const result: RecordedDataSerie[] = [
+      {
+        name: "objectif",
+        data: [
+          [this.timeRange.start.getTime(), 0],
+          [this.timeRange.end.getTime(), shiftObjective]
+        ]
+      }
+    ]
     const { influxDBName, influxMeasurement } = this.envVars
     const url = `http://${window.location.host}/influx`
     const queryAPI = new InfluxDB({ url }).getQueryApi("")
-    const query = flux`\
+    const query = `\
       from(bucket: "${influxDBName.value}")
-        |> range(start: -8h)
+        |> range(start: ${this.timeRange.start.toISOString()})
         |> filter(fn: (r) => r._measurement == "${influxMeasurement.value}")
         |> increase()
     `
@@ -141,6 +163,21 @@ export default class RecordedDataGraph extends mapped {
         this.influxLinkUp()
       }
     })
+  }
+
+  updateTimeRange(): void {
+    const now = new Date()
+    const shifts = [
+      parse("21:30:00.0", "HH:mm:ss.S", now),
+      parse("13:30:00.0", "HH:mm:ss.S", now),
+      parse("05:30:00.0", "HH:mm:ss.S", now)
+    ]
+    let currentShift = shifts.find(date => date < now)
+    if (currentShift === undefined) {
+      currentShift = sub(shifts[0], { days: 1 })
+    }
+    this.timeRange.start = currentShift
+    this.timeRange.end = add(currentShift, { hours: 8 })
   }
 
   get missingEnvVars(): string[] {

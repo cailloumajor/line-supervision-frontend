@@ -12,6 +12,7 @@
     "@influxdata/influxdb-client": "^1.4.0",
     "apexcharts": "^3.19.2",
     "core-js": "^3.6.4",
+    "date-fns": "^2.14.0",
     "reconnecting-websocket": "^4.4.0",
     "vue": "^2.6.11",
     "vue-apexcharts": "^1.5.3",
