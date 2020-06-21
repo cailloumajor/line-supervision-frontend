@@ -70,6 +70,9 @@ export default class RecordedDataGraph extends mapped {
       },
       position: "top"
     },
+    markers: {
+      showNullDataPoints: false
+    },
     title: {
       text: process.env.VUE_APP_INFLUX_MEASUREMENT
     },
@@ -151,6 +154,7 @@ export default class RecordedDataGraph extends mapped {
         |> range(start: ${this.timeRange.start.toISOString()})
         |> filter(fn: (r) => r._measurement == "${influxMeasurement.value}")
         |> increase()
+        |> aggregateWindow(every: 1m, fn: mean)
     `
     queryAPI.queryRows(query, {
       next: (row, tableMeta) => {
@@ -159,7 +163,11 @@ export default class RecordedDataGraph extends mapped {
           result.push({ name: o._field, data: [] })
         }
         const serieIdx = result.findIndex(s => s.name === o._field)
-        result[serieIdx].data.push([Date.parse(o._time), o._value])
+        const rawValue = row[tableMeta.column("_value").index]
+        result[serieIdx].data.push([
+          Date.parse(o._time),
+          rawValue === "" ? null : o._value
+        ])
       },
       error: err => {
         this.influxLinkDown()
