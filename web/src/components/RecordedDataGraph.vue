@@ -17,7 +17,7 @@
 import { flux, InfluxDB } from "@influxdata/influxdb-client"
 import { ApexOptions } from "apexcharts"
 import VueApexCharts from "vue-apexcharts"
-import { Component, Vue } from "vue-property-decorator"
+import { Component, Vue, Watch } from "vue-property-decorator"
 
 import { automationMapper } from "@/store/modules/automation"
 
@@ -42,7 +42,6 @@ export default class RecordedDataGraph extends mapped {
   chartOptions: ApexOptions = {
     chart: {
       fontFamily: "Roboto",
-      foreColor: "white",
       selection: {
         enabled: false
       },
@@ -148,6 +147,20 @@ export default class RecordedDataGraph extends mapped {
     return Object.values(this.envVars)
       .filter(v => v.missing)
       .map(v => v.varName)
+  }
+
+  @Watch("$vuetify.theme.dark", { immediate: true })
+  onVuetifyDarkChanged(val: boolean) {
+    const foreColor = val ? "white" : "rgba(0, 0, 0, 0.87)"
+    this.chartOptions = {
+      ...this.chartOptions,
+      ...{
+        chart: {
+          ...this.chartOptions.chart,
+          foreColor
+        }
+      }
+    }
   }
 }
 </script>
