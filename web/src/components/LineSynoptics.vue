@@ -256,6 +256,20 @@ export default class LineSynoptics extends mapped {
 </script>
 
 <style lang="scss" scoped>
+@import "~vuetify/src/styles/styles.sass";
+
+@mixin svg-text($material) {
+  fill: map-deep-get($material, "text", "primary");
+}
+
+.v-application.theme--light svg text {
+  @include svg-text($material-light);
+}
+
+.v-application.theme--dark svg text {
+  @include svg-text($material-dark);
+}
+
 .layout-container {
   position: relative;
 }
@@ -277,7 +291,6 @@ export default class LineSynoptics extends mapped {
 .machine-name {
   font-size: 43px;
   font-weight: 700;
-  fill: white;
   text-anchor: middle;
 }
 
