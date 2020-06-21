@@ -125,19 +125,19 @@ interface CardData {
 }
 
 const LAYOUT_DATA = [
-  { cardX: 434, cardY: 441, tagX: 434, tagY: 401, tagText: "***REMOVED***" },
-  { cardX: 999, cardY: 1284, tagX: 999, tagY: 1244, tagText: "***REMOVED***" },
-  { cardX: 1181, cardY: 677, tagX: 1181, tagY: 637, tagText: "***REMOVED***" },
-  { cardX: 1793, cardY: 676, tagX: 1793, tagY: 636, tagText: "***REMOVED***" },
-  { cardX: 2045, cardY: 293, tagX: 2045, tagY: 253, tagText: "***REMOVED***" },
-  { cardX: 2566, cardY: 524, tagX: 2566, tagY: 484, tagText: "***REMOVED***" },
-  { cardX: 3110, cardY: 763, tagX: 3110, tagY: 723, tagText: "***REMOVED***" },
-  { cardX: 3651, cardY: 780, tagX: 3651, tagY: 740, tagText: "***REMOVED***" },
-  { cardX: 3854, cardY: 312, tagX: 3854, tagY: 272, tagText: "***REMOVED***" },
-  { cardX: 3281, cardY: 304, tagX: 3281, tagY: 264, tagText: "***REMOVED***" },
-  { cardX: 4279, cardY: 551, tagX: 4279, tagY: 511, tagText: "***REMOVED***" },
-  { cardX: 4353, cardY: 338, tagX: 4353, tagY: 298, tagText: "***REMOVED***" },
-  { cardX: 4550, cardY: 686, tagX: 4550, tagY: 646, tagText: "***REMOVED***" }
+  { cardX: 434, cardY: 441, tagX: 434, tagY: 411, tagText: "***REMOVED***" },
+  { cardX: 999, cardY: 1284, tagX: 999, tagY: 1254, tagText: "***REMOVED***" },
+  { cardX: 1181, cardY: 677, tagX: 1181, tagY: 647, tagText: "***REMOVED***" },
+  { cardX: 1793, cardY: 676, tagX: 1793, tagY: 646, tagText: "***REMOVED***" },
+  { cardX: 2045, cardY: 293, tagX: 2045, tagY: 263, tagText: "***REMOVED***" },
+  { cardX: 2566, cardY: 524, tagX: 2566, tagY: 494, tagText: "***REMOVED***" },
+  { cardX: 3110, cardY: 763, tagX: 3110, tagY: 733, tagText: "***REMOVED***" },
+  { cardX: 3651, cardY: 780, tagX: 3651, tagY: 750, tagText: "***REMOVED***" },
+  { cardX: 3854, cardY: 312, tagX: 3854, tagY: 282, tagText: "***REMOVED***" },
+  { cardX: 3281, cardY: 304, tagX: 3281, tagY: 274, tagText: "***REMOVED***" },
+  { cardX: 4279, cardY: 551, tagX: 4279, tagY: 521, tagText: "***REMOVED***" },
+  { cardX: 4353, cardY: 338, tagX: 4353, tagY: 308, tagText: "***REMOVED***" },
+  { cardX: 4550, cardY: 686, tagX: 4550, tagY: 656, tagText: "***REMOVED***" }
 ]
 
 function machineStampColor(state: MachineState) {
@@ -289,7 +289,7 @@ export default class LineSynoptics extends mapped {
 }
 
 .machine-name {
-  font-size: 43px;
+  font-size: 60px;
   font-weight: 700;
   text-anchor: middle;
 }
