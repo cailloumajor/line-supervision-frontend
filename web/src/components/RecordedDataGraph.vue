@@ -44,22 +44,15 @@ const mapped = Vue.extend({
 export default class RecordedDataGraph extends mapped {
   private fetchInterval!: number
 
-  dataSeries: RecordedDataSerie[] = []
   chartOptions: ApexOptions = {
     chart: {
       fontFamily: "Roboto",
-      selection: {
-        enabled: false
-      },
       toolbar: {
         show: false
       },
       zoom: {
         enabled: false
       }
-    },
-    dataLabels: {
-      enabled: false
     },
     grid: {
       xaxis: {
@@ -68,22 +61,36 @@ export default class RecordedDataGraph extends mapped {
         }
       }
     },
+    legend: {
+      onItemClick: {
+        toggleDataSeries: false
+      },
+      onItemHover: {
+        highlightDataSeries: false
+      },
+      position: "top"
+    },
     title: {
-      text: process.env.VUE_APP_INFLUX_MEASUREMENT.toUpperCase()
+      text: process.env.VUE_APP_INFLUX_MEASUREMENT
     },
     tooltip: {
       enabled: false
     },
     xaxis: {
       labels: {
-        datetimeUTC: false
+        datetimeUTC: false,
+        formatter: (val, timestamp) => format(timestamp as number, "H:mm"),
+        offsetY: 5,
+        rotateAlways: true
       },
+      tickAmount: 8,
       type: "datetime"
     },
     yaxis: {
       max: shiftObjective
     }
   }
+  dataSeries: RecordedDataSerie[] = []
   envVars: {
     [key: string]: {
       varName: string
@@ -160,6 +167,16 @@ export default class RecordedDataGraph extends mapped {
       },
       complete: () => {
         this.dataSeries = [...result]
+        const strokeWidths = Array(result.length - 1).fill(5)
+        strokeWidths.unshift(2)
+        this.chartOptions = {
+          ...this.chartOptions,
+          ...{
+            stroke: {
+              width: strokeWidths
+            }
+          }
+        }
         this.influxLinkUp()
       }
     })
@@ -201,3 +218,12 @@ export default class RecordedDataGraph extends mapped {
   }
 }
 </script>
+
+<style lang="scss" scoped>
+::v-deep {
+  .apexcharts-legend-text,
+  .apexcharts-title-text {
+    text-transform: capitalize;
+  }
+}
+</style>
