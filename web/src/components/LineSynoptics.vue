@@ -62,7 +62,6 @@
           :fill="data.stampFill"
           :href="`#machine-${index}-path`"
           class="machine-path"
-          stroke="#999"
         />
         <text :x="data.tagX" :y="data.tagY" class="machine-name">
           {{ data.tagText }}
@@ -140,11 +139,11 @@ const LAYOUT_DATA = [
   { cardX: 4550, cardY: 686, tagX: 4550, tagY: 656, tagText: "***REMOVED***" }
 ]
 
-function machineStampColor(state: MachineState) {
+function machineStampColor(state: MachineState, darkMode: boolean) {
   if (state.alarm) return "#d00"
   if (state.alert) return "#d98d00"
   if (state.cycle) return "green"
-  return "#CCC"
+  return darkMode ? "#999" : "#CCC"
 }
 
 const mapped = Vue.extend({
@@ -234,7 +233,7 @@ export default class LineSynoptics extends mapped {
     return this.allMachinesMetrics.map(({ machineState }, index) => {
       return {
         ...LAYOUT_DATA[index],
-        stampFill: machineStampColor(machineState),
+        stampFill: machineStampColor(machineState, this.$vuetify.theme.dark),
         stampBlink: machineState.alarm
       }
     })
@@ -262,12 +261,24 @@ export default class LineSynoptics extends mapped {
   fill: map-deep-get($material, "text", "primary");
 }
 
-.v-application.theme--light svg text {
-  @include svg-text($material-light);
+.v-application.theme--light {
+  svg text {
+    @include svg-text($material-light);
+  }
+
+  .machine-path {
+    stroke: #999;
+  }
 }
 
-.v-application.theme--dark svg text {
-  @include svg-text($material-dark);
+.v-application.theme--dark {
+  svg text {
+    @include svg-text($material-dark);
+  }
+
+  .machine-path {
+    stroke: #c8c8c8;
+  }
 }
 
 .layout-container {
