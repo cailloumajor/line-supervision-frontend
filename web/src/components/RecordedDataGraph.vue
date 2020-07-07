@@ -126,7 +126,9 @@ export default class RecordedDataGraph extends mapped {
         this.envVars[key].value = envVar
       }
     }
-    if (this.missingEnvVars.length) return
+    if (this.missingEnvVars.length) {
+      return
+    }
     setTimeout(this.fetchRecordedData, 0)
     this.fetchInterval = setInterval(this.fetchRecordedData, 60000)
   }
