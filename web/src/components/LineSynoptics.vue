@@ -147,7 +147,7 @@ function machineStampColor(state: MachineState, darkMode: boolean) {
 }
 
 const mapped = Vue.extend({
-  computed: automationMapper.mapGetters(["allMachinesMetrics"])
+  computed: automationMapper.mapState(["machinesMetrics"])
 })
 
 @Component
@@ -202,7 +202,7 @@ export default class LineSynoptics extends mapped {
   }
 
   get cardsData(): CardData[] {
-    return this.allMachinesMetrics
+    return this.machinesMetrics
       .map(({ counters }, index) => {
         return {
           index,
@@ -230,7 +230,7 @@ export default class LineSynoptics extends mapped {
   }
 
   get layoutData() {
-    return this.allMachinesMetrics.map(({ machineState }, index) => {
+    return this.machinesMetrics.map(({ machineState }, index) => {
       return {
         ...LAYOUT_DATA[index],
         stampFill: machineStampColor(machineState, this.$vuetify.theme.dark),

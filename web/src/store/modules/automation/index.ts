@@ -28,10 +28,6 @@ class AutomationState {
 }
 
 class AutomationGetters extends Getters<AutomationState> {
-  get allMachinesMetrics() {
-    return this.state.machinesMetrics
-  }
-
   get linkStatus() {
     return {
       influx: this.state.influxLinkActive,
