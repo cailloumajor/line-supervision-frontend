@@ -21,10 +21,17 @@ export default function createVuexPlugin(
     rws.addEventListener("message", event => {
       try {
         const wsMessage = JSON.parse(event.data)
-        switch (wsMessage.type) {
+        switch (wsMessage.message_type) {
           case "opc_data_change":
             ctx.mutations.opcLinkUp()
-            ctx.mutations.setMetrics(wsMessage.data)
+            switch (wsMessage.node_id) {
+              case '"dbLineSupervision"."machine"':
+                ctx.mutations.setMetrics(wsMessage.data)
+                break
+              case '"dbLineSupervision"."shiftProdObjective"':
+                ctx.mutations.setProdObjective(wsMessage.data)
+                break
+            }
             break
           case "opc_status":
             if (wsMessage.data === false) {

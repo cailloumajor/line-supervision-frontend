@@ -22,6 +22,7 @@ class AutomationState {
   machinesMetrics: MachineMetrics[] = [...Array(13)].map(() =>
     JSON.parse(JSON.stringify(defaultMachineMetrics))
   )
+  productionObjective = 0
   influxLinkActive = false
   opcLinkActive = false
   wsLinkActive = false
@@ -40,6 +41,10 @@ class AutomationGetters extends Getters<AutomationState> {
 class AutomationMutations extends Mutations<AutomationState> {
   setMetrics(payload: MachineMetrics[]) {
     this.state.machinesMetrics = [...payload]
+  }
+
+  setProdObjective(payload: number) {
+    this.state.productionObjective = payload
   }
 
   influxLinkUp() {
