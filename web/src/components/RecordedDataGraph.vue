@@ -9,7 +9,12 @@
         Variable d'environnement {{ envVar }} manquante
       </v-alert>
     </div>
-    <apex-chart :options="chartOptions" :series="dataSeries" type="line" />
+    <apex-chart
+      v-if="influxDataSeries.length"
+      :options="chartOptions"
+      :series="dataSeries"
+      type="line"
+    />
   </div>
 </template>
 
@@ -21,7 +26,7 @@ import format from "date-fns/format"
 import parse from "date-fns/parse"
 import sub from "date-fns/sub"
 import VueApexCharts from "vue-apexcharts"
-import { Component, Vue, Watch } from "vue-property-decorator"
+import { Component, Vue } from "vue-property-decorator"
 
 import { automationMapper } from "@/store/modules/automation"
 
@@ -30,9 +35,8 @@ interface RecordedDataSerie {
   data: [number, number][]
 }
 
-const shiftObjective = 1000 // TODO: make it configurable
-
 const mapped = Vue.extend({
+  computed: automationMapper.mapState(["productionObjective"]),
   methods: automationMapper.mapMutations(["influxLinkUp", "influxLinkDown"])
 })
 
@@ -44,56 +48,7 @@ const mapped = Vue.extend({
 export default class RecordedDataGraph extends mapped {
   private fetchInterval!: number
 
-  chartOptions: ApexOptions = {
-    chart: {
-      fontFamily: "Roboto",
-      toolbar: {
-        show: false
-      },
-      zoom: {
-        enabled: false
-      }
-    },
-    grid: {
-      xaxis: {
-        lines: {
-          show: true
-        }
-      }
-    },
-    legend: {
-      onItemClick: {
-        toggleDataSeries: false
-      },
-      onItemHover: {
-        highlightDataSeries: false
-      },
-      position: "top"
-    },
-    markers: {
-      showNullDataPoints: false
-    },
-    title: {
-      text: process.env.VUE_APP_INFLUX_MEASUREMENT
-    },
-    tooltip: {
-      enabled: false
-    },
-    xaxis: {
-      labels: {
-        datetimeUTC: false,
-        formatter: (val, timestamp) => format(timestamp as number, "H:mm"),
-        offsetY: 5,
-        rotateAlways: true
-      },
-      tickAmount: 8,
-      type: "datetime"
-    },
-    yaxis: {
-      max: shiftObjective
-    }
-  }
-  dataSeries: RecordedDataSerie[] = []
+  influxDataSeries: RecordedDataSerie[] = []
   envVars: {
     [key: string]: {
       varName: string
@@ -117,7 +72,7 @@ export default class RecordedDataGraph extends mapped {
     end: new Date()
   }
 
-  created(): void {
+  mounted(): void {
     for (const key in this.envVars) {
       const envVar = process.env[this.envVars[key].varName]
       if (envVar === undefined) {
@@ -139,15 +94,7 @@ export default class RecordedDataGraph extends mapped {
 
   fetchRecordedData(): void {
     this.updateTimeRange()
-    const result: RecordedDataSerie[] = [
-      {
-        name: "objectif",
-        data: [
-          [this.timeRange.start.getTime(), 0],
-          [this.timeRange.end.getTime(), shiftObjective]
-        ]
-      }
-    ]
+    const result: RecordedDataSerie[] = []
     const { influxDBName, influxMeasurement } = this.envVars
     const url = `http://${window.location.host}/influx`
     const queryAPI = new InfluxDB({ url }).getQueryApi("")
@@ -176,17 +123,7 @@ export default class RecordedDataGraph extends mapped {
         console.error(err)
       },
       complete: () => {
-        this.dataSeries = [...result]
-        const strokeWidths = Array(result.length - 1).fill(5)
-        strokeWidths.unshift(2)
-        this.chartOptions = {
-          ...this.chartOptions,
-          ...{
-            stroke: {
-              width: strokeWidths
-            }
-          }
-        }
+        this.influxDataSeries = [...result]
         this.influxLinkUp()
       }
     })
@@ -207,24 +144,85 @@ export default class RecordedDataGraph extends mapped {
     this.timeRange.end = add(currentShift, { hours: 8 })
   }
 
+  get chartOptions(): ApexOptions {
+    const strokeWidths = Array(this.dataSeries.length - 1).fill(5)
+    strokeWidths.unshift(2)
+    return {
+      chart: {
+        animations: {
+          enabled: false
+        },
+        fontFamily: "Roboto",
+        foreColor: this.$vuetify.theme.dark ? "white" : "rgba(0, 0, 0, 0.87)",
+        toolbar: {
+          show: false
+        },
+        zoom: {
+          enabled: false
+        }
+      },
+      grid: {
+        xaxis: {
+          lines: {
+            show: true
+          }
+        }
+      },
+      legend: {
+        onItemClick: {
+          toggleDataSeries: false
+        },
+        onItemHover: {
+          highlightDataSeries: false
+        },
+        position: "top"
+      },
+      markers: {
+        showNullDataPoints: false
+      },
+      stroke: {
+        lineCap: "round",
+        width: strokeWidths
+      },
+      title: {
+        text: process.env.VUE_APP_INFLUX_MEASUREMENT
+      },
+      tooltip: {
+        enabled: false
+      },
+      xaxis: {
+        labels: {
+          datetimeUTC: false,
+          formatter: (val, timestamp) => format(timestamp as number, "H:mm"),
+          offsetY: 5,
+          rotateAlways: true
+        },
+        tickAmount: 8,
+        type: "datetime"
+      }
+      // yaxis: {
+      //   max: this.productionObjective
+      // }
+    }
+  }
+
+  get dataSeries(): RecordedDataSerie[] {
+    return [
+      {
+        name: "objectif",
+        data: [
+          [this.timeRange.start.getTime(), 0],
+          [this.timeRange.end.getTime(), this.productionObjective]
+        ]
+      },
+      ...this.influxDataSeries
+    ]
+  }
+
   get missingEnvVars(): string[] {
     return Object.values(this.envVars)
       .filter(v => v.missing)
       .map(v => v.varName)
-  }
-
-  @Watch("$vuetify.theme.dark", { immediate: true })
-  onVuetifyDarkChanged(val: boolean) {
-    const foreColor = val ? "white" : "rgba(0, 0, 0, 0.87)"
-    this.chartOptions = {
-      ...this.chartOptions,
-      ...{
-        chart: {
-          ...this.chartOptions.chart,
-          foreColor
-        }
-      }
-    }
   }
 }
 </script>
