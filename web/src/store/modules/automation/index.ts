@@ -2,7 +2,7 @@ import { createMapper, Getters, Module, Mutations } from "vuex-smart-module"
 
 import { MachineMetrics } from "./types"
 
-const defaultMachineMetrics = {
+const defaultMachineMetrics: MachineMetrics = {
   machineState: {
     cycle: false,
     alert: false,
@@ -14,7 +14,8 @@ const defaultMachineMetrics = {
     production: 0,
     toolChangePercent: 0,
     partControlPercent: 0,
-    bufferFillPercent: 0
+    bufferFillPercent: 0,
+    cycleTimePercent: 0
   }
 }
 

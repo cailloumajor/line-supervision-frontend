@@ -11,6 +11,7 @@ export interface MachineCounters {
   toolChangePercent: number
   partControlPercent: number
   bufferFillPercent: number
+  cycleTimePercent: number
 }
 
 export interface MachineMetrics {

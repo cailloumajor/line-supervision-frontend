@@ -101,6 +101,11 @@
               <v-icon small>{{ gauge.icon }}</v-icon>
             </v-progress-circular>
           </v-col>
+          <v-col v-if="card.cycleTime.show">
+            <v-icon :color="card.cycleTime.color" class="cycle-time" size="30">
+              {{ card.cycleTime.icon }}
+            </v-icon>
+          </v-col>
         </v-row>
       </v-container>
     </v-card>
@@ -113,14 +118,19 @@ import { Component, Vue, Watch } from "vue-property-decorator"
 import { automationMapper, MachineState } from "@/store/modules/automation"
 
 interface CardData {
+  index: number
+  x: number
+  y: number
+  cycleTime: {
+    show: boolean
+    icon: string
+    color: string
+  }
   gauges: {
     value: number
     icon: string
     color: string
   }[]
-  x: number
-  y: number
-  index: number
 }
 
 const LAYOUT_DATA = [
@@ -207,6 +217,14 @@ export default class LineSynoptics extends mapped {
         return {
           index,
           ...this.cardDOMPositions[index],
+          cycleTime: {
+            show: counters.cycleTimePercent > 100,
+            icon:
+              counters.cycleTimePercent > 105
+                ? "mdi-clock-alert"
+                : "mdi-clock-alert-outline",
+            color: counters.cycleTimePercent > 105 ? "red accent-4" : "orange"
+          },
           gauges: [
             {
               value: counters.partControlPercent,
@@ -226,7 +244,7 @@ export default class LineSynoptics extends mapped {
           ].filter(({ value }) => value >= 0)
         }
       })
-      .filter(({ gauges }) => gauges.length)
+      .filter(({ gauges, cycleTime }) => gauges.length || cycleTime.show)
   }
 
   get layoutData() {
@@ -245,7 +263,8 @@ export default class LineSynoptics extends mapped {
       val.length !== oldVal.length ||
       val.some(
         (cardData, index) =>
-          cardData.gauges.length !== oldVal[index].gauges.length
+          cardData.gauges.length !== oldVal[index].gauges.length ||
+          cardData.cycleTime.show !== oldVal[index].cycleTime.show
       )
     ) {
       this.$nextTick(() => this.placeMachineCards())
@@ -289,11 +308,11 @@ export default class LineSynoptics extends mapped {
   stroke-width: 6px;
 
   &.blink {
-    animation: blink 2s step-end infinite;
+    animation: machine-blink 2s step-end infinite;
   }
 }
 
-@keyframes blink {
+@keyframes machine-blink {
   50% {
     fill-opacity: 0.2;
   }
@@ -318,5 +337,15 @@ export default class LineSynoptics extends mapped {
   $margin-x: 1px;
   margin-left: $margin-x;
   margin-right: $margin-x;
+}
+
+.cycle-time {
+  animation: cycle-time-blink 1s step-end infinite;
+}
+
+@keyframes cycle-time-blink {
+  50% {
+    opacity: 0;
+  }
 }
 </style>
