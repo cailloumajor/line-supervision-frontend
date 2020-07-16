@@ -81,7 +81,7 @@
       :key="`machine-card-${cardIndex}`"
       :style="{ left: `${card.x}px`, top: `${card.y}px` }"
       class="machine-card"
-      light
+      outlined
       ref="machineCard"
     >
       <v-container class="machine-card-container">
@@ -229,17 +229,17 @@ export default class LineSynoptics extends mapped {
             {
               value: counters.partControlPercent,
               icon: "mdi-eye-check",
-              color: "orange"
+              color: "orange darken-3"
             },
             {
               value: counters.toolChangePercent,
               icon: "mdi-tools",
-              color: "blue"
+              color: "blue darken-1"
             },
             {
               value: counters.bufferFillPercent,
               icon: "mdi-robot-industrial",
-              color: "brown"
+              color: "purple darken-1"
             }
           ].filter(({ value }) => value >= 0)
         }
@@ -298,6 +298,10 @@ export default class LineSynoptics extends mapped {
   .machine-path {
     stroke: #c8c8c8;
   }
+
+  .machine-card ::v-deep .v-progress-circular__underlay {
+    stroke: rgba(white, 0.1);
+  }
 }
 
 .layout-container {
@@ -330,7 +334,7 @@ export default class LineSynoptics extends mapped {
 }
 
 .machine-card-container {
-  padding: 2px;
+  padding: 3px;
 }
 
 .gauge {
