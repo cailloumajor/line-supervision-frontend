@@ -84,30 +84,26 @@
       outlined
       ref="machineCard"
     >
-      <v-container class="machine-card-container">
-        <v-row no-gutters>
-          <v-col
-            v-for="(gauge, gaugeIndex) in card.gauges"
-            :key="`machine-card-${cardIndex}-gauge-${gaugeIndex}`"
-          >
-            <v-progress-circular
-              :color="gauge.color"
-              :rotate="-90"
-              :size="32"
-              :value="gauge.value"
-              :width="5"
-              class="gauge"
-            >
-              <v-icon small>{{ gauge.icon }}</v-icon>
-            </v-progress-circular>
-          </v-col>
-          <v-col v-if="card.cycleTime.show">
-            <v-icon :color="card.cycleTime.color" class="cycle-time" size="30">
-              {{ card.cycleTime.icon }}
-            </v-icon>
-          </v-col>
-        </v-row>
-      </v-container>
+      <v-progress-circular
+        v-for="(gauge, gaugeIndex) in card.gauges"
+        :color="gauge.color"
+        :key="`machine-card-${cardIndex}-gauge-${gaugeIndex}`"
+        :rotate="-90"
+        :size="32"
+        :value="gauge.value"
+        :width="5"
+        class="gauge"
+      >
+        <v-icon small>{{ gauge.icon }}</v-icon>
+      </v-progress-circular>
+      <v-icon
+        v-if="card.cycleTime.show"
+        :color="card.cycleTime.color"
+        class="cycle-time"
+        size="32"
+      >
+        {{ card.cycleTime.icon }}
+      </v-icon>
     </v-card>
   </div>
 </template>
@@ -329,18 +325,13 @@ export default class LineSynoptics extends mapped {
 }
 
 .machine-card {
-  display: inline-block;
+  padding: 1px;
   position: absolute;
-}
 
-.machine-card-container {
-  padding: 3px;
-}
-
-.gauge {
-  $margin-x: 1px;
-  margin-left: $margin-x;
-  margin-right: $margin-x;
+  .gauge,
+  .cycle-time {
+    margin: 1px;
+  }
 }
 
 .cycle-time {
