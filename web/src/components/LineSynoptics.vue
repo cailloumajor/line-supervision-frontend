@@ -295,7 +295,7 @@ export default class LineSynoptics extends mapped {
     stroke: #c8c8c8;
   }
 
-  .machine-card ::v-deep .v-progress-circular__underlay {
+  .gauge ::v-deep .v-progress-circular__underlay {
     stroke: rgba(white, 0.1);
   }
 }
