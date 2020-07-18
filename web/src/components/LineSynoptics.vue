@@ -1,5 +1,28 @@
 <template>
   <div class="layout-container" ref="layoutContainer">
+    <v-container class="pa-0 my-1">
+      <v-row align="center" justify="space-around" no-gutters>
+        <v-col
+          v-for="(icon, name) in cardIcons"
+          :key="`legend-icon-${name}`"
+          class="caption"
+          md="auto"
+        >
+          <v-progress-circular
+            v-if="icon.progress"
+            :color="icon.color"
+            :rotate="-90"
+            :size="28"
+            :value="80"
+            class="gauge"
+          >
+            <v-icon x-small>{{ icon.icon }}</v-icon>
+          </v-progress-circular>
+          <v-icon v-else :color="icon.color">{{ icon.icon }}</v-icon>
+          {{ icon.description }}
+        </v-col>
+      </v-row>
+    </v-container>
     <svg viewBox="0 0 4720 1396.333">
       <defs>
         <path
@@ -113,20 +136,68 @@ import { Component, Vue, Watch } from "vue-property-decorator"
 
 import { automationMapper, MachineState } from "@/store/modules/automation"
 
+interface CommonIcon {
+  icon: string
+  color: string
+}
+
+interface LegendIcon extends CommonIcon {
+  description: string
+  progress: boolean
+}
+
+interface CycleTimeIcon extends CommonIcon {
+  show: boolean
+}
+
+interface GaugeIcon extends CommonIcon {
+  value: number
+}
+
 interface CardData {
   index: number
   x: number
   y: number
-  cycleTime: {
-    show: boolean
-    icon: string
-    color: string
+  cycleTime: CycleTimeIcon
+  gauges: GaugeIcon[]
+}
+
+const iconNoLegend: (legendIcon: LegendIcon) => CommonIcon = ({
+  icon,
+  color
+}) => ({ icon, color })
+
+const CardIcons: { [name: string]: LegendIcon } = {
+  partControl: {
+    icon: "mdi-eye-check",
+    color: "orange darken-3",
+    description: "Contrôle fréquentiel",
+    progress: true
+  },
+  toolChange: {
+    icon: "mdi-tools",
+    color: "blue darken-1",
+    description: "Contrôle ou changement d'outils",
+    progress: true
+  },
+  bufferFill: {
+    icon: "mdi-robot-industrial",
+    color: "purple darken-1",
+    description: "Remplissage stockeur robot",
+    progress: true
+  },
+  cycleTimeWarn: {
+    icon: "mdi-timer-outline",
+    color: "orange",
+    description: "Dépassement temps de cycle ≤ 105%",
+    progress: false
+  },
+  cycleTimeAlert: {
+    icon: "mdi-timer-outline",
+    color: "red accent-4",
+    description: "Dépassement temps de cycle > 105%",
+    progress: false
   }
-  gauges: {
-    value: number
-    icon: string
-    color: string
-  }[]
 }
 
 const LAYOUT_DATA = [
@@ -158,6 +229,7 @@ const mapped = Vue.extend({
 
 @Component
 export default class LineSynoptics extends mapped {
+  private cardIcons = CardIcons
   private resizeObs!: ResizeObserver
 
   $refs!: {
@@ -215,27 +287,22 @@ export default class LineSynoptics extends mapped {
           ...this.cardDOMPositions[index],
           cycleTime: {
             show: counters.cycleTimePercent > 100,
-            icon:
-              counters.cycleTimePercent > 105
-                ? "mdi-clock-alert"
-                : "mdi-clock-alert-outline",
-            color: counters.cycleTimePercent > 105 ? "red accent-4" : "orange"
+            ...(counters.cycleTimePercent <= 105
+              ? iconNoLegend(CardIcons.cycleTimeWarn)
+              : iconNoLegend(CardIcons.cycleTimeAlert))
           },
           gauges: [
             {
               value: counters.partControlPercent,
-              icon: "mdi-eye-check",
-              color: "orange darken-3"
+              ...iconNoLegend(CardIcons.partControl)
             },
             {
               value: counters.toolChangePercent,
-              icon: "mdi-tools",
-              color: "blue darken-1"
+              ...iconNoLegend(CardIcons.toolChange)
             },
             {
               value: counters.bufferFillPercent,
-              icon: "mdi-robot-industrial",
-              color: "purple darken-1"
+              ...iconNoLegend(CardIcons.bufferFill)
             }
           ].filter(({ value }) => value >= 0)
         }
