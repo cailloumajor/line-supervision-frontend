@@ -14,7 +14,7 @@
       </v-btn>
     </v-app-bar>
 
-    <v-content>
+    <v-main>
       <v-container fluid>
         <router-view />
       </v-container>
@@ -25,8 +25,9 @@
       >
         <v-alert type="error">Pas de connection à l'automate</v-alert>
       </v-overlay>
-    </v-content>
-    <v-footer class="">
+    </v-main>
+
+    <v-footer>
       <v-spacer />
       <v-chip
         v-for="state of linkStates"

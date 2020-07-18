@@ -5,7 +5,7 @@
         <v-col
           v-for="(icon, name) in cardIcons"
           :key="`legend-icon-${name}`"
-          class="caption"
+          class="text-caption"
           md="auto"
         >
           <v-progress-circular
