@@ -9,9 +9,9 @@
       />
       <v-toolbar-title>***REMOVED***</v-toolbar-title>
       <v-spacer />
-      <v-btn @click="$vuetify.theme.dark = !$vuetify.theme.dark" icon
-        ><v-icon>mdi-theme-light-dark</v-icon></v-btn
-      >
+      <v-btn @click="$vuetify.theme.dark = !$vuetify.theme.dark" icon>
+        <v-icon>mdi-theme-light-dark</v-icon>
+      </v-btn>
     </v-app-bar>
 
     <v-content>
@@ -35,9 +35,9 @@
         href="logs/"
         small
       >
-        <v-icon :color="state.color" class="mr-1" left small>{{
-          state.icon
-        }}</v-icon>
+        <v-icon :color="state.color" class="mr-1" left small>
+          {{ state.icon }}
+        </v-icon>
         {{ state.text }}
       </v-chip>
     </v-footer>
