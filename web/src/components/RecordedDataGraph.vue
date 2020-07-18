@@ -152,8 +152,8 @@ export default class RecordedDataGraph extends mapped {
         animations: {
           enabled: false
         },
+        background: "transparent",
         fontFamily: "Roboto",
-        foreColor: this.$vuetify.theme.dark ? "white" : "rgba(0, 0, 0, 0.87)",
         toolbar: {
           show: false
         },
@@ -161,6 +161,7 @@ export default class RecordedDataGraph extends mapped {
           enabled: false
         }
       },
+      colors: ["#FF4560", "#008FFB", "#00E396", "#FEB019", "#775DD0"],
       grid: {
         xaxis: {
           lines: {
@@ -183,6 +184,9 @@ export default class RecordedDataGraph extends mapped {
       stroke: {
         lineCap: "round",
         width: strokeWidths
+      },
+      theme: {
+        mode: this.$vuetify.theme.dark ? "dark" : "light"
       },
       title: {
         text: process.env.VUE_APP_INFLUX_MEASUREMENT
