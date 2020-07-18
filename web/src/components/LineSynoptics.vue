@@ -200,7 +200,7 @@ const CardIcons: { [name: string]: LegendIcon } = {
   }
 }
 
-const LAYOUT_DATA = [
+const LayoutData = [
   { cardX: 434, cardY: 441, tagX: 434, tagY: 411, tagText: "***REMOVED***" },
   { cardX: 530, cardY: 1000, tagX: 999, tagY: 1254, tagText: "***REMOVED***" },
   { cardX: 1181, cardY: 677, tagX: 1181, tagY: 647, tagText: "***REMOVED***" },
@@ -238,7 +238,7 @@ export default class LineSynoptics extends mapped {
     machineCard: Vue[]
   }
 
-  cardDOMPositions = [...Array(LAYOUT_DATA.length)].map(() => ({ x: 0, y: 0 }))
+  cardDOMPositions = [...Array(LayoutData.length)].map(() => ({ x: 0, y: 0 }))
 
   mounted() {
     this.observeResize()
@@ -313,7 +313,7 @@ export default class LineSynoptics extends mapped {
   get layoutData() {
     return this.machinesMetrics.map(({ machineState }, index) => {
       return {
-        ...LAYOUT_DATA[index],
+        ...LayoutData[index],
         stampFill: machineStampColor(machineState, this.$vuetify.theme.dark),
         stampBlink: machineState.alarm
       }
