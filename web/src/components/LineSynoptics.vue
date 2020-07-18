@@ -81,8 +81,8 @@
       <g v-for="(data, index) in layoutData" :key="`machine-${index}`">
         <title>{{ `Machine ${index}` }}</title>
         <use
-          :class="{ blink: data.stampBlink }"
-          :fill="data.stampFill"
+          :class="{ blink: data.thumbBlink }"
+          :fill="data.thumbFill"
           :href="`#machine-${index}-path`"
           class="machine-path"
         />
@@ -216,7 +216,7 @@ const LayoutData = [
   { cardX: 4550, cardY: 686, tagX: 4550, tagY: 656, tagText: "***REMOVED***" }
 ]
 
-function machineStampColor(state: MachineState, darkMode: boolean) {
+function machineThumbColor(state: MachineState, darkMode: boolean): string {
   if (state.alarm) return "#d00"
   if (state.alert) return "#d98d00"
   if (state.cycle) return "green"
@@ -240,16 +240,16 @@ export default class LineSynoptics extends mapped {
 
   cardDOMPositions = [...Array(LayoutData.length)].map(() => ({ x: 0, y: 0 }))
 
-  mounted() {
+  mounted(): void {
     this.observeResize()
     this.placeMachineCards()
   }
 
-  beforeDestry() {
+  beforeDestry(): void {
     this.resizeObs.disconnect()
   }
 
-  observeResize() {
+  observeResize(): void {
     this.resizeObs = new ResizeObserver(entries => {
       for (const entry of entries) {
         if (entry.target === this.$refs.layoutContainer) {
@@ -260,7 +260,7 @@ export default class LineSynoptics extends mapped {
     this.resizeObs.observe(this.$refs.layoutContainer)
   }
 
-  placeMachineCards() {
+  placeMachineCards(): void {
     this.cardDOMPositions = this.$refs.cardAnchor.map((anchor, index) => {
       const card = this.$refs.machineCard.find(
         card =>
@@ -314,14 +314,14 @@ export default class LineSynoptics extends mapped {
     return this.machinesMetrics.map(({ machineState }, index) => {
       return {
         ...LayoutData[index],
-        stampFill: machineStampColor(machineState, this.$vuetify.theme.dark),
-        stampBlink: machineState.alarm
+        thumbFill: machineThumbColor(machineState, this.$vuetify.theme.dark),
+        thumbBlink: machineState.alarm
       }
     })
   }
 
   @Watch("cardsData")
-  onCardsDataChange(val: CardData[], oldVal: CardData[]) {
+  onCardsDataChange(val: CardData[], oldVal: CardData[]): void {
     if (
       val.length !== oldVal.length ||
       val.some(
