@@ -11,19 +11,17 @@ export default function createVuexPlugin(
     const ctx = automation.context(store)
     const rws = new ReconnectingWebSocket(url)
     rws.addEventListener("open", () => {
-      ctx.mutations.wsLinkUp()
+      ctx.actions.changeWSLinkState({ state: true })
     })
     rws.addEventListener("close", () => {
-      if (ctx.state.wsLinkActive) {
-        ctx.mutations.wsLinkDown()
-      }
+      ctx.actions.changeWSLinkState({ state: false })
     })
     rws.addEventListener("message", event => {
       try {
         const wsMessage = JSON.parse(event.data)
         switch (wsMessage.message_type) {
           case "opc_data_change":
-            ctx.mutations.opcLinkUp()
+            ctx.actions.changeOPCLinkState({ state: true })
             switch (wsMessage.node_id) {
               case '"dbLineSupervision"."machine"':
                 ctx.mutations.setMetrics(wsMessage.data)
@@ -35,7 +33,7 @@ export default function createVuexPlugin(
             break
           case "opc_status":
             if (wsMessage.data === false) {
-              ctx.mutations.opcLinkDown()
+              ctx.actions.changeOPCLinkState({ state: false })
             }
             break
           case undefined:

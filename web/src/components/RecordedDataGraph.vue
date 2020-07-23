@@ -37,7 +37,7 @@ interface RecordedDataSerie {
 
 const mapped = Vue.extend({
   computed: automationMapper.mapState(["productionObjective"]),
-  methods: automationMapper.mapMutations(["influxLinkUp", "influxLinkDown"])
+  methods: automationMapper.mapActions(["changeInfluxLinkState"])
 })
 
 @Component({
@@ -119,12 +119,11 @@ export default class RecordedDataGraph extends mapped {
         ])
       },
       error: err => {
-        this.influxLinkDown()
-        console.error(err)
+        this.changeInfluxLinkState({ state: false, error: err })
       },
       complete: () => {
         this.influxDataSeries = [...result]
-        this.influxLinkUp()
+        this.changeInfluxLinkState({ state: true })
       }
     })
   }

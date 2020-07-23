@@ -1,6 +1,17 @@
-import { createMapper, Getters, Module, Mutations } from "vuex-smart-module"
+import {
+  createMapper,
+  Actions,
+  Getters,
+  Module,
+  Mutations
+} from "vuex-smart-module"
 
 import { MachineMetrics } from "./types"
+
+interface StateMutationPayload {
+  state: boolean
+  error?: Error
+}
 
 const defaultMachineMetrics: MachineMetrics = {
   machineState: {
@@ -48,35 +59,58 @@ class AutomationMutations extends Mutations<AutomationState> {
     this.state.productionObjective = payload
   }
 
-  influxLinkUp() {
-    this.state.influxLinkActive = true
+  setInfluxLinkState(payload: boolean) {
+    this.state.influxLinkActive = payload
   }
 
-  influxLinkDown() {
-    this.state.influxLinkActive = false
+  setOPCLinkState(payload: boolean) {
+    this.state.opcLinkActive = payload
   }
 
-  opcLinkUp() {
-    this.state.opcLinkActive = true
+  setWSLinkState(payload: boolean) {
+    this.state.wsLinkActive = payload
+  }
+}
+
+class AutomationActions extends Actions<
+  AutomationState,
+  AutomationGetters,
+  AutomationMutations,
+  AutomationActions
+> {
+  changeInfluxLinkState(payload: StateMutationPayload) {
+    if (payload.error && !payload.state && this.state.influxLinkActive) {
+      console.error(payload.error)
+    }
+    if (this.state.influxLinkActive !== payload.state) {
+      this.mutations.setInfluxLinkState(payload.state)
+    }
   }
 
-  opcLinkDown() {
-    this.state.opcLinkActive = false
+  changeOPCLinkState(payload: StateMutationPayload) {
+    if (payload.error && !payload.state && this.state.opcLinkActive) {
+      console.error(payload.error)
+    }
+    if (this.state.opcLinkActive !== payload.state) {
+      this.mutations.setOPCLinkState(payload.state)
+    }
   }
 
-  wsLinkUp() {
-    this.state.wsLinkActive = true
-  }
-
-  wsLinkDown() {
-    this.state.wsLinkActive = false
+  changeWSLinkState(payload: StateMutationPayload) {
+    if (payload.error && !payload.state && this.state.wsLinkActive) {
+      console.error(payload.error)
+    }
+    if (this.state.wsLinkActive !== payload.state) {
+      this.mutations.setWSLinkState(payload.state)
+    }
   }
 }
 
 export const automation = new Module({
   state: AutomationState,
   getters: AutomationGetters,
-  mutations: AutomationMutations
+  mutations: AutomationMutations,
+  actions: AutomationActions
 })
 
 export const automationMapper = createMapper(automation)
