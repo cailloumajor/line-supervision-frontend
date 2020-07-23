@@ -63,6 +63,7 @@
 </template>
 
 <script lang="ts">
+import axios from "axios"
 import * as CSS from "csstype"
 import { Component, Vue } from "vue-property-decorator"
 
@@ -75,16 +76,38 @@ enum LinkState {
 }
 
 const mapped = Vue.extend({
-  computed: automationMapper.mapGetters(["linkStatus"])
+  computed: automationMapper.mapGetters(["linkStatus"]),
+  methods: automationMapper.mapActions(["changeInfluxLinkState"])
 })
 
 @Component
 export default class App extends mapped {
+  private influxCheckInterval!: number
+
   drawer = false
   routes: { name: string; menu: string; icon: string }[] = [
     { name: "Home", menu: "Vue graphique", icon: "mdi-panorama" },
     { name: "About", menu: "À propos", icon: "mdi-information" }
   ]
+
+  mounted(): void {
+    this.influxCheckInterval = setInterval(() => {
+      axios
+        .get(`http://${window.location.host}/influx/health`, {
+          timeout: 1000
+        })
+        .then(() => {
+          this.changeInfluxLinkState({ state: true })
+        })
+        .catch(error => {
+          this.changeInfluxLinkState({ state: false, error })
+        })
+    }, 10000)
+  }
+
+  beforeDestroy(): void {
+    clearInterval(this.influxCheckInterval)
+  }
 
   get linkStates() {
     function linkState(text: string, ownState: boolean, commonState?: boolean) {

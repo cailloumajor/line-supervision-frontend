@@ -36,8 +36,10 @@ interface RecordedDataSerie {
 }
 
 const mapped = Vue.extend({
-  computed: automationMapper.mapState(["productionObjective"]),
-  methods: automationMapper.mapActions(["changeInfluxLinkState"])
+  computed: automationMapper.mapState([
+    "influxLinkActive",
+    "productionObjective"
+  ])
 })
 
 @Component({
@@ -93,6 +95,7 @@ export default class RecordedDataGraph extends mapped {
   }
 
   fetchRecordedData(): void {
+    if (!this.influxLinkActive) return
     this.updateTimeRange()
     const result: RecordedDataSerie[] = []
     const { influxDBName, influxMeasurement } = this.envVars
@@ -119,11 +122,10 @@ export default class RecordedDataGraph extends mapped {
         ])
       },
       error: err => {
-        this.changeInfluxLinkState({ state: false, error: err })
+        console.error(err)
       },
       complete: () => {
         this.influxDataSeries = [...result]
-        this.changeInfluxLinkState({ state: true })
       }
     })
   }
