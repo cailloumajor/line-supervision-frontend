@@ -21,7 +21,7 @@ services:
       - /data/influxdb:/var/lib/influxdb
 
   log-viewer:
-    image: amir20/dozzle:v1.27.2
+    image: amir20/dozzle:v2.1.4
     environment:
       - DOZZLE_BASE=/logs
       - DOZZLE_FILTER=label=dozzle.enable=true
