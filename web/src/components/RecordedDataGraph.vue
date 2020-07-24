@@ -50,7 +50,6 @@ const mapped = Vue.extend({
 export default class RecordedDataGraph extends mapped {
   private fetchInterval!: number
 
-  influxDataSeries: RecordedDataSerie[] = []
   envVars: {
     [key: string]: {
       varName: string
@@ -69,6 +68,7 @@ export default class RecordedDataGraph extends mapped {
       missing: false
     }
   }
+  influxDataSeries: RecordedDataSerie[] = []
   timeRange = {
     start: new Date(),
     end: new Date()
