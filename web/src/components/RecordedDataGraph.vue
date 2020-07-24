@@ -10,7 +10,7 @@
       </v-alert>
     </div>
     <apex-chart
-      v-if="influxDataSeries.length"
+      v-show="timeRange.end - timeRange.start > 0"
       :options="chartOptions"
       :series="dataSeries"
       type="line"
