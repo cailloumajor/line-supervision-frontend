@@ -50,7 +50,6 @@
         v-for="state of linkStates"
         :key="`state-${state.text}`"
         class="mx-1"
-        href="logs/"
         small
       >
         <v-icon :color="state.color" class="mr-1" left small>
@@ -58,6 +57,9 @@
         </v-icon>
         {{ state.text }}
       </v-chip>
+      <v-btn href="/logs" icon x-small target="_blank">
+        <v-icon>mdi-math-log</v-icon>
+      </v-btn>
     </v-footer>
   </v-app>
 </template>
