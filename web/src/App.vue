@@ -91,22 +91,25 @@ export default class App extends mapped {
   ]
 
   mounted(): void {
-    this.influxCheckInterval = setInterval(() => {
-      axios
-        .get(`http://${window.location.host}/influx/health`, {
-          timeout: 1000
-        })
-        .then(() => {
-          this.changeInfluxLinkState({ state: true })
-        })
-        .catch(error => {
-          this.changeInfluxLinkState({ state: false, error })
-        })
-    }, 10000)
+    setTimeout(this.checkInfluxHealth, 500)
+    this.influxCheckInterval = setInterval(this.checkInfluxHealth, 10000)
   }
 
   beforeDestroy(): void {
     clearInterval(this.influxCheckInterval)
+  }
+
+  checkInfluxHealth(): void {
+    axios
+      .get(`http://${window.location.host}/influx/health`, {
+        timeout: 1000
+      })
+      .then(() => {
+        this.changeInfluxLinkState({ state: true })
+      })
+      .catch(error => {
+        this.changeInfluxLinkState({ state: false, error })
+      })
   }
 
   get linkStates() {

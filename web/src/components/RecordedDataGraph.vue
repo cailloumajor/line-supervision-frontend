@@ -86,7 +86,7 @@ export default class RecordedDataGraph extends mapped {
     if (this.missingEnvVars.length) {
       return
     }
-    setTimeout(this.fetchRecordedData, 0)
+    setTimeout(this.fetchRecordedData, 1000)
     this.fetchInterval = setInterval(this.fetchRecordedData, 60000)
   }
 
