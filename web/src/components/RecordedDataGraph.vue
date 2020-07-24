@@ -132,11 +132,9 @@ export default class RecordedDataGraph extends mapped {
 
   updateTimeRange(): void {
     const now = new Date()
-    const shifts = [
-      parse("21:30:00.0", "HH:mm:ss.S", now),
-      parse("13:30:00.0", "HH:mm:ss.S", now),
-      parse("05:30:00.0", "HH:mm:ss.S", now)
-    ]
+    const shifts = ["21:30:00.0", "13:30:00.0", "05:30:00.0"].map(s =>
+      parse(s, "HH:mm:ss.S", now)
+    )
     let currentShift = shifts.find(date => date < now)
     if (currentShift === undefined) {
       currentShift = sub(shifts[0], { days: 1 })
