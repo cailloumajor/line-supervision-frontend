@@ -95,8 +95,8 @@ export default class RecordedDataGraph extends mapped {
   }
 
   fetchRecordedData(): void {
-    if (!this.influxLinkActive) return
     this.updateTimeRange()
+    if (!this.influxLinkActive) return
     const result: RecordedDataSerie[] = []
     const { influxDBName, influxMeasurement } = this.envVars
     const url = `http://${window.location.host}/influx`
