@@ -44,7 +44,7 @@
       </v-overlay>
     </v-main>
 
-    <v-footer>
+    <v-footer fixed>
       <v-spacer />
       <v-chip
         v-for="state of linkStates"
