@@ -203,9 +203,6 @@ export default class RecordedDataGraph extends mapped {
         tickAmount: 8,
         type: "datetime"
       }
-      // yaxis: {
-      //   max: this.productionObjective
-      // }
     }
   }
 
