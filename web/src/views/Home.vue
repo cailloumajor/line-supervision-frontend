@@ -4,7 +4,7 @@
       <line-synoptics />
     </v-col>
     <v-col align-self="center" cols="4">
-      <recorded-data-graph />
+      <production-chart />
     </v-col>
   </v-row>
 </template>
@@ -13,12 +13,12 @@
 import { Component, Vue } from "vue-property-decorator"
 
 import LineSynoptics from "@/components/LineSynoptics.vue"
-import RecordedDataGraph from "@/components/RecordedDataGraph.vue"
+import ProductionChart from "@/components/ProductionChart.vue"
 
 @Component({
   components: {
     LineSynoptics,
-    RecordedDataGraph
+    ProductionChart
   }
 })
 export default class Home extends Vue {}

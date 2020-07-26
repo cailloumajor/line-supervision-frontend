@@ -30,9 +30,13 @@ import { Component, Vue } from "vue-property-decorator"
 
 import { automationMapper } from "@/store/modules/automation"
 
-interface RecordedDataSerie {
+interface DataSerie {
   name: string
   data: [number, number][]
+}
+
+const seriesNames: { [index: string]: string } = {
+  "12": "Total ligne"
 }
 
 const mapped = Vue.extend({
@@ -47,7 +51,7 @@ const mapped = Vue.extend({
     "apex-chart": VueApexCharts
   }
 })
-export default class RecordedDataGraph extends mapped {
+export default class ProductionChart extends mapped {
   private fetchInterval!: number
 
   envVars: {
@@ -61,14 +65,9 @@ export default class RecordedDataGraph extends mapped {
       varName: "VUE_APP_INFLUX_DB_NAME",
       value: "",
       missing: false
-    },
-    influxMeasurement: {
-      varName: "VUE_APP_INFLUX_MEASUREMENT",
-      value: "",
-      missing: false
     }
   }
-  influxDataSeries: RecordedDataSerie[] = []
+  influxDataSeries: DataSerie[] = []
   timeRange = {
     start: new Date(),
     end: new Date()
@@ -86,35 +85,40 @@ export default class RecordedDataGraph extends mapped {
     if (this.missingEnvVars.length) {
       return
     }
-    setTimeout(this.fetchRecordedData, 1000)
-    this.fetchInterval = setInterval(this.fetchRecordedData, 60000)
+    setTimeout(this.fetchData, 1000)
+    this.fetchInterval = setInterval(this.fetchData, 60000)
   }
 
   beforeDestroy(): void {
     clearInterval(this.fetchInterval)
   }
 
-  fetchRecordedData(): void {
+  fetchData(): void {
     this.updateTimeRange()
     if (!this.influxLinkActive) return
-    const result: RecordedDataSerie[] = []
-    const { influxDBName, influxMeasurement } = this.envVars
+    const result: DataSerie[] = []
+    const { influxDBName } = this.envVars
     const url = `http://${window.location.host}/influx`
     const queryAPI = new InfluxDB({ url }).getQueryApi("")
     const query = `\
       from(bucket: "${influxDBName.value}")
         |> range(start: ${this.timeRange.start.toISOString()})
-        |> filter(fn: (r) => r._measurement == "${influxMeasurement.value}")
+        |> filter(fn: (r) =>
+          r._measurement == "dbLineSupervision.machine" and
+          r._field == "counters.production" and
+          r.machine_index == "12"
+        )
         |> increase()
         |> aggregateWindow(every: 1m, fn: mean)
     `
     queryAPI.queryRows(query, {
       next: (row, tableMeta) => {
         const o = tableMeta.toObject(row)
-        if (result.findIndex(s => s.name === o._field) < 0) {
-          result.push({ name: o._field, data: [] })
+        const serieName = seriesNames[o.machine_index]
+        if (result.findIndex(s => s.name === serieName) < 0) {
+          result.push({ name: serieName, data: [] })
         }
-        const serieIdx = result.findIndex(s => s.name === o._field)
+        const serieIdx = result.findIndex(s => s.name === serieName)
         const rawValue = row[tableMeta.column("_value").index]
         result[serieIdx].data.push([
           Date.parse(o._time),
@@ -188,7 +192,7 @@ export default class RecordedDataGraph extends mapped {
         mode: this.$vuetify.theme.dark ? "dark" : "light"
       },
       title: {
-        text: process.env.VUE_APP_INFLUX_MEASUREMENT
+        text: "Production"
       },
       tooltip: {
         enabled: false
@@ -206,10 +210,10 @@ export default class RecordedDataGraph extends mapped {
     }
   }
 
-  get dataSeries(): RecordedDataSerie[] {
+  get dataSeries(): DataSerie[] {
     return [
       {
-        name: "objectif",
+        name: "Objectif",
         data: [
           [this.timeRange.start.getTime(), 0],
           [this.timeRange.end.getTime(), this.productionObjective]
@@ -226,12 +230,3 @@ export default class RecordedDataGraph extends mapped {
   }
 }
 </script>
-
-<style lang="scss" scoped>
-::v-deep {
-  .apexcharts-legend-text,
-  .apexcharts-title-text {
-    text-transform: capitalize;
-  }
-}
-</style>
