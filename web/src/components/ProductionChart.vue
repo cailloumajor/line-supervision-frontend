@@ -99,6 +99,9 @@ export default class ProductionChart extends mapped {
     const result: DataSerie[] = []
     const { influxDBName } = this.envVars
     const url = `http://${window.location.host}/influx`
+    const indexes = Object.keys(seriesNames)
+      .map(index => `"${index}"`)
+      .join(",")
     const queryAPI = new InfluxDB({ url }).getQueryApi("")
     const query = `\
       from(bucket: "${influxDBName.value}")
@@ -106,7 +109,7 @@ export default class ProductionChart extends mapped {
         |> filter(fn: (r) =>
           r._measurement == "dbLineSupervision.machine" and
           r._field == "counters.production" and
-          r.machine_index == "12"
+          contains(value: r.machine_index, set: [${indexes}])
         )
         |> increase()
         |> aggregateWindow(every: 1m, fn: mean)
