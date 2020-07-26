@@ -112,7 +112,6 @@ export default class ProductionChart extends mapped {
           contains(value: r.machine_index, set: [${indexes}])
         )
         |> increase()
-        |> aggregateWindow(every: 1m, fn: mean)
     `
     queryAPI.queryRows(query, {
       next: (row, tableMeta) => {
