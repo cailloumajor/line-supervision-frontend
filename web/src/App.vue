@@ -57,8 +57,8 @@
         </v-icon>
         {{ state.text }}
       </v-chip>
-      <v-btn href="/logs" icon x-small target="_blank">
-        <v-icon>mdi-math-log</v-icon>
+      <v-btn href="/logs" x-small target="_blank">
+        Logs
       </v-btn>
     </v-footer>
   </v-app>
