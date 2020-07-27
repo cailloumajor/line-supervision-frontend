@@ -16,10 +16,11 @@ services:
       - OPC_RECORD_NODES
 
   web:
-    build: ./web
-    environment:
-      # Following environment variables will be obtained from `.env` file
-      - INFLUX_DB_NAME
+    build:
+      context: ./web
+      args:
+        # Following build arguments will be obtained from `.env` file
+        - INFLUX_DB_NAME
 
   reverse-proxy:
     command:

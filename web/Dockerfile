@@ -1,0 +1,16 @@
+FROM node:12.18 as builder
+
+ARG INFLUX_DB_NAME
+ENV INFLUX_DB_NAME ${INFLUX_DB_NAME}
+WORKDIR /app
+COPY package.json yarn.lock ./
+RUN yarn install
+COPY . ./
+RUN yarn run build
+
+FROM caddy:2.1.1
+
+COPY Caddyfile /etc/caddy/Caddyfile
+COPY --from=builder /app/dist /site
+
+EXPOSE 80
