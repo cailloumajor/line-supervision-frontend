@@ -6,7 +6,7 @@ x-aliases:
 services:
   influx:
     env_file:
-    - *common-env-file
+      - *common-env-file
     volumes:
       - influxdb:/var/lib/influxdb
 
