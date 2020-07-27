@@ -1,21 +1,10 @@
 <template>
-  <div>
-    <div v-if="missingEnvVars.length">
-      <v-alert
-        v-for="(envVar, index) in missingEnvVars"
-        :key="`env-var-${index}`"
-        type="error"
-      >
-        Variable d'environnement {{ envVar }} manquante
-      </v-alert>
-    </div>
-    <apex-chart
-      v-show="timeRange.end - timeRange.start > 0"
-      :options="chartOptions"
-      :series="dataSeries"
-      type="line"
-    />
-  </div>
+  <apex-chart
+    v-show="timeRange.end - timeRange.start > 0"
+    :options="chartOptions"
+    :series="dataSeries"
+    type="line"
+  />
 </template>
 
 <script lang="ts">
@@ -54,19 +43,6 @@ const mapped = Vue.extend({
 export default class ProductionChart extends mapped {
   private fetchInterval!: number
 
-  envVars: {
-    [key: string]: {
-      varName: string
-      value: string
-      missing: boolean
-    }
-  } = {
-    influxDBName: {
-      varName: "VUE_APP_INFLUX_DB_NAME",
-      value: "",
-      missing: false
-    }
-  }
   influxDataSeries: DataSerie[] = []
   timeRange = {
     start: new Date(),
@@ -74,17 +50,6 @@ export default class ProductionChart extends mapped {
   }
 
   mounted(): void {
-    for (const key in this.envVars) {
-      const envVar = process.env[this.envVars[key].varName]
-      if (envVar === undefined) {
-        this.envVars[key].missing = true
-      } else {
-        this.envVars[key].value = envVar
-      }
-    }
-    if (this.missingEnvVars.length) {
-      return
-    }
     setTimeout(this.fetchData, 1000)
     this.fetchInterval = setInterval(this.fetchData, 60000)
   }
@@ -97,14 +62,14 @@ export default class ProductionChart extends mapped {
     this.updateTimeRange()
     if (!this.influxLinkActive) return
     const result: DataSerie[] = []
-    const { influxDBName } = this.envVars
+    const influxDBName = process.env.VUE_APP_INFLUX_DB_NAME
     const url = `http://${window.location.host}/influx`
     const indexes = Object.keys(seriesNames)
       .map(index => `"${index}"`)
       .join(",")
     const queryAPI = new InfluxDB({ url }).getQueryApi("")
     const query = `\
-      from(bucket: "${influxDBName.value}")
+      from(bucket: "${influxDBName}")
         |> range(start: ${this.timeRange.start.toISOString()})
         |> filter(fn: (r) =>
           r._measurement == "dbLineSupervision.machine" and
@@ -223,12 +188,6 @@ export default class ProductionChart extends mapped {
       },
       ...this.influxDataSeries
     ]
-  }
-
-  get missingEnvVars(): string[] {
-    return Object.values(this.envVars)
-      .filter(v => v.missing)
-      .map(v => v.varName)
   }
 }
 </script>
