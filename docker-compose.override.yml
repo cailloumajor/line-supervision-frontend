@@ -12,8 +12,8 @@ services:
       # Following environment variables will be obtained from `.env` file
       - INFLUX_DB_NAME
       - OPC_SERVER_URL
-      - OPC_MONITOR_NODE
-      - OPC_RECORD_NODE
+      - OPC_MONITOR_NODES
+      - OPC_RECORD_NODES
 
   web:
     build: ./web
