@@ -6,6 +6,7 @@
           v-for="(route, index) in routes"
           :key="`route-${index}`"
           :to="{ name: route.name }"
+          exact
         >
           <v-list-item-icon>
             <v-icon>{{ route.icon }}</v-icon>

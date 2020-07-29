@@ -7,10 +7,6 @@ Vue.use(VueRouter)
 const routes: Array<RouteConfig> = [
   {
     path: "/",
-    redirect: { name: "Home" }
-  },
-  {
-    path: "/home",
     name: "Home",
     component: Home
   },
@@ -26,8 +22,6 @@ const routes: Array<RouteConfig> = [
 ]
 
 const router = new VueRouter({
-  mode: "history",
-  base: process.env.BASE_URL,
   routes
 })
 
