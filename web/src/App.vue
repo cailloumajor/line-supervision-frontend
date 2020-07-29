@@ -40,6 +40,7 @@
         :value="!(linkStatus.opc && linkStatus.ws)"
         absolute
         opacity="1"
+        z-index="2"
       >
         <v-alert type="error">Pas de connection à l'automate</v-alert>
       </v-overlay>
