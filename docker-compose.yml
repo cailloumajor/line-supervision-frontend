@@ -15,7 +15,7 @@ services:
       - "traefik.http.middlewares.influx-stripprefix.stripprefix.prefixes=/influx"
       - "traefik.http.middlewares.influx-stripprefix.stripprefix.forceslash=false"
       - "traefik.http.routers.influx.middlewares=influx-stripprefix@docker"
-      - "traefik.http.routers.influx.rule=PathPrefix(`/influx`)"
+      - "traefik.http.routers.influx.rule=PathPrefix(`/influx/`)"
     volumes:
       - ./influx/start.sh:/docker-entrypoint-initdb.d/start.sh:ro
       - influxdb_data:/var/lib/influxdb
@@ -29,7 +29,7 @@ services:
       - "8080"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.logging.rule=PathPrefix(`/logs`)"
+      - "traefik.http.routers.logging.rule=PathPrefix(`/logs/`) || Path(`/logs`)"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
@@ -45,7 +45,7 @@ services:
       - "traefik.http.middlewares.ws-stripprefix.stripprefix.prefixes=/ws"
       - "traefik.http.middlewares.ws-stripprefix.stripprefix.forceslash=false"
       - "traefik.http.routers.opcua-bridge.middlewares=ws-stripprefix@docker"
-      - "traefik.http.routers.opcua-bridge.rule=PathPrefix(`/ws`)"
+      - "traefik.http.routers.opcua-bridge.rule=PathPrefix(`/ws/`) || Path(`/ws`)"
 
   web:
     depends_on:
