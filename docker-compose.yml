@@ -54,8 +54,6 @@ services:
       - "dozzle.enable=true"
       - "traefik.enable=true"
       - "traefik.http.routers.web.rule=PathPrefix(`/`)"
-    volumes:
-      - caddy_data:/data
 
   reverse-proxy:
     image: traefik:v2.2
@@ -66,4 +64,3 @@ services:
 
 volumes:
   influxdb_data:
-  caddy_data:

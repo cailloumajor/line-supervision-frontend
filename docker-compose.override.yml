@@ -21,6 +21,8 @@ services:
       args:
         # Following build arguments will be obtained from `.env` file
         - INFLUX_DB_NAME
+    volumes:
+      - caddy_data:/data
 
   reverse-proxy:
     command:
@@ -29,3 +31,6 @@ services:
       - "--providers.docker.exposedByDefault=false"
     ports:
       - "80:80"
+
+volumes:
+  caddy_data:
