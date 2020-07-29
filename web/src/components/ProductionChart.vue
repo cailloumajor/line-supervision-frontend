@@ -8,7 +8,7 @@
 </template>
 
 <script lang="ts">
-import { InfluxDB } from "@influxdata/influxdb-client"
+import { flux, InfluxDB } from "@influxdata/influxdb-client"
 import { ApexOptions } from "apexcharts"
 import add from "date-fns/add"
 import format from "date-fns/format"
@@ -65,16 +65,14 @@ export default class ProductionChart extends mapped {
     const influxDBName = process.env.VUE_APP_INFLUX_DB_NAME
     const url = `http://${window.location.host}/influx`
     const indexes = Object.keys(seriesNames)
-      .map(index => `"${index}"`)
-      .join(",")
     const queryAPI = new InfluxDB({ url }).getQueryApi("")
-    const query = `\
+    const query = flux`\
       from(bucket: "${influxDBName}")
-        |> range(start: ${this.timeRange.start.toISOString()})
+        |> range(start: ${this.timeRange.start})
         |> filter(fn: (r) =>
           r._measurement == "dbLineSupervision.machine" and
           r._field == "counters.production" and
-          contains(value: r.machine_index, set: [${indexes}])
+          contains(value: r.machine_index, set: ${indexes})
         )
         |> increase()
     `
