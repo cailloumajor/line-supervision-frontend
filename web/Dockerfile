@@ -7,7 +7,7 @@ COPY package.json yarn.lock ./
 RUN yarn install
 COPY public ./public
 COPY src ./src
-COPY .browserslistrc .env .eslintrc.js babel.config.js tsconfig.json vue.config.js ./
+COPY .browserslistrc .env .eslintrc.js .prettierrc babel.config.js tsconfig.json vue.config.js ./
 RUN yarn run build
 
 FROM caddy:2.1.1
