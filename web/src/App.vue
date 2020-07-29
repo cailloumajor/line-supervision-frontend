@@ -49,7 +49,7 @@
     <v-footer fixed>
       <v-spacer />
       <v-chip
-        v-for="state of linkStates"
+        v-for="state of linksData"
         :key="`state-${state.text}`"
         class="mx-1"
         small
@@ -76,12 +76,18 @@ import { automationMapper } from "@/store/modules/automation"
 enum LinkState {
   Up,
   Down,
-  Unknown
+  Unknown,
+}
+
+interface LinkData {
+  text: string
+  color: string
+  icon: string
 }
 
 const mapped = Vue.extend({
   computed: automationMapper.mapGetters(["linkStatus"]),
-  methods: automationMapper.mapActions(["changeInfluxLinkState"])
+  methods: automationMapper.mapActions(["changeInfluxLinkState"]),
 })
 
 @Component
@@ -91,7 +97,7 @@ export default class App extends mapped {
   drawer = false
   routes: { name: string; menu: string; icon: string }[] = [
     { name: "Home", menu: "Vue graphique", icon: "mdi-panorama" },
-    { name: "About", menu: "À propos", icon: "mdi-information" }
+    { name: "About", menu: "À propos", icon: "mdi-information" },
   ]
 
   mounted(): void {
@@ -106,18 +112,22 @@ export default class App extends mapped {
   checkInfluxHealth(): void {
     axios
       .get(`http://${window.location.host}/influx/health`, {
-        timeout: 1000
+        timeout: 1000,
       })
       .then(() => {
         this.changeInfluxLinkState({ state: true })
       })
-      .catch(error => {
+      .catch((error) => {
         this.changeInfluxLinkState({ state: false, error })
       })
   }
 
-  get linkStates() {
-    function linkState(text: string, ownState: boolean, commonState?: boolean) {
+  get linksData(): LinkData[] {
+    function linkData(
+      text: string,
+      ownState: boolean,
+      commonState?: boolean
+    ): LinkData {
       let state = ownState ? LinkState.Up : LinkState.Down
       if (commonState !== undefined) {
         state = commonState ? state : LinkState.Unknown
@@ -127,26 +137,26 @@ export default class App extends mapped {
         color: {
           [LinkState.Up]: "green",
           [LinkState.Down]: "red",
-          [LinkState.Unknown]: "orange"
+          [LinkState.Unknown]: "orange",
         }[state],
         icon: {
           [LinkState.Up]: "mdi-swap-horizontal",
           [LinkState.Down]: "mdi-link-off",
-          [LinkState.Unknown]: "mdi-help"
-        }[state]
+          [LinkState.Unknown]: "mdi-help",
+        }[state],
       }
     }
     return [
-      linkState("WS", this.linkStatus.ws),
-      linkState("OPC", this.linkStatus.opc, this.linkStatus.ws),
-      linkState("InfluxDB", this.linkStatus.influx)
+      linkData("WS", this.linkStatus.ws),
+      linkData("OPC", this.linkStatus.opc, this.linkStatus.ws),
+      linkData("InfluxDB", this.linkStatus.influx),
     ]
   }
 
   get logoStyle(): CSS.Properties {
     return {
       filter: this.$vuetify.theme.dark === true ? "brightness(1.5)" : undefined,
-      height: "90%"
+      height: "90%",
     }
   }
 }

@@ -7,7 +7,7 @@ export default function createVuexPlugin(
   url: string
   // eslint-disable-next-line
 ): Plugin<any> {
-  return store => {
+  return (store) => {
     const ctx = automation.context(store)
     const rws = new ReconnectingWebSocket(url)
     rws.addEventListener("open", () => {
@@ -16,7 +16,7 @@ export default function createVuexPlugin(
     rws.addEventListener("close", () => {
       ctx.actions.changeWSLinkState({ state: false })
     })
-    rws.addEventListener("message", event => {
+    rws.addEventListener("message", (event) => {
       try {
         const wsMessage = JSON.parse(event.data)
         switch (wsMessage.message_type) {

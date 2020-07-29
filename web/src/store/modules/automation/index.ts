@@ -3,7 +3,7 @@ import {
   Actions,
   Getters,
   Module,
-  Mutations
+  Mutations,
 } from "vuex-smart-module"
 
 import { MachineMetrics } from "./types"
@@ -19,15 +19,15 @@ const defaultMachineMetrics: MachineMetrics = {
     alert: false,
     alarm: false,
     missingParts: false,
-    saturation: false
+    saturation: false,
   },
   counters: {
     production: 0,
     toolChangePercent: 0,
     partControlPercent: 0,
     bufferFillPercent: 0,
-    cycleTimePercent: 0
-  }
+    cycleTimePercent: 0,
+  },
 }
 
 class AutomationState {
@@ -45,7 +45,7 @@ class AutomationGetters extends Getters<AutomationState> {
     return {
       influx: this.state.influxLinkActive,
       opc: this.state.opcLinkActive,
-      ws: this.state.wsLinkActive
+      ws: this.state.wsLinkActive,
     }
   }
 }
@@ -110,7 +110,7 @@ export const automation = new Module({
   state: AutomationState,
   getters: AutomationGetters,
   mutations: AutomationMutations,
-  actions: AutomationActions
+  actions: AutomationActions,
 })
 
 export const automationMapper = createMapper(automation)

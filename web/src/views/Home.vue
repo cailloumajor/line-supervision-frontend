@@ -18,8 +18,8 @@ import ProductionChart from "@/components/ProductionChart.vue"
 @Component({
   components: {
     LineSynoptics,
-    ProductionChart
-  }
+    ProductionChart,
+  },
 })
 export default class Home extends Vue {}
 </script>
