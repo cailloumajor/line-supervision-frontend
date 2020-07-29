@@ -5,7 +5,9 @@ ENV INFLUX_DB_NAME ${INFLUX_DB_NAME}
 WORKDIR /app
 COPY package.json yarn.lock ./
 RUN yarn install
-COPY . ./
+COPY public ./public
+COPY src ./src
+COPY .browserslistrc .env .eslintrc.js babel.config.js tsconfig.json ./
 RUN yarn run build
 
 FROM caddy:2.1.1
