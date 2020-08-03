@@ -97,6 +97,12 @@
           visibility="hidden"
         />
       </g>
+      <text class="remaining-counter" x="450" y="130">
+        Reste à produire rafale
+        <tspan x="450" dy="1.2em">
+          {{ lineGlobalParameters.campaignRemaining }}
+        </tspan>
+      </text>
     </svg>
     <v-card
       v-for="(card, cardIndex) in cardsData"
@@ -234,7 +240,10 @@ function machineThumbColor(state: MachineState, darkMode: boolean): string {
 }
 
 const mapped = Vue.extend({
-  computed: automationMapper.mapState(["machinesMetrics"]),
+  computed: automationMapper.mapState([
+    "lineGlobalParameters",
+    "machinesMetrics",
+  ]),
 })
 
 @Component
@@ -418,6 +427,16 @@ export default class LineSynoptics extends mapped {
 @keyframes cycle-time-blink {
   50% {
     opacity: 0;
+  }
+}
+
+.remaining-counter {
+  font-size: 70px;
+  text-anchor: middle;
+
+  tspan {
+    fill: hotpink;
+    font-size: 150%;
   }
 }
 </style>
