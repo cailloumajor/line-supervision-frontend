@@ -31,7 +31,7 @@ const seriesNames: { [index: string]: string } = {
 const mapped = Vue.extend({
   computed: automationMapper.mapState([
     "influxLinkActive",
-    "productionObjective",
+    "lineGlobalParameters",
   ]),
 })
 
@@ -189,7 +189,10 @@ export default class ProductionChart extends mapped {
         name: "Objectif",
         data: [
           [this.timeRange.start.getTime(), 0],
-          [this.timeRange.end.getTime(), this.productionObjective],
+          [
+            this.timeRange.end.getTime(),
+            this.lineGlobalParameters.productionObjective,
+          ],
         ],
       },
       ...this.influxDataSeries,

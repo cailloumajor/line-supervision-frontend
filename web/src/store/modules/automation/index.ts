@@ -6,7 +6,11 @@ import {
   Mutations,
 } from "vuex-smart-module"
 
-import { MachineMetrics, StateMutationPayload } from "./types"
+import {
+  LineGlobalParameters,
+  MachineMetrics,
+  StateMutationPayload,
+} from "./types"
 
 const defaultMachineMetrics: MachineMetrics = {
   machineState: {
@@ -25,11 +29,16 @@ const defaultMachineMetrics: MachineMetrics = {
   },
 }
 
+const defaultGlobalParameters: LineGlobalParameters = {
+  campaignRemaining: 0,
+  productionObjective: 0,
+}
+
 class AutomationState {
   machinesMetrics: MachineMetrics[] = [...Array(13)].map(() =>
     JSON.parse(JSON.stringify(defaultMachineMetrics))
   )
-  productionObjective = 0
+  lineGlobalParameters: LineGlobalParameters = defaultGlobalParameters
   influxLinkActive = false
   opcLinkActive = false
   wsLinkActive = false
@@ -50,8 +59,8 @@ class AutomationMutations extends Mutations<AutomationState> {
     this.state.machinesMetrics = [...payload]
   }
 
-  setProdObjective(payload: number) {
-    this.state.productionObjective = payload
+  setGlobalParameters(payload: LineGlobalParameters) {
+    this.state.lineGlobalParameters = payload
   }
 
   setInfluxLinkState(payload: boolean) {

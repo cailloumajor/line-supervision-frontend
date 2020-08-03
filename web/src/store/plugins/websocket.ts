@@ -26,8 +26,8 @@ export default function createVuexPlugin(
               case '"dbLineSupervision"."machine"':
                 ctx.mutations.setMetrics(wsMessage.data)
                 break
-              case '"dbLineSupervision"."shiftProdObjective"':
-                ctx.mutations.setProdObjective(wsMessage.data)
+              case '"dbLineSupervision"."lineParameters"':
+                ctx.mutations.setGlobalParameters(wsMessage.data)
                 break
             }
             break

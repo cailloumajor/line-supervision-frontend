@@ -19,6 +19,11 @@ export interface MachineMetrics {
   counters: MachineCounters
 }
 
+export interface LineGlobalParameters {
+  campaignRemaining: number
+  productionObjective: number
+}
+
 export interface StateMutationPayload {
   state: boolean
   error?: Error
