@@ -18,3 +18,8 @@ export interface MachineMetrics {
   machineState: MachineState
   counters: MachineCounters
 }
+
+export interface StateMutationPayload {
+  state: boolean
+  error?: Error
+}

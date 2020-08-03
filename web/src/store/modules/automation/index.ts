@@ -6,12 +6,7 @@ import {
   Mutations,
 } from "vuex-smart-module"
 
-import { MachineMetrics } from "./types"
-
-interface StateMutationPayload {
-  state: boolean
-  error?: Error
-}
+import { MachineMetrics, StateMutationPayload } from "./types"
 
 const defaultMachineMetrics: MachineMetrics = {
   machineState: {
