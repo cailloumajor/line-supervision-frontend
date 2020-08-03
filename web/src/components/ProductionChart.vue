@@ -131,6 +131,13 @@ export default class ProductionChart extends mapped {
         },
       },
       colors: ["#FF4560", "#008FFB", "#00E396", "#FEB019", "#775DD0"],
+      dataLabels: {
+        enabled: true,
+        enabledOnSeries: [0],
+        formatter: (value) => (value === 0 ? "" : value),
+        offsetY: -5,
+        textAnchor: "end",
+      },
       grid: {
         xaxis: {
           lines: {
