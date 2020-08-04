@@ -35,8 +35,6 @@ services:
 
   opcua-bridge:
     build: ./opcua-webhmi-bridge
-    depends_on:
-      - influx
     environment:
       - INFLUX_HOST=influx
     labels:
@@ -48,8 +46,6 @@ services:
       - "traefik.http.routers.opcua-bridge.rule=PathPrefix(`/ws/`) || Path(`/ws`)"
 
   web:
-    depends_on:
-      - opcua-bridge
     labels:
       - "dozzle.enable=true"
       - "traefik.enable=true"
