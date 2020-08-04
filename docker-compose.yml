@@ -23,15 +23,19 @@ services:
   log-viewer:
     image: amir20/dozzle:v2.1.4
     environment:
+      - DOCKER_HOST=tcp://dockerproxy:2375
       - DOZZLE_BASE=/logs
       - DOZZLE_FILTER=label=dozzle.enable=true
     expose:
       - "8080"
+    depends_on:
+      - dockerproxy
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.logging.rule=PathPrefix(`/logs/`) || Path(`/logs`)"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - net-docker-socket
+    user: 2000:2000
 
   opcua-bridge:
     build: ./opcua-webhmi-bridge
@@ -51,12 +55,29 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.web.rule=PathPrefix(`/`)"
 
-  reverse-proxy:
-    image: traefik:v2.2
+  dockerproxy:
+    image: tecnativa/docker-socket-proxy
+    environment:
+      - CONTAINERS=1
     labels:
       - "dozzle.enable=true"
+    networks:
+      - net-docker-socket
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  reverse-proxy:
+    image: traefik:v2.2
+    depends_on:
+      - dockerproxy
+    labels:
+      - "dozzle.enable=true"
+    networks:
+      - net-docker-socket
+    user: 2000:2000
+
+networks:
+  net-docker-socket:
 
 volumes:
   influxdb_data:

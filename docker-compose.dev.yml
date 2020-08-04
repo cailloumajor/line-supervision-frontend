@@ -27,9 +27,10 @@ services:
     command:
       - "--api.dashboard=true"
       - "--api.insecure=true"
-      - "--entryPoints.http.address=:80"
+      - "--entryPoints.http.address=:8000"
       - "--providers.docker=true"
+      - "--providers.docker.endpoint=tcp://dockerproxy:2375"
       - "--providers.docker.exposedByDefault=false"
     ports:
-      - "8080:80"
+      - "8080:8000"
       - "8088:8080"

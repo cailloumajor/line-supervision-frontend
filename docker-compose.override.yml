@@ -26,11 +26,12 @@ services:
 
   reverse-proxy:
     command:
-      - "--entryPoints.http.address=:80"
+      - "--entryPoints.http.address=:8000"
       - "--providers.docker=true"
+      - "--providers.docker.endpoint=tcp://dockerproxy:2375"
       - "--providers.docker.exposedByDefault=false"
     ports:
-      - "80:80"
+      - "80:8000"
 
 volumes:
   caddy_data:
