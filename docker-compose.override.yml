@@ -27,6 +27,7 @@ services:
   reverse-proxy:
     command:
       - "--entryPoints.http.address=:8000"
+      - "--log.level=WARN"
       - "--providers.docker=true"
       - "--providers.docker.endpoint=tcp://dockerproxy:2375"
       - "--providers.docker.exposedByDefault=false"
