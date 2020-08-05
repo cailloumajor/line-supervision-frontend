@@ -68,8 +68,6 @@ services:
 
   reverse-proxy:
     image: traefik:v2.2
-    depends_on:
-      - dockerproxy
     labels:
       - "dozzle.enable=true"
     networks:
