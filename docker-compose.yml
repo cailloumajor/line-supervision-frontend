@@ -25,13 +25,13 @@ services:
   log-viewer:
     image: amir20/dozzle:v2.1.4
     environment:
-      - DOCKER_HOST=tcp://dockerproxy:2375
+      - DOCKER_HOST=tcp://docker-socket-proxy:2375
       - DOZZLE_BASE=/logs
       - DOZZLE_FILTER=label=dozzle.enable=true
     expose:
       - "8080"
     depends_on:
-      - dockerproxy
+      - docker-socket-proxy
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.logging.rule=PathPrefix(`/logs/`) || Path(`/logs`)"
@@ -62,7 +62,7 @@ services:
     networks:
       - net-backend
 
-  dockerproxy:
+  docker-socket-proxy:
     image: tecnativa/docker-socket-proxy
     environment:
       - CONTAINERS=1
