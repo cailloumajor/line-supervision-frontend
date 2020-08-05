@@ -31,6 +31,7 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.endpoint=tcp://dockerproxy:2375"
       - "--providers.docker.exposedByDefault=false"
+      - "--providers.docker.network=net-backend-${COMPOSE_PROJECT_NAME:-4nf3wt}"
     ports:
       - "80:8000"
 
