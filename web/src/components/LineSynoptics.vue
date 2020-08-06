@@ -140,6 +140,7 @@
 <script lang="ts">
 import { Component, Vue, Watch } from "vue-property-decorator"
 
+import { machineNames } from "@/machine-data"
 import { automationMapper, MachineState } from "@/store/modules/automation"
 
 interface CommonIcon {
@@ -217,19 +218,19 @@ const CardIcons: { [name: string]: LegendIcon } = {
 }
 
 const LayoutData = [
-  { cardX: 434, cardY: 441, tagX: 434, tagY: 411, tagText: "***REMOVED***" },
-  { cardX: 530, cardY: 1000, tagX: 999, tagY: 1254, tagText: "***REMOVED***" },
-  { cardX: 1181, cardY: 677, tagX: 1181, tagY: 647, tagText: "***REMOVED***" },
-  { cardX: 1793, cardY: 676, tagX: 1793, tagY: 646, tagText: "***REMOVED***" },
-  { cardX: 2660, cardY: 130, tagX: 2045, tagY: 263, tagText: "***REMOVED***" },
-  { cardX: 2566, cardY: 524, tagX: 2566, tagY: 494, tagText: "***REMOVED***" },
-  { cardX: 3110, cardY: 763, tagX: 3110, tagY: 733, tagText: "***REMOVED***" },
-  { cardX: 3651, cardY: 780, tagX: 3651, tagY: 750, tagText: "***REMOVED***" },
-  { cardX: 3854, cardY: 312, tagX: 3854, tagY: 282, tagText: "***REMOVED***" },
-  { cardX: 3281, cardY: 304, tagX: 3281, tagY: 274, tagText: "***REMOVED***" },
-  { cardX: 4279, cardY: 551, tagX: 4279, tagY: 521, tagText: "***REMOVED***" },
-  { cardX: 4353, cardY: 338, tagX: 4353, tagY: 308, tagText: "***REMOVED***" },
-  { cardX: 4550, cardY: 686, tagX: 4550, tagY: 656, tagText: "***REMOVED***" }
+  { cardX: 434, cardY: 441, tagX: 434, tagY: 411 },
+  { cardX: 530, cardY: 1000, tagX: 999, tagY: 1254 },
+  { cardX: 1181, cardY: 677, tagX: 1181, tagY: 647 },
+  { cardX: 1793, cardY: 676, tagX: 1793, tagY: 646 },
+  { cardX: 2660, cardY: 130, tagX: 2045, tagY: 263 },
+  { cardX: 2566, cardY: 524, tagX: 2566, tagY: 494 },
+  { cardX: 3110, cardY: 763, tagX: 3110, tagY: 733 },
+  { cardX: 3651, cardY: 780, tagX: 3651, tagY: 750 },
+  { cardX: 3854, cardY: 312, tagX: 3854, tagY: 282 },
+  { cardX: 3281, cardY: 304, tagX: 3281, tagY: 274 },
+  { cardX: 4279, cardY: 551, tagX: 4279, tagY: 521 },
+  { cardX: 4353, cardY: 338, tagX: 4353, tagY: 308 },
+  { cardX: 4550, cardY: 686, tagX: 4550, tagY: 656 },
 ]
 
 function machineThumbColor(state: MachineState, darkMode: boolean): string {
@@ -333,6 +334,7 @@ export default class LineSynoptics extends mapped {
     return this.machinesMetrics.map(({ machineState }, index) => {
       return {
         ...LayoutData[index],
+        tagText: machineNames[index],
         thumbFill: machineThumbColor(machineState, this.$vuetify.theme.dark),
         thumbBlink: machineState.alarm,
       }
@@ -408,6 +410,7 @@ export default class LineSynoptics extends mapped {
   font-size: 55px;
   font-weight: 700;
   text-anchor: middle;
+  text-transform: uppercase;
 }
 
 .machine-card {
