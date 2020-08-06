@@ -8,7 +8,7 @@
 </template>
 
 <script lang="ts">
-import { flux, InfluxDB } from "@influxdata/influxdb-client"
+import { flux } from "@influxdata/influxdb-client"
 import { ApexOptions } from "apexcharts"
 import add from "date-fns/add"
 import format from "date-fns/format"
@@ -17,6 +17,7 @@ import sub from "date-fns/sub"
 import VueApexCharts from "vue-apexcharts"
 import { Component, Vue } from "vue-property-decorator"
 
+import { influxDBName, queryAPI } from "@/influxdb"
 import { automationMapper } from "@/store/modules/automation"
 
 interface DataSerie {
@@ -62,10 +63,7 @@ export default class ProductionChart extends mapped {
     this.updateTimeRange()
     if (!this.influxLinkActive) return
     const result: DataSerie[] = []
-    const influxDBName = process.env.VUE_APP_INFLUX_DB_NAME
-    const url = `http://${window.location.host}/influx`
     const indexes = Object.keys(seriesNames)
-    const queryAPI = new InfluxDB({ url }).getQueryApi("")
     const query = flux`\
       from(bucket: "${influxDBName}")
         |> range(start: ${this.timeRange.start})
