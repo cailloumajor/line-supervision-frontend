@@ -83,11 +83,7 @@ export default class ProductionChart extends mapped {
           result.push({ name: serieName, data: [] })
         }
         const serieIdx = result.findIndex(hasSerieName)
-        const rawValue = row[tableMeta.column("_value").index]
-        result[serieIdx].data.push([
-          Date.parse(o._time),
-          rawValue === "" ? null : o._value,
-        ])
+        result[serieIdx].data.push([Date.parse(o._time), o._value])
       },
       error: (err) => {
         console.error(err)
