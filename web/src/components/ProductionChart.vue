@@ -14,9 +14,11 @@ import add from "date-fns/add"
 import format from "date-fns/format"
 import parse from "date-fns/parse"
 import sub from "date-fns/sub"
+import { merge } from "lodash"
 import VueApexCharts from "vue-apexcharts"
 import { Component, Vue } from "vue-property-decorator"
 
+import { commonOptions } from "@/charts"
 import { influxDBName, queryAPI } from "@/influxdb"
 import { automationMapper } from "@/store/modules/automation"
 
@@ -110,20 +112,7 @@ export default class ProductionChart extends mapped {
   get chartOptions(): ApexOptions {
     const strokeWidths = Array(this.dataSeries.length - 1).fill(5)
     strokeWidths.unshift(2)
-    return {
-      chart: {
-        animations: {
-          enabled: false
-        },
-        background: "transparent",
-        fontFamily: "Roboto",
-        toolbar: {
-          show: false
-        },
-        zoom: {
-          enabled: false
-        }
-      },
+    const options: ApexOptions = {
       colors: ["#FF4560", "#008FFB", "#00E396", "#FEB019", "#775DD0"],
       dataLabels: {
         enabled: true,
@@ -139,15 +128,6 @@ export default class ProductionChart extends mapped {
           }
         }
       },
-      legend: {
-        onItemClick: {
-          toggleDataSeries: false
-        },
-        onItemHover: {
-          highlightDataSeries: false
-        },
-        position: "top"
-      },
       markers: {
         showNullDataPoints: false
       },
@@ -155,14 +135,8 @@ export default class ProductionChart extends mapped {
         lineCap: "round",
         width: strokeWidths
       },
-      theme: {
-        mode: this.$vuetify.theme.dark ? "dark" : "light"
-      },
       title: {
         text: "Production"
-      },
-      tooltip: {
-        enabled: false
       },
       xaxis: {
         labels: {
@@ -175,6 +149,7 @@ export default class ProductionChart extends mapped {
         type: "datetime"
       }
     }
+    return merge(options, commonOptions(this.$vuetify.theme.dark))
   }
 
   get dataSeries(): DataSerie[] {
