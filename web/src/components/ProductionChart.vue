@@ -1,6 +1,6 @@
 <template>
   <apex-chart
-    v-show="timeRange.end - timeRange.start > 0"
+    v-show="timeRangeIsValid"
     :options="chartOptions"
     :series="dataSeries"
     type="line"
@@ -191,6 +191,10 @@ export default class ProductionChart extends mapped {
       },
       ...this.influxDataSeries,
     ]
+  }
+
+  get timeRangeIsValid(): boolean {
+    return this.timeRange.start < this.timeRange.end
   }
 }
 </script>
