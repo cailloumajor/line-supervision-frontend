@@ -26,20 +26,20 @@ interface DataSerie {
 }
 
 const seriesNames: { [index: string]: string } = {
-  "12": "Total ligne",
+  "12": "Total ligne"
 }
 
 const mapped = Vue.extend({
   computed: automationMapper.mapState([
     "influxLinkActive",
-    "lineGlobalParameters",
-  ]),
+    "lineGlobalParameters"
+  ])
 })
 
 @Component({
   components: {
-    "apex-chart": VueApexCharts,
-  },
+    "apex-chart": VueApexCharts
+  }
 })
 export default class ProductionChart extends mapped {
   private fetchInterval!: number
@@ -47,7 +47,7 @@ export default class ProductionChart extends mapped {
   influxDataSeries: DataSerie[] = []
   timeRange = {
     start: new Date(),
-    end: new Date(),
+    end: new Date()
   }
 
   mounted(): void {
@@ -85,21 +85,21 @@ export default class ProductionChart extends mapped {
         const serieIdx = result.findIndex(hasSerieName)
         result[serieIdx].data.push([Date.parse(o._time), o._value])
       },
-      error: (err) => {
+      error: err => {
         console.error(err)
       },
       complete: () => {
         this.influxDataSeries = [...result]
-      },
+      }
     })
   }
 
   updateTimeRange(): void {
     const now = new Date()
-    const shifts = ["21:30:00.0", "13:30:00.0", "05:30:00.0"].map((s) =>
+    const shifts = ["21:30:00.0", "13:30:00.0", "05:30:00.0"].map(s =>
       parse(s, "HH:mm:ss.S", now)
     )
-    let currentShift = shifts.find((date) => date < now)
+    let currentShift = shifts.find(date => date < now)
     if (currentShift === undefined) {
       currentShift = sub(shifts[0], { days: 1 })
     }
@@ -113,67 +113,67 @@ export default class ProductionChart extends mapped {
     return {
       chart: {
         animations: {
-          enabled: false,
+          enabled: false
         },
         background: "transparent",
         fontFamily: "Roboto",
         toolbar: {
-          show: false,
+          show: false
         },
         zoom: {
-          enabled: false,
-        },
+          enabled: false
+        }
       },
       colors: ["#FF4560", "#008FFB", "#00E396", "#FEB019", "#775DD0"],
       dataLabels: {
         enabled: true,
         enabledOnSeries: [0],
-        formatter: (value) => (value === 0 ? "" : value),
+        formatter: value => (value === 0 ? "" : value),
         offsetY: -5,
-        textAnchor: "end",
+        textAnchor: "end"
       },
       grid: {
         xaxis: {
           lines: {
-            show: true,
-          },
-        },
+            show: true
+          }
+        }
       },
       legend: {
         onItemClick: {
-          toggleDataSeries: false,
+          toggleDataSeries: false
         },
         onItemHover: {
-          highlightDataSeries: false,
+          highlightDataSeries: false
         },
-        position: "top",
+        position: "top"
       },
       markers: {
-        showNullDataPoints: false,
+        showNullDataPoints: false
       },
       stroke: {
         lineCap: "round",
-        width: strokeWidths,
+        width: strokeWidths
       },
       theme: {
-        mode: this.$vuetify.theme.dark ? "dark" : "light",
+        mode: this.$vuetify.theme.dark ? "dark" : "light"
       },
       title: {
-        text: "Production",
+        text: "Production"
       },
       tooltip: {
-        enabled: false,
+        enabled: false
       },
       xaxis: {
         labels: {
           datetimeUTC: false,
           formatter: (val, timestamp) => format(timestamp as number, "H:mm"),
           offsetY: 5,
-          rotateAlways: true,
+          rotateAlways: true
         },
         tickAmount: 8,
-        type: "datetime",
-      },
+        type: "datetime"
+      }
     }
   }
 
@@ -185,11 +185,11 @@ export default class ProductionChart extends mapped {
           [this.timeRange.start.getTime(), 0],
           [
             this.timeRange.end.getTime(),
-            this.lineGlobalParameters.productionObjective,
-          ],
-        ],
+            this.lineGlobalParameters.productionObjective
+          ]
+        ]
       },
-      ...this.influxDataSeries,
+      ...this.influxDataSeries
     ]
   }
 

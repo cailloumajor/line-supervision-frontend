@@ -7,18 +7,19 @@
     "importHelpers": true,
     "moduleResolution": "node",
     "experimentalDecorators": true,
+    "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
     "baseUrl": ".",
     "types": [
+      "webpack-env",
       "jest",
+      "vuetify",
       // TODO: remove when included in TypeScript
       // (including @types/resize-observer-browser package)
       // Status: https://github.com/microsoft/TSJS-lib-generator/pull/847
-      "resize-observer-browser", 
-      "vuetify",
-      "webpack-env"
+      "resize-observer-browser"
     ],
     "paths": {
       "@/*": [

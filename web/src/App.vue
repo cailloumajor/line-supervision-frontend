@@ -76,7 +76,7 @@ import { automationMapper } from "@/store/modules/automation"
 enum LinkState {
   Up,
   Down,
-  Unknown,
+  Unknown
 }
 
 interface LinkData {
@@ -87,7 +87,7 @@ interface LinkData {
 
 const mapped = Vue.extend({
   computed: automationMapper.mapGetters(["linkStatus"]),
-  methods: automationMapper.mapActions(["changeInfluxLinkState"]),
+  methods: automationMapper.mapActions(["changeInfluxLinkState"])
 })
 
 @Component
@@ -97,7 +97,7 @@ export default class App extends mapped {
   drawer = false
   routes: { name: string; menu: string; icon: string }[] = [
     { name: "Home", menu: "Vue graphique", icon: "mdi-panorama" },
-    { name: "About", menu: "À propos", icon: "mdi-information" },
+    { name: "About", menu: "À propos", icon: "mdi-information" }
   ]
 
   mounted(): void {
@@ -112,12 +112,12 @@ export default class App extends mapped {
   checkInfluxHealth(): void {
     axios
       .get(`http://${window.location.host}/influx/health`, {
-        timeout: 1000,
+        timeout: 1000
       })
       .then(() => {
         this.changeInfluxLinkState({ state: true })
       })
-      .catch((error) => {
+      .catch(error => {
         this.changeInfluxLinkState({ state: false, error })
       })
   }
@@ -137,26 +137,26 @@ export default class App extends mapped {
         color: {
           [LinkState.Up]: "green",
           [LinkState.Down]: "red",
-          [LinkState.Unknown]: "orange",
+          [LinkState.Unknown]: "orange"
         }[state],
         icon: {
           [LinkState.Up]: "mdi-swap-horizontal",
           [LinkState.Down]: "mdi-link-off",
-          [LinkState.Unknown]: "mdi-help",
-        }[state],
+          [LinkState.Unknown]: "mdi-help"
+        }[state]
       }
     }
     return [
       linkData("WS", this.linkStatus.ws),
       linkData("OPC", this.linkStatus.opc, this.linkStatus.ws),
-      linkData("InfluxDB", this.linkStatus.influx),
+      linkData("InfluxDB", this.linkStatus.influx)
     ]
   }
 
   get logoStyle(): CSS.Properties {
     return {
       filter: this.$vuetify.theme.dark === true ? "brightness(1.5)" : undefined,
-      height: "90%",
+      height: "90%"
     }
   }
 }

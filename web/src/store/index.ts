@@ -11,7 +11,7 @@ const wsPlugin = createWebSocketPlugin(`ws://${window.location.host}/ws`)
 
 const store = createStore(automation, {
   plugins: [wsPlugin],
-  strict: process.env.NODE_ENV !== "production",
+  strict: process.env.NODE_ENV !== "production"
 })
 
 export default store

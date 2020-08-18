@@ -181,7 +181,7 @@ interface LayoutMachineData {
 
 const iconNoLegend: (legendIcon: LegendIcon) => CommonIcon = ({
   icon,
-  color,
+  color
 }) => ({ icon, color })
 
 const CardIcons: { [name: string]: LegendIcon } = {
@@ -189,32 +189,32 @@ const CardIcons: { [name: string]: LegendIcon } = {
     icon: "mdi-eye-check",
     color: "orange darken-3",
     description: "Contrôle fréquentiel",
-    progress: true,
+    progress: true
   },
   toolChange: {
     icon: "mdi-tools",
     color: "blue darken-1",
     description: "Contrôle ou changement d'outils",
-    progress: true,
+    progress: true
   },
   bufferFill: {
     icon: "mdi-robot-industrial",
     color: "purple darken-1",
     description: "Remplissage stockeur robot",
-    progress: true,
+    progress: true
   },
   cycleTimeWarn: {
     icon: "mdi-timer-outline",
     color: "orange",
     description: "Dépassement temps de cycle ≤ 105%",
-    progress: false,
+    progress: false
   },
   cycleTimeAlert: {
     icon: "mdi-timer-outline",
     color: "red accent-4",
     description: "Dépassement temps de cycle > 105%",
-    progress: false,
-  },
+    progress: false
+  }
 }
 
 const LayoutData = [
@@ -230,7 +230,7 @@ const LayoutData = [
   { cardX: 3281, cardY: 304, tagX: 3281, tagY: 274 },
   { cardX: 4279, cardY: 551, tagX: 4279, tagY: 521 },
   { cardX: 4353, cardY: 338, tagX: 4353, tagY: 308 },
-  { cardX: 4550, cardY: 686, tagX: 4550, tagY: 656 },
+  { cardX: 4550, cardY: 686, tagX: 4550, tagY: 656 }
 ]
 
 function machineThumbColor(state: MachineState, darkMode: boolean): string {
@@ -243,8 +243,8 @@ function machineThumbColor(state: MachineState, darkMode: boolean): string {
 const mapped = Vue.extend({
   computed: automationMapper.mapState([
     "lineGlobalParameters",
-    "machinesMetrics",
-  ]),
+    "machinesMetrics"
+  ])
 })
 
 @Component
@@ -270,7 +270,7 @@ export default class LineSynoptics extends mapped {
   }
 
   observeResize(): void {
-    this.resizeObs = new ResizeObserver((entries) => {
+    this.resizeObs = new ResizeObserver(entries => {
       for (const entry of entries) {
         if (entry.target === this.$refs.layoutContainer) {
           this.placeMachineCards()
@@ -283,7 +283,7 @@ export default class LineSynoptics extends mapped {
   placeMachineCards(): void {
     this.cardDOMPositions = this.$refs.cardAnchor.map((anchor, index) => {
       const card = this.$refs.machineCard.find(
-        (card) =>
+        card =>
           (card.$el as HTMLDivElement).dataset.cardIndex == index.toString()
       )
       if (card === undefined) {
@@ -309,22 +309,22 @@ export default class LineSynoptics extends mapped {
             show: counters.cycleTimePercent > 100,
             ...(counters.cycleTimePercent <= 105
               ? iconNoLegend(CardIcons.cycleTimeWarn)
-              : iconNoLegend(CardIcons.cycleTimeAlert)),
+              : iconNoLegend(CardIcons.cycleTimeAlert))
           },
           gauges: [
             {
               value: counters.partControlPercent,
-              ...iconNoLegend(CardIcons.partControl),
+              ...iconNoLegend(CardIcons.partControl)
             },
             {
               value: counters.toolChangePercent,
-              ...iconNoLegend(CardIcons.toolChange),
+              ...iconNoLegend(CardIcons.toolChange)
             },
             {
               value: counters.bufferFillPercent,
-              ...iconNoLegend(CardIcons.bufferFill),
-            },
-          ].filter(({ value }) => value >= 0),
+              ...iconNoLegend(CardIcons.bufferFill)
+            }
+          ].filter(({ value }) => value >= 0)
         }
       })
       .filter(({ gauges, cycleTime }) => gauges.length || cycleTime.show)
@@ -336,7 +336,7 @@ export default class LineSynoptics extends mapped {
         ...LayoutData[index],
         tagText: machineNames[index],
         thumbFill: machineThumbColor(machineState, this.$vuetify.theme.dark),
-        thumbBlink: machineState.alarm,
+        thumbBlink: machineState.alarm
       }
     })
   }
