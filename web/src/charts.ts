@@ -16,6 +16,7 @@ export function commonOptions(darkMode: boolean): ApexOptions {
       }
     },
     legend: {
+      floating: true,
       onItemClick: {
         toggleDataSeries: false
       },
@@ -26,6 +27,10 @@ export function commonOptions(darkMode: boolean): ApexOptions {
     },
     theme: {
       mode: darkMode ? "dark" : "light"
+    },
+    title: {
+      margin: 10,
+      floating: true
     },
     tooltip: {
       enabled: false
