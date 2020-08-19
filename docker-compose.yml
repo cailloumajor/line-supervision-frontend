@@ -89,7 +89,7 @@ services:
       - net-docker-socket
     user: 2000:2000
     volumes:
-      - ./traefik.toml:/etc/traefik/traefik.toml:ro
+      - ./traefik/traefik.toml:/etc/traefik/traefik.toml:ro
 
 networks:
   net-docker-socket:
