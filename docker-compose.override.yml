@@ -4,6 +4,7 @@ version: "3.7"
 services:
   influx:
     environment:
+      - INFLUXDB_MONITOR_STORE_ENABLED=false
       # Following environment variables will be obtained from `.env` file
       - INFLUX_DB_NAME
 
