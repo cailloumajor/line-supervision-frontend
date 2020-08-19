@@ -1,6 +1,9 @@
 # Configuration common to development and production
 version: "3.7"
 
+x-aliases:
+  - &backend-network-name net-backend-${COMPOSE_PROJECT_NAME:-4nf3wt}
+
 services:
   influx:
     image: influxdb:1.8
@@ -10,12 +13,13 @@ services:
       - INFLUXDB_SUBSCRIBER_ENABLED=false
       - INFLUXDB_CONTINUOUS_QUERIES_ENABLED=false
     labels:
-      - "dozzle.enable=true"
-      - "traefik.enable=true"
-      - "traefik.http.middlewares.influx-stripprefix.stripprefix.prefixes=/influx"
-      - "traefik.http.middlewares.influx-stripprefix.stripprefix.forceslash=false"
-      - "traefik.http.routers.influx.middlewares=influx-stripprefix@docker"
-      - "traefik.http.routers.influx.rule=PathPrefix(`/influx/`)"
+      dozzle.enable: "true"
+      traefik.enable: "true"
+      traefik.docker.network: *backend-network-name
+      traefik.http.middlewares.influx-stripprefix.stripprefix.prefixes: "/influx"
+      traefik.http.middlewares.influx-stripprefix.stripprefix.forceslash: "false"
+      traefik.http.routers.influx.middlewares: "influx-stripprefix@docker"
+      traefik.http.routers.influx.rule: "PathPrefix(`/influx/`)"
     networks:
       - net-backend
     volumes:
@@ -33,8 +37,9 @@ services:
     depends_on:
       - docker-socket-proxy
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.logging.rule=PathPrefix(`/logs/`) || Path(`/logs`)"
+      traefik.enable: "true"
+      traefik.docker.network: *backend-network-name
+      traefik.http.routers.logging.rule: "PathPrefix(`/logs/`) || Path(`/logs`)"
     networks:
       - net-backend
       - net-docker-socket
@@ -45,20 +50,22 @@ services:
     environment:
       - INFLUX_HOST=influx
     labels:
-      - "dozzle.enable=true"
-      - "traefik.enable=true"
-      - "traefik.http.middlewares.ws-stripprefix.stripprefix.prefixes=/ws"
-      - "traefik.http.middlewares.ws-stripprefix.stripprefix.forceslash=false"
-      - "traefik.http.routers.opcua-bridge.middlewares=ws-stripprefix@docker"
-      - "traefik.http.routers.opcua-bridge.rule=PathPrefix(`/ws/`) || Path(`/ws`)"
+      dozzle.enable: "true"
+      traefik.enable: "true"
+      traefik.docker.network: *backend-network-name
+      traefik.http.middlewares.ws-stripprefix.stripprefix.prefixes: "/ws"
+      traefik.http.middlewares.ws-stripprefix.stripprefix.forceslash: "false"
+      traefik.http.routers.opcua-bridge.middlewares: "ws-stripprefix@docker"
+      traefik.http.routers.opcua-bridge.rule: "PathPrefix(`/ws/`) || Path(`/ws`)"
     networks:
       - net-backend
 
   web:
     labels:
-      - "dozzle.enable=true"
-      - "traefik.enable=true"
-      - "traefik.http.routers.web.rule=PathPrefix(`/`)"
+      dozzle.enable: "true"
+      traefik.enable: "true"
+      traefik.docker.network: *backend-network-name
+      traefik.http.routers.web.rule: "PathPrefix(`/`)"
     networks:
       - net-backend
 
@@ -67,7 +74,7 @@ services:
     environment:
       - CONTAINERS=1
     labels:
-      - "dozzle.enable=true"
+      dozzle.enable: "true"
     networks:
       - net-docker-socket
     volumes:
@@ -76,7 +83,7 @@ services:
   reverse-proxy:
     image: traefik:v2.2
     labels:
-      - "dozzle.enable=true"
+      dozzle.enable: "true"
     networks:
       - net-backend
       - net-docker-socket
@@ -85,7 +92,7 @@ services:
 networks:
   net-docker-socket:
   net-backend:
-    name: net-backend-${COMPOSE_PROJECT_NAME:-4nf3wt}
+    name: *backend-network-name
 
 volumes:
   influxdb_data:
