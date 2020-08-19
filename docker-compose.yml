@@ -23,7 +23,7 @@ services:
     networks:
       - net-backend
     volumes:
-      - ./influx/start.sh:/docker-entrypoint-initdb.d/start.sh:ro
+      - ./influxdb/start.sh:/docker-entrypoint-initdb.d/start.sh:ro
       - influxdb_data:/var/lib/influxdb
 
   log-viewer:
