@@ -1,0 +1,22 @@
+[meta]
+# Where the metadata/raft database is stored
+dir = "/var/lib/influxdb/meta"
+
+[data]
+# The directory where the TSM storage engine stores TSM files.
+dir = "/var/lib/influxdb/data"
+
+# The directory where the TSM storage engine stores WAL files.
+wal-dir = "/var/lib/influxdb/wal"
+
+[http]
+# Determines whether the Flux query endpoint is enabled.
+flux-enabled = true
+
+[subscriber]
+# Determines whether the subscriber service is enabled.
+enabled = false
+
+[continuous_queries]
+# Determines whether the continuous query service is enabled.
+enabled = false
