@@ -25,12 +25,6 @@ services:
       - caddy_data:/data
 
   reverse-proxy:
-    command:
-      - "--entryPoints.http.address=:8000"
-      - "--log.level=WARN"
-      - "--providers.docker=true"
-      - "--providers.docker.endpoint=tcp://docker-socket-proxy:2375"
-      - "--providers.docker.exposedByDefault=false"
     ports:
       - "80:8000"
 
