@@ -26,7 +26,7 @@ services:
       - influxdb_data:/var/lib/influxdb
 
   log-viewer:
-    image: amir20/dozzle:v2.1.5
+    image: amir20/dozzle:v2.2.0
     environment:
       - DOCKER_HOST=tcp://docker-socket-proxy:2375
       - DOZZLE_BASE=/logs
