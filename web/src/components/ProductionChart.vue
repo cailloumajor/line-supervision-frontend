@@ -1,26 +1,27 @@
 <template>
-  <apex-chart
-    v-show="timeRangeIsValid"
-    :options="chartOptions"
-    :series="dataSeries"
-    type="line"
+  <base-influx-chart
+    :chart-options="chartOptions"
+    :chart-series="dataSeries"
+    :query-error="influxQueryError"
+    chart-type="line"
   />
 </template>
 
 <script lang="ts">
-import { flux } from "@influxdata/influxdb-client"
+import { flux, HttpError } from "@influxdata/influxdb-client"
 import { ApexOptions } from "apexcharts"
 import add from "date-fns/add"
 import format from "date-fns/format"
 import parse from "date-fns/parse"
 import sub from "date-fns/sub"
 import { merge } from "lodash"
-import VueApexCharts from "vue-apexcharts"
 import { Component, Vue } from "vue-property-decorator"
 
 import { commonOptions } from "@/charts"
 import { influxDBName, queryAPI } from "@/influxdb"
 import { automationMapper } from "@/store/modules/automation"
+
+import BaseInfluxChart, { QueryError } from "@/components/BaseInfluxChart.vue"
 
 interface DataSerie {
   name: string
@@ -40,16 +41,21 @@ const mapped = Vue.extend({
 
 @Component({
   components: {
-    "apex-chart": VueApexCharts
+    BaseInfluxChart
   }
 })
 export default class ProductionChart extends mapped {
   private fetchInterval!: number
 
   influxDataSeries: DataSerie[] = []
+  influxQueryError: QueryError = { active: false, text: "" }
   timeRange = {
     start: new Date(),
     end: new Date()
+  }
+
+  created(): void {
+    this.updateTimeRange()
   }
 
   mounted(): void {
@@ -87,11 +93,16 @@ export default class ProductionChart extends mapped {
         const serieIdx = result.findIndex(hasSerieName)
         result[serieIdx].data.push([Date.parse(o._time), o._value])
       },
-      error: err => {
-        console.error(err)
+      error: (err: HttpError) => {
+        this.influxQueryError.text = `${err.statusCode} ${err.statusMessage}`
+        if (err.body) {
+          this.influxQueryError.text += `\n${JSON.parse(err.body).error}`
+        }
+        this.influxQueryError.active = true
       },
       complete: () => {
         this.influxDataSeries = [...result]
+        this.influxQueryError.active = false
       }
     })
   }
