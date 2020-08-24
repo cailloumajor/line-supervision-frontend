@@ -52,3 +52,9 @@ export default class BaseChart extends Vue {
   @Prop({ type: Object, required: true }) readonly queryError!: QueryError
 }
 </script>
+
+<style lang="scss" scoped>
+.influx-error-text {
+  white-space: pre-line;
+}
+</style>
