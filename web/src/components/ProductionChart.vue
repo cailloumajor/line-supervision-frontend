@@ -2,26 +2,26 @@
   <base-influx-chart
     :chart-options="chartOptions"
     :chart-series="dataSeries"
-    :query-error="influxQueryError"
+    :error="queryError"
     chart-type="line"
   />
 </template>
 
 <script lang="ts">
-import { flux, HttpError } from "@influxdata/influxdb-client"
+import { flux } from "@influxdata/influxdb-client"
+import { computed, defineComponent, reactive, ref } from "@vue/composition-api"
 import { ApexOptions } from "apexcharts"
 import add from "date-fns/add"
 import format from "date-fns/format"
 import parse from "date-fns/parse"
 import sub from "date-fns/sub"
 import { merge } from "lodash"
-import { Component, Vue } from "vue-property-decorator"
 
 import { commonOptions } from "@/charts"
-import { influxDBName, queryAPI } from "@/influxdb"
-import { automationMapper } from "@/store/modules/automation"
+import { influxDBName, useInfluxDB, RowObject } from "@/functions/influxdb"
+import { LineGlobalParameters } from "@/store/modules/automation/types"
 
-import BaseInfluxChart, { QueryError } from "@/components/BaseInfluxChart.vue"
+import BaseInfluxChart from "@/components/BaseInfluxChart.vue"
 
 interface DataSerie {
   name: string
@@ -32,155 +32,141 @@ const seriesNames: { [index: string]: string } = {
   "12": "Total ligne"
 }
 
-const mapped = Vue.extend({
-  computed: automationMapper.mapState([
-    "influxLinkActive",
-    "lineGlobalParameters"
-  ])
-})
-
-@Component({
+export default defineComponent({
   components: {
     BaseInfluxChart
-  }
-})
-export default class ProductionChart extends mapped {
-  private fetchInterval!: number
+  },
 
-  influxDataSeries: DataSerie[] = []
-  influxQueryError: QueryError = { active: false, text: "" }
-  timeRange = {
-    start: new Date(),
-    end: new Date()
-  }
+  setup(_, { root: { $store, $vuetify } }) {
+    const influxDataSeries = ref<DataSerie[]>([])
 
-  created(): void {
-    this.updateTimeRange()
-  }
-
-  mounted(): void {
-    setTimeout(this.fetchData, 1000)
-    this.fetchInterval = setInterval(this.fetchData, 60000)
-  }
-
-  beforeDestroy(): void {
-    clearInterval(this.fetchInterval)
-  }
-
-  fetchData(): void {
-    this.updateTimeRange()
-    if (!this.influxLinkActive) return
-    const result: DataSerie[] = []
-    const indexes = Object.keys(seriesNames)
-    const query = flux`\
-      from(bucket: "${influxDBName}")
-        |> range(start: ${this.timeRange.start})
-        |> filter(fn: (r) =>
-          r._measurement == "dbLineSupervision.machine" and
-          r._field == "counters.production" and
-          contains(value: r.machine_index, set: ${indexes})
-        )
-        |> increase()
-    `
-    queryAPI.queryRows(query, {
-      next: (row, tableMeta) => {
-        const o = tableMeta.toObject(row)
-        const serieName = seriesNames[o.machine_index]
-        const hasSerieName = (s: DataSerie) => s.name === serieName
-        if (result.findIndex(hasSerieName) < 0) {
-          result.push({ name: serieName, data: [] })
-        }
-        const serieIdx = result.findIndex(hasSerieName)
-        result[serieIdx].data.push([Date.parse(o._time), o._value])
-      },
-      error: (err: HttpError) => {
-        this.influxQueryError.text = `${err.statusCode} ${err.statusMessage}`
-        if (err.body) {
-          this.influxQueryError.text += `\n${JSON.parse(err.body).error}`
-        }
-        this.influxQueryError.active = true
-      },
-      complete: () => {
-        this.influxDataSeries = [...result]
-        this.influxQueryError.active = false
-      }
+    const timeRange = reactive({
+      start: new Date(),
+      end: new Date()
     })
-  }
 
-  updateTimeRange(): void {
-    const now = new Date()
-    const shifts = ["21:30:00.0", "13:30:00.0", "05:30:00.0"].map(s =>
-      parse(s, "HH:mm:ss.S", now)
+    const linkActive = computed<boolean>(() => $store.state.influxLinkActive)
+
+    const lineGlobalParameters = computed<LineGlobalParameters>(
+      () => $store.state.lineGlobalParameters
     )
-    let currentShift = shifts.find(date => date < now)
-    if (currentShift === undefined) {
-      currentShift = sub(shifts[0], { days: 1 })
-    }
-    this.timeRange.start = currentShift
-    this.timeRange.end = add(currentShift, { hours: 8 })
-  }
 
-  get chartOptions(): ApexOptions {
-    const strokeWidths = Array(this.dataSeries.length - 1).fill(5)
-    strokeWidths.unshift(2)
-    const options: ApexOptions = {
-      colors: ["#FF4560", "#008FFB", "#00E396", "#FEB019", "#775DD0"],
-      dataLabels: {
-        enabled: true,
-        enabledOnSeries: [0],
-        formatter: value => (value === 0 ? "" : value),
-        offsetY: -5,
-        textAnchor: "end"
-      },
-      grid: {
-        xaxis: {
-          lines: {
-            show: true
-          }
-        }
-      },
-      markers: {
-        showNullDataPoints: false
-      },
-      stroke: {
-        lineCap: "round",
-        width: strokeWidths
-      },
-      title: {
-        text: "Production"
-      },
-      xaxis: {
-        labels: {
-          datetimeUTC: false,
-          formatter: (val, timestamp) => format(timestamp as number, "H:mm"),
-          offsetY: 5,
-          rotateAlways: true
-        },
-        tickAmount: 8,
-        type: "datetime"
-      }
-    }
-    return merge(options, commonOptions(this.$vuetify.theme.dark))
-  }
-
-  get dataSeries(): DataSerie[] {
-    return [
+    const dataSeries = computed<DataSerie[]>(() => [
       {
         name: "Objectif",
         data: [
-          [this.timeRange.start.getTime(), 0],
+          [timeRange.start.getTime(), 0],
           [
-            this.timeRange.end.getTime(),
-            this.lineGlobalParameters.productionObjective
+            timeRange.end.getTime(),
+            lineGlobalParameters.value.productionObjective
           ]
         ]
       },
-      ...this.influxDataSeries
-    ]
-  }
+      ...influxDataSeries.value
+    ])
 
-  get timeRangeIsValid(): boolean {
-    return this.timeRange.start < this.timeRange.end
+    const chartOptions = computed<ApexOptions>(() => {
+      const strokeWidths = Array(dataSeries.value.length - 1).fill(5)
+      strokeWidths.unshift(2)
+      const options: ApexOptions = {
+        colors: ["#FF4560", "#008FFB", "#00E396", "#FEB019", "#775DD0"],
+        dataLabels: {
+          enabled: true,
+          enabledOnSeries: [0],
+          formatter: value => (value === 0 ? "" : value),
+          offsetY: -5,
+          textAnchor: "end"
+        },
+        grid: {
+          xaxis: {
+            lines: {
+              show: true
+            }
+          }
+        },
+        markers: {
+          showNullDataPoints: false
+        },
+        stroke: {
+          lineCap: "round",
+          width: strokeWidths
+        },
+        title: {
+          text: "Production"
+        },
+        xaxis: {
+          labels: {
+            datetimeUTC: false,
+            formatter: (val, timestamp) => format(timestamp as number, "H:mm"),
+            offsetY: 5,
+            rotateAlways: true
+          },
+          tickAmount: 8,
+          type: "datetime"
+        }
+      }
+      return merge(options, commonOptions($vuetify.theme.dark))
+    })
+
+    function updateTimeRange() {
+      const now = new Date()
+      const shifts = ["21:30:00.0", "13:30:00.0", "05:30:00.0"].map(s =>
+        parse(s, "HH:mm:ss.S", now)
+      )
+      let currentShift = shifts.find(date => date < now)
+      if (currentShift === undefined) {
+        currentShift = sub(shifts[0], { days: 1 })
+      }
+      timeRange.start = currentShift
+      timeRange.end = add(currentShift, { hours: 8 })
+    }
+
+    updateTimeRange()
+
+    const query = flux`\
+      from(bucket: "${influxDBName}")
+        |> range(start: ${timeRange.start})
+        |> filter(fn: (r) =>
+          r._measurement == "dbLineSupervision.machine" and
+          r._field == "counters.production" and
+          contains(value: r.machine_index, set: ${Object.keys(seriesNames)})
+        )
+        |> increase()
+    `
+
+    const queryResult: DataSerie[] = []
+
+    const observer = {
+      next: (rowObj: RowObject) => {
+        const serieName = seriesNames[rowObj.machine_index]
+        const hasSerieName = (s: DataSerie) => s.name === serieName
+        if (queryResult.findIndex(hasSerieName) < 0) {
+          queryResult.push({ name: serieName, data: [] })
+        }
+        const serieIdx = queryResult.findIndex(hasSerieName)
+        queryResult[serieIdx].data.push([
+          Date.parse(rowObj._time),
+          rowObj._value
+        ])
+      },
+      complete: () => {
+        updateTimeRange()
+        influxDataSeries.value = [...queryResult]
+      }
+    }
+
+    const { queryError } = useInfluxDB({
+      query,
+      observer,
+      linkActive,
+      queryInterval: 60000
+    })
+
+    return {
+      chartOptions,
+      dataSeries,
+      queryError
+    }
   }
-}
+})
 </script>

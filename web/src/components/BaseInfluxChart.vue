@@ -8,7 +8,7 @@
     <v-overlay
       :dark="null"
       :light="null"
-      :value="queryError.active"
+      :value="error"
       absolute
       opacity="0"
       z-index="1"
@@ -22,7 +22,7 @@
       >
         Erreur de requête InfluxDB :
         <div class="font-italic influx-error-text">
-          {{ queryError.text }}
+          {{ error }}
         </div>
       </v-alert>
     </v-overlay>
@@ -30,27 +30,28 @@
 </template>
 
 <script lang="ts">
+import { defineComponent, PropType } from "@vue/composition-api"
 import { ApexOptions } from "apexcharts"
-import VueApexChart from "vue-apexcharts"
-import { Component, Prop, Vue } from "vue-property-decorator"
+import ApexChart from "vue-apexcharts"
 
-export interface QueryError {
-  active: boolean
-  text: string
-}
-
-@Component({
+export default defineComponent({
   components: {
-    "apex-chart": VueApexChart
+    ApexChart
+  },
+
+  props: {
+    chartOptions: Object as PropType<ApexOptions>,
+    chartSeries: {
+      type: Array as PropType<ApexOptions["series"]>,
+      required: true
+    },
+    chartType: {
+      type: String,
+      required: true
+    },
+    error: String
   }
 })
-export default class BaseChart extends Vue {
-  @Prop(Object) readonly chartOptions: ApexOptions | undefined
-  @Prop({ type: Array, required: true })
-  readonly chartSeries!: ApexOptions["series"]
-  @Prop({ type: String, required: true }) readonly chartType!: string
-  @Prop({ type: Object, required: true }) readonly queryError!: QueryError
-}
 </script>
 
 <style lang="scss" scoped>
