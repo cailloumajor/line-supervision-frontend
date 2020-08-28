@@ -9,17 +9,17 @@ import {
   onMounted,
   onUnmounted,
   ref,
-  watchEffect
+  watch
 } from "@vue/composition-api"
+import { from, of, Subject, Subscription, timer } from "rxjs"
 import {
-  EMPTY,
-  from,
-  PartialObserver,
-  Subject,
-  Subscription,
-  timer
-} from "rxjs"
-import { map, switchMap, switchMapTo, tap } from "rxjs/operators"
+  catchError,
+  map,
+  reduce,
+  switchMap,
+  switchMapTo,
+  tap
+} from "rxjs/operators"
 
 export type RowObject = ReturnType<FluxTableMetaData["toObject"]>
 
@@ -28,23 +28,25 @@ const queryAPI = new InfluxDB({ url }).getQueryApi("")
 
 export const influxDBName = process.env.VUE_APP_INFLUX_DB_NAME
 
-export function useInfluxDB({
-  query,
-  observer,
+export function useInfluxDB<T extends Array<unknown>>({
   linkActive,
-  queryInterval
+  queryInterval,
+  query,
+  seed,
+  reducer
 }: {
-  query: ParameterizedQuery
-  observer: PartialObserver<RowObject>
   linkActive: ComputedRef<boolean>
   queryInterval: number
+  query: ParameterizedQuery
+  seed: T
+  reducer: (acc: T, value: RowObject) => T
 }) {
   let subscription: Subscription
 
+  const influxData = ref(seed)
   const queryError = ref("")
 
   const query$ = from(queryAPI.rows(query)).pipe(
-    map(({ values, tableMeta }) => tableMeta.toObject(values)),
     tap({
       error: (err: Error) => {
         if (err instanceof HttpError) {
@@ -60,21 +62,27 @@ export function useInfluxDB({
         queryError.value = ""
       }
     }),
-    tap(observer)
+    map(({ values, tableMeta }) => tableMeta.toObject(values)),
+    reduce(reducer, seed),
+    catchError(() => of(seed))
   )
 
   const linkActive$ = new Subject<boolean>()
 
   const linkActiveTimer$ = linkActive$.pipe(
-    switchMap(active => (active ? timer(500, queryInterval) : EMPTY))
+    switchMap(active => (active ? timer(500, queryInterval) : of(-1)))
   )
 
-  watchEffect(() => {
-    linkActive$.next(linkActive.value)
+  watch(linkActive, active => {
+    linkActive$.next(active)
   })
 
   onMounted(() => {
-    subscription = linkActiveTimer$.pipe(switchMapTo(query$)).subscribe()
+    subscription = linkActiveTimer$.pipe(switchMapTo(query$)).subscribe({
+      next: result => {
+        influxData.value = [...result]
+      }
+    })
   })
 
   onUnmounted(() => {
@@ -82,6 +90,7 @@ export function useInfluxDB({
   })
 
   return {
+    influxData,
     queryError
   }
 }
