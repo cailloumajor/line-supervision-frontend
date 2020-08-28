@@ -18,7 +18,7 @@ import sub from "date-fns/sub"
 import { merge } from "lodash"
 
 import { commonOptions } from "@/charts"
-import { influxDBName, useInfluxDB, RowObject } from "@/functions/influxdb"
+import { influxDBName, useInfluxDB, RowObject } from "@/composables/influxdb"
 import { LineGlobalParameters } from "@/store/modules/automation/types"
 
 import BaseInfluxChart from "@/components/BaseInfluxChart.vue"
