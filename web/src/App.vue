@@ -22,7 +22,7 @@
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
       <img
         class="ml-1 mr-5 py-1"
-        :src="require('@/assets/company-logo.png')"
+        src="@/assets/company-logo.png"
         :style="logoStyle"
       />
       <v-toolbar-title>***REMOVED***</v-toolbar-title>
