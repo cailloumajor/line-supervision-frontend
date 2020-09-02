@@ -36,7 +36,7 @@
       <v-container fluid>
         <router-view />
       </v-container>
-      <v-overlay :value="!plcLinkUp" absolute opacity="1" z-index="2">
+      <v-overlay :value="!plcLinkUp" absolute opacity="0.8" z-index="2">
         <v-alert type="error">Pas de connection à l'automate</v-alert>
       </v-overlay>
     </v-main>
