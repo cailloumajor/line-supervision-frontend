@@ -306,24 +306,26 @@ export default defineComponent({
     })
 
     function placeMachineCards() {
-      cardDOMPositions.value = (cardAnchor.value as SVGCircleElement[]).map(
-        (anchor, index) => {
-          const card = (machineCard.value as Vue[]).find(
-            card =>
-              (card.$el as HTMLDivElement).dataset.cardIndex == index.toString()
-          )
-          if (card === undefined) {
-            return { x: 0, y: 0 }
-          }
-          const anchorRect = anchor.getBoundingClientRect()
-          const anchorCenterX = anchorRect.x + anchorRect.width / 2
-          const cardRect = card.$el.getBoundingClientRect()
-          const containerRect = (layoutContainer.value as HTMLDivElement).getBoundingClientRect()
-          const x = anchorCenterX - cardRect.width / 2 - containerRect.x
-          const y = anchorRect.y + anchorRect.height / 2 - containerRect.y
-          return { x, y }
+      if (!cardAnchor.value) return
+      cardDOMPositions.value = cardAnchor.value.map((anchor, index) => {
+        if (!machineCard.value || !layoutContainer.value) {
+          return { x: 0, y: 0 }
         }
-      )
+        const card = machineCard.value.find(
+          card =>
+            (card.$el as HTMLDivElement).dataset.cardIndex == index.toString()
+        )
+        if (card === undefined) {
+          return { x: 0, y: 0 }
+        }
+        const anchorRect = anchor.getBoundingClientRect()
+        const anchorCenterX = anchorRect.x + anchorRect.width / 2
+        const cardRect = card.$el.getBoundingClientRect()
+        const containerRect = layoutContainer.value.getBoundingClientRect()
+        const x = anchorCenterX - cardRect.width / 2 - containerRect.x
+        const y = anchorRect.y + anchorRect.height / 2 - containerRect.y
+        return { x, y }
+      })
     }
 
     onMounted(() => {

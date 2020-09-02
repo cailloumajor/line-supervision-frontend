@@ -47,9 +47,9 @@ const useStore = createStore({
       },
       counters: {
         production: 0,
-        toolChangePercent: 0,
-        partControlPercent: 0,
-        bufferFillPercent: 0,
+        toolChangePercent: -1,
+        partControlPercent: -1,
+        bufferFillPercent: -1,
         cycleTimePercent: 0
       }
     }),
