@@ -100,7 +100,7 @@
       <text class="remaining-counter" x="450" y="130">
         Reste à produire rafale
         <tspan x="450" dy="1.2em">
-          {{ lineGlobalParameters.campaignRemaining }}
+          {{ opcUaState.lineGlobalParameters.campaignRemaining }}
         </tspan>
       </text>
     </svg>
@@ -138,10 +138,19 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Watch } from "vue-property-decorator"
+import {
+  computed,
+  defineComponent,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch
+} from "@vue/composition-api"
+import Vue from "vue"
 
 import { machineNames } from "@/machine-data"
-import { automationMapper, MachineState } from "@/store/modules/automation"
+import { useOpcUaStore } from "@/stores/opcua"
+import { MachineState } from "@/stores/types"
 
 interface CommonIcon {
   icon: string
@@ -184,7 +193,7 @@ const iconNoLegend: (legendIcon: LegendIcon) => CommonIcon = ({
   color
 }) => ({ icon, color })
 
-const CardIcons: { [name: string]: LegendIcon } = {
+const cardIcons: Record<string, LegendIcon> = {
   partControl: {
     icon: "mdi-eye-check",
     color: "orange darken-3",
@@ -240,121 +249,123 @@ function machineThumbColor(state: MachineState, darkMode: boolean): string {
   return darkMode ? "#999" : "#CCC"
 }
 
-const mapped = Vue.extend({
-  computed: automationMapper.mapState([
-    "lineGlobalParameters",
-    "machinesMetrics"
-  ])
-})
+export default defineComponent({
+  setup(_, { root: { $nextTick, $vuetify } }) {
+    let resizeObs: ResizeObserver
 
-@Component
-export default class LineSynoptics extends mapped {
-  private cardIcons = CardIcons
-  private resizeObs!: ResizeObserver
+    const opcUaStore = useOpcUaStore()
 
-  $refs!: {
-    cardAnchor: SVGCircleElement[]
-    layoutContainer: HTMLDivElement
-    machineCard: Vue[]
-  }
+    const cardAnchor = ref<SVGCircleElement[] | null>(null)
+    const layoutContainer = ref<HTMLDivElement | null>(null)
+    const machineCard = ref<Vue[] | null>(null)
 
-  cardDOMPositions = [...Array(LayoutData.length)].map(() => ({ x: 0, y: 0 }))
+    const cardDOMPositions = ref(
+      [...Array(LayoutData.length)].map(() => ({ x: 0, y: 0 }))
+    )
 
-  mounted(): void {
-    this.observeResize()
-    this.placeMachineCards()
-  }
-
-  beforeDestry(): void {
-    this.resizeObs.disconnect()
-  }
-
-  observeResize(): void {
-    this.resizeObs = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        if (entry.target === this.$refs.layoutContainer) {
-          this.placeMachineCards()
-        }
-      }
+    const cardsData = computed<CardData[]>(() => {
+      return opcUaStore.state.machinesMetrics
+        .map(({ counters }, index) => {
+          return {
+            index,
+            ...cardDOMPositions.value[index],
+            cycleTime: {
+              show: counters.cycleTimePercent > 100,
+              ...(counters.cycleTimePercent <= 105
+                ? iconNoLegend(cardIcons.cycleTimeWarn)
+                : iconNoLegend(cardIcons.cycleTimeAlert))
+            },
+            gauges: [
+              {
+                value: counters.partControlPercent,
+                ...iconNoLegend(cardIcons.partControl)
+              },
+              {
+                value: counters.toolChangePercent,
+                ...iconNoLegend(cardIcons.toolChange)
+              },
+              {
+                value: counters.bufferFillPercent,
+                ...iconNoLegend(cardIcons.bufferFill)
+              }
+            ].filter(({ value }) => value >= 0)
+          }
+        })
+        .filter(({ gauges, cycleTime }) => gauges.length || cycleTime.show)
     })
-    this.resizeObs.observe(this.$refs.layoutContainer)
-  }
 
-  placeMachineCards(): void {
-    this.cardDOMPositions = this.$refs.cardAnchor.map((anchor, index) => {
-      const card = this.$refs.machineCard.find(
-        card =>
-          (card.$el as HTMLDivElement).dataset.cardIndex == index.toString()
-      )
-      if (card === undefined) {
-        return { x: 0, y: 0 }
-      }
-      const anchorRect = anchor.getBoundingClientRect()
-      const anchorCenterX = anchorRect.x + anchorRect.width / 2
-      const cardRect = card.$el.getBoundingClientRect()
-      const containerRect = this.$refs.layoutContainer.getBoundingClientRect()
-      const x = anchorCenterX - cardRect.width / 2 - containerRect.x
-      const y = anchorRect.y + anchorRect.height / 2 - containerRect.y
-      return { x, y }
-    })
-  }
-
-  get cardsData(): CardData[] {
-    return this.machinesMetrics
-      .map(({ counters }, index) => {
+    const layoutData = computed<LayoutMachineData[]>(() => {
+      return opcUaStore.state.machinesMetrics.map(({ machineState }, index) => {
         return {
-          index,
-          ...this.cardDOMPositions[index],
-          cycleTime: {
-            show: counters.cycleTimePercent > 100,
-            ...(counters.cycleTimePercent <= 105
-              ? iconNoLegend(CardIcons.cycleTimeWarn)
-              : iconNoLegend(CardIcons.cycleTimeAlert))
-          },
-          gauges: [
-            {
-              value: counters.partControlPercent,
-              ...iconNoLegend(CardIcons.partControl)
-            },
-            {
-              value: counters.toolChangePercent,
-              ...iconNoLegend(CardIcons.toolChange)
-            },
-            {
-              value: counters.bufferFillPercent,
-              ...iconNoLegend(CardIcons.bufferFill)
-            }
-          ].filter(({ value }) => value >= 0)
+          ...LayoutData[index],
+          tagText: machineNames[index],
+          thumbFill: machineThumbColor(machineState, $vuetify.theme.dark),
+          thumbBlink: machineState.alarm
         }
       })
-      .filter(({ gauges, cycleTime }) => gauges.length || cycleTime.show)
-  }
+    })
 
-  get layoutData(): LayoutMachineData[] {
-    return this.machinesMetrics.map(({ machineState }, index) => {
-      return {
-        ...LayoutData[index],
-        tagText: machineNames[index],
-        thumbFill: machineThumbColor(machineState, this.$vuetify.theme.dark),
-        thumbBlink: machineState.alarm
+    function placeMachineCards() {
+      cardDOMPositions.value = (cardAnchor.value as SVGCircleElement[]).map(
+        (anchor, index) => {
+          const card = (machineCard.value as Vue[]).find(
+            card =>
+              (card.$el as HTMLDivElement).dataset.cardIndex == index.toString()
+          )
+          if (card === undefined) {
+            return { x: 0, y: 0 }
+          }
+          const anchorRect = anchor.getBoundingClientRect()
+          const anchorCenterX = anchorRect.x + anchorRect.width / 2
+          const cardRect = card.$el.getBoundingClientRect()
+          const containerRect = (layoutContainer.value as HTMLDivElement).getBoundingClientRect()
+          const x = anchorCenterX - cardRect.width / 2 - containerRect.x
+          const y = anchorRect.y + anchorRect.height / 2 - containerRect.y
+          return { x, y }
+        }
+      )
+    }
+
+    onMounted(() => {
+      resizeObs = new ResizeObserver(entries => {
+        for (const entry of entries) {
+          if (entry.target === layoutContainer.value) {
+            placeMachineCards()
+          }
+        }
+      })
+      resizeObs.observe(layoutContainer.value as HTMLDivElement)
+      placeMachineCards()
+    })
+
+    onBeforeUnmount(() => {
+      resizeObs.disconnect()
+    })
+
+    watch(cardsData, (val, oldVal) => {
+      if (
+        val.length !== oldVal.length ||
+        val.some(
+          (cardData, index) =>
+            cardData.gauges.length !== oldVal[index].gauges.length ||
+            cardData.cycleTime.show !== oldVal[index].cycleTime.show
+        )
+      ) {
+        $nextTick(() => placeMachineCards())
       }
     })
-  }
 
-  @Watch("cardsData")
-  onCardsDataChange(val: CardData[], oldVal: CardData[]): void {
-    if (
-      val.length !== oldVal.length ||
-      val.some(
-        (cardData, index) =>
-          cardData.gauges.length !== oldVal[index].gauges.length ||
-          cardData.cycleTime.show !== oldVal[index].cycleTime.show
-      )
-    ) {
-      this.$nextTick(() => this.placeMachineCards())
+    return {
+      cardAnchor,
+      layoutContainer,
+      machineCard,
+      cardIcons,
+      cardsData,
+      layoutData,
+      opcUaState: opcUaStore.state
     }
   }
-}
+})
 </script>
 
 <style lang="scss" scoped>

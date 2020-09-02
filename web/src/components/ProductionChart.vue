@@ -19,7 +19,7 @@ import { cloneDeep, merge } from "lodash"
 
 import { commonOptions } from "@/charts"
 import { influxDBName, useInfluxDB, RowObject } from "@/composables/influxdb"
-import { LineGlobalParameters } from "@/store/modules/automation/types"
+import { useOpcUaStore } from "@/stores/opcua"
 
 import BaseInfluxChart from "@/components/BaseInfluxChart.vue"
 
@@ -30,7 +30,7 @@ interface DataSerie {
   data: Point[]
 }
 
-const seriesNames: { [index: string]: string } = {
+const seriesNames: Record<string, string> = {
   "12": "Total ligne"
 }
 
@@ -39,17 +39,13 @@ export default defineComponent({
     BaseInfluxChart
   },
 
-  setup(_, { root: { $store, $vuetify } }) {
+  setup(_, { root: { $vuetify } }) {
+    const opcUaStore = useOpcUaStore()
+
     const timeRange = reactive({
       start: new Date(),
       end: new Date()
     })
-
-    const linkActive = computed<boolean>(() => $store.state.influxLinkActive)
-
-    const lineGlobalParameters = computed<LineGlobalParameters>(
-      () => $store.state.lineGlobalParameters
-    )
 
     function updateTimeRange() {
       const now = new Date()
@@ -99,13 +95,7 @@ export default defineComponent({
       }
     }
 
-    const { influxData, queryError } = useInfluxDB({
-      linkActive,
-      queryInterval: 60000,
-      query,
-      seed,
-      reducer
-    })
+    const { influxData, queryError } = useInfluxDB(60000, query, seed, reducer)
 
     const dataSeries = computed<DataSerie[]>(() => [
       {
@@ -114,7 +104,7 @@ export default defineComponent({
           [timeRange.start.getTime(), 0],
           [
             timeRange.end.getTime(),
-            lineGlobalParameters.value.productionObjective
+            opcUaStore.state.lineGlobalParameters.productionObjective
           ]
         ]
       },

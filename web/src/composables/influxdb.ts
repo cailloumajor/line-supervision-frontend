@@ -5,10 +5,10 @@ import {
   ParameterizedQuery
 } from "@influxdata/influxdb-client"
 import {
-  ComputedRef,
   onMounted,
   onUnmounted,
   ref,
+  toRefs,
   watch
 } from "@vue/composition-api"
 import { from, of, Subject, Subscription, timer } from "rxjs"
@@ -21,6 +21,9 @@ import {
   tap
 } from "rxjs/operators"
 
+import { useInfluxDBStore } from "@/stores/influxdb"
+import { LinkStatus } from "@/stores/types"
+
 export type RowObject = ReturnType<FluxTableMetaData["toObject"]>
 
 const url = `http://${window.location.host}/influx`
@@ -28,21 +31,17 @@ const queryAPI = new InfluxDB({ url }).getQueryApi("")
 
 export const influxDBName = process.env.VUE_APP_INFLUX_DB_NAME
 
-export function useInfluxDB<T extends Array<unknown>>({
-  linkActive,
-  queryInterval,
-  query,
-  seed,
-  reducer
-}: {
-  linkActive: ComputedRef<boolean>
-  queryInterval: number
-  query: ParameterizedQuery
-  seed: T
+export function useInfluxDB<T extends Array<unknown>>(
+  queryInterval: number,
+  query: ParameterizedQuery,
+  seed: T,
   reducer: (acc: T, value: RowObject) => T
-}) {
+) {
   let subscription: Subscription
 
+  const influxDBStore = useInfluxDBStore()
+
+  const { linkStatus } = toRefs(influxDBStore.state)
   const influxData = ref(seed)
   const queryError = ref("")
 
@@ -67,18 +66,25 @@ export function useInfluxDB<T extends Array<unknown>>({
     catchError(() => of(seed))
   )
 
-  const linkActive$ = new Subject<boolean>()
-
-  const linkActiveTimer$ = linkActive$.pipe(
-    switchMap(active => (active ? timer(500, queryInterval) : of(-1)))
+  const linkStatusSubject = new Subject<LinkStatus>()
+  const influxData$ = linkStatusSubject.pipe(
+    switchMap(status =>
+      status === LinkStatus.Up
+        ? timer(500, queryInterval).pipe(switchMapTo(query$))
+        : of(seed).pipe(
+            tap(() => {
+              queryError.value = ""
+            })
+          )
+    )
   )
 
-  watch(linkActive, active => {
-    linkActive$.next(active)
+  watch(linkStatus, status => {
+    linkStatusSubject.next(status)
   })
 
   onMounted(() => {
-    subscription = linkActiveTimer$.pipe(switchMapTo(query$)).subscribe({
+    subscription = influxData$.subscribe({
       next: result => {
         influxData.value = [...result]
       }

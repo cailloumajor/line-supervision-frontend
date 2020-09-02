@@ -36,12 +36,7 @@
       <v-container fluid>
         <router-view />
       </v-container>
-      <v-overlay
-        :value="!(linkStatus.opc && linkStatus.ws)"
-        absolute
-        opacity="1"
-        z-index="2"
-      >
+      <v-overlay :value="!plcLinkUp" absolute opacity="1" z-index="2">
         <v-alert type="error">Pas de connection à l'automate</v-alert>
       </v-overlay>
     </v-main>
@@ -67,17 +62,12 @@
 </template>
 
 <script lang="ts">
-import axios from "axios"
+import { computed, defineComponent, ref } from "@vue/composition-api"
 import * as CSS from "csstype"
-import { Component, Vue } from "vue-property-decorator"
 
-import { automationMapper } from "@/store/modules/automation"
-
-enum LinkState {
-  Up,
-  Down,
-  Unknown
-}
+import { useInfluxDBStore } from "@/stores/influxdb"
+import { useOpcUaStore } from "@/stores/opcua"
+import { LinkStatus } from "@/stores/types"
 
 interface LinkData {
   text: string
@@ -85,79 +75,53 @@ interface LinkData {
   icon: string
 }
 
-const mapped = Vue.extend({
-  computed: automationMapper.mapGetters(["linkStatus"]),
-  methods: automationMapper.mapActions(["changeInfluxLinkState"])
-})
+export default defineComponent({
+  setup(_, { root: { $vuetify } }) {
+    const influxDBStore = useInfluxDBStore()
+    const opcUaStore = useOpcUaStore()
 
-@Component
-export default class App extends mapped {
-  private influxCheckInterval!: number
-
-  drawer = false
-  routes: { name: string; menu: string; icon: string }[] = [
-    { name: "Home", menu: "Vue graphique", icon: "mdi-panorama" },
-    { name: "About", menu: "À propos", icon: "mdi-information" }
-  ]
-
-  mounted(): void {
-    setTimeout(this.checkInfluxHealth, 500)
-    this.influxCheckInterval = setInterval(this.checkInfluxHealth, 10000)
-  }
-
-  beforeDestroy(): void {
-    clearInterval(this.influxCheckInterval)
-  }
-
-  checkInfluxHealth(): void {
-    axios
-      .get(`http://${window.location.host}/influx/health`, {
-        timeout: 1000
-      })
-      .then(() => {
-        this.changeInfluxLinkState({ state: true })
-      })
-      .catch(error => {
-        this.changeInfluxLinkState({ state: false, error })
-      })
-  }
-
-  get linksData(): LinkData[] {
-    function linkData(
-      text: string,
-      ownState: boolean,
-      commonState?: boolean
-    ): LinkData {
-      let state = ownState ? LinkState.Up : LinkState.Down
-      if (commonState !== undefined) {
-        state = commonState ? state : LinkState.Unknown
-      }
-      return {
-        text,
-        color: {
-          [LinkState.Up]: "green",
-          [LinkState.Down]: "red",
-          [LinkState.Unknown]: "orange"
-        }[state],
-        icon: {
-          [LinkState.Up]: "mdi-swap-horizontal",
-          [LinkState.Down]: "mdi-link-off",
-          [LinkState.Unknown]: "mdi-help"
-        }[state]
-      }
-    }
-    return [
-      linkData("WS", this.linkStatus.ws),
-      linkData("OPC", this.linkStatus.opc, this.linkStatus.ws),
-      linkData("InfluxDB", this.linkStatus.influx)
+    const routes: { name: string; menu: string; icon: string }[] = [
+      { name: "Home", menu: "Vue graphique", icon: "mdi-panorama" },
+      { name: "About", menu: "À propos", icon: "mdi-information" }
     ]
-  }
 
-  get logoStyle(): CSS.Properties {
-    return {
-      filter: this.$vuetify.theme.dark === true ? "brightness(1.5)" : undefined,
+    const drawer = ref(false)
+
+    const linksData = computed<LinkData[]>(() => {
+      function linkData(text: string, state: LinkStatus): LinkData {
+        return {
+          text,
+          color: {
+            [LinkStatus.Up]: "green",
+            [LinkStatus.Down]: "red",
+            [LinkStatus.Unknown]: "orange"
+          }[state],
+          icon: {
+            [LinkStatus.Up]: "mdi-swap-horizontal",
+            [LinkStatus.Down]: "mdi-link-off",
+            [LinkStatus.Unknown]: "mdi-help"
+          }[state]
+        }
+      }
+      return [
+        linkData("WS", opcUaStore.state.wsLinkStatus),
+        linkData("OPC", opcUaStore.opcLinkStatus.value),
+        linkData("InfluxDB", influxDBStore.state.linkStatus)
+      ]
+    })
+
+    const logoStyle = computed<CSS.Properties>(() => ({
+      filter: $vuetify.theme.dark === true ? "brightness(1.5)" : undefined,
       height: "90%"
+    }))
+
+    return {
+      routes,
+      drawer,
+      linksData,
+      logoStyle,
+      plcLinkUp: opcUaStore.plcLinkUp
     }
   }
-}
+})
 </script>
