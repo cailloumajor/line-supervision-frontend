@@ -134,7 +134,6 @@ export default defineComponent({
           showNullDataPoints: false
         },
         stroke: {
-          lineCap: "round",
           width: strokeWidths
         },
         title: {
