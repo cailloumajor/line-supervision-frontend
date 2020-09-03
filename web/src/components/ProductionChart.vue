@@ -71,6 +71,8 @@ export default defineComponent({
           contains(value: r.machine_index, set: ${Object.keys(seriesNames)})
         )
         |> increase()
+        |> aggregateWindow(every: 1m, fn: mean)
+        |> toInt()
     `
 
     const seed: DataSerie[] = []
