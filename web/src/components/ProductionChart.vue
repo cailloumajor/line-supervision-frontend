@@ -112,8 +112,7 @@ export default defineComponent({
     ])
 
     const chartOptions = computed<ApexOptions>(() => {
-      const strokeWidths = Array(dataSeries.value.length - 1).fill(5)
-      strokeWidths.unshift(2)
+      const strokeWidths = [2, ...Array(dataSeries.value.length - 1).fill(5)]
       const options: ApexOptions = {
         colors: ["#FF4560", "#008FFB", "#00E396", "#FEB019", "#775DD0"],
         dataLabels: {
