@@ -12,3 +12,4 @@ level = "WARN"
 [providers.docker]
 endpoint = "tcp://docker-socket-proxy:2375"
 exposedByDefault = false
+network = "supervision-net-private"

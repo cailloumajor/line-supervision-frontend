@@ -1,9 +1,6 @@
 # Configuration common to development and production
 version: "3.7"
 
-x-aliases:
-  - &backend-network-name net-backend-${COMPOSE_PROJECT_NAME:-4nf3wt}
-
 services:
   influx:
     image: influxdb:1.8
@@ -13,13 +10,12 @@ services:
     labels:
       dozzle.enable: "true"
       traefik.enable: "true"
-      traefik.docker.network: *backend-network-name
       traefik.http.middlewares.influx-stripprefix.stripprefix.prefixes: "/influx"
       traefik.http.middlewares.influx-stripprefix.stripprefix.forceslash: "false"
       traefik.http.routers.influx.middlewares: "influx-stripprefix@docker"
       traefik.http.routers.influx.rule: "PathPrefix(`/influx/`)"
     networks:
-      - net-backend
+      - net-private
     volumes:
       - ./influxdb/config.toml:/etc/influxdb/influxdb.conf:ro
       - ./influxdb/start.sh:/docker-entrypoint-initdb.d/start.sh:ro
@@ -37,11 +33,9 @@ services:
       - docker-socket-proxy
     labels:
       traefik.enable: "true"
-      traefik.docker.network: *backend-network-name
       traefik.http.routers.logging.rule: "PathPrefix(`/logs/`) || Path(`/logs`)"
     networks:
-      - net-backend
-      - net-docker-socket
+      - net-private
     user: 2000:2000
 
   opcua-bridge:
@@ -51,22 +45,20 @@ services:
     labels:
       dozzle.enable: "true"
       traefik.enable: "true"
-      traefik.docker.network: *backend-network-name
       traefik.http.middlewares.ws-stripprefix.stripprefix.prefixes: "/ws"
       traefik.http.middlewares.ws-stripprefix.stripprefix.forceslash: "false"
       traefik.http.routers.opcua-bridge.middlewares: "ws-stripprefix@docker"
       traefik.http.routers.opcua-bridge.rule: "PathPrefix(`/ws/`) || Path(`/ws`)"
     networks:
-      - net-backend
+      - net-private
 
   web:
     labels:
       dozzle.enable: "true"
       traefik.enable: "true"
-      traefik.docker.network: *backend-network-name
       traefik.http.routers.web.rule: "PathPrefix(`/`)"
     networks:
-      - net-backend
+      - net-private
 
   docker-socket-proxy:
     image: tecnativa/docker-socket-proxy
@@ -75,7 +67,7 @@ services:
     labels:
       dozzle.enable: "true"
     networks:
-      - net-docker-socket
+      - net-private
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
@@ -84,16 +76,14 @@ services:
     labels:
       dozzle.enable: "true"
     networks:
-      - net-backend
-      - net-docker-socket
+      - default
+      - net-private
     user: 2000:2000
     volumes:
       - ./traefik/traefik.toml:/etc/traefik/traefik.toml:ro
 
 networks:
-  net-docker-socket:
-  net-backend:
-    name: *backend-network-name
-
+  net-private:
+    name: supervision-net-private
 volumes:
   influxdb_data:
