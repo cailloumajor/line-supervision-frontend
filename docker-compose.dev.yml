@@ -1,27 +1,16 @@
 version: "3.7"
 
-x-aliases:
-  - &common-env-file ./.env.common
-
 services:
-  influx:
-    env_file:
-      - *common-env-file
-
-  opcua-bridge:
-    env_file:
-      - *common-env-file
-      - ./.env.opc
-
   web:
-    env_file:
-      - *common-env-file
     build: ./web/.devcontainer
     expose:
       - "8080"
     volumes:
       - .:/workspace:cached
     tty: true
+    environment:
+      # Following environment variables will be obtained from `.env` file
+      - INFLUX_DB_NAME
 
   reverse-proxy:
     labels:

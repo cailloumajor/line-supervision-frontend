@@ -5,16 +5,6 @@ services:
   influx:
     environment:
       - INFLUXDB_MONITOR_STORE_ENABLED=false
-      # Following environment variables will be obtained from `.env` file
-      - INFLUX_DB_NAME
-
-  opcua-bridge:
-    environment:
-      # Following environment variables will be obtained from `.env` file
-      - INFLUX_DB_NAME
-      - OPC_SERVER_URL
-      - OPC_MONITOR_NODES
-      - OPC_RECORD_NODES
 
   web:
     build:

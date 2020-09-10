@@ -7,6 +7,8 @@ services:
     environment:
       - INFLUX_RP_DURATION=7d
       - INFLUXDB_CONFIG_PATH=/etc/influxdb/influxdb.conf
+      # Following environment variables will be obtained from `.env` file
+      - INFLUX_DB_NAME
     labels:
       dozzle.enable: "true"
       traefik.enable: "true"
@@ -42,6 +44,11 @@ services:
     build: ./opcua-webhmi-bridge
     environment:
       - INFLUX_HOST=influx
+      # Following environment variables will be obtained from `.env` file
+      - INFLUX_DB_NAME
+      - OPC_SERVER_URL
+      - OPC_MONITOR_NODES
+      - OPC_RECORD_NODES
     labels:
       dozzle.enable: "true"
       traefik.enable: "true"
