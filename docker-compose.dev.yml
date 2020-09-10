@@ -2,12 +2,17 @@ version: "3.7"
 
 services:
   web:
-    build: ./.devcontainer
+    build:
+      context: ./.devcontainer
+      args:
+        VARIANT: 12
+    # Overrides default command so things don't shut down after the process ends.
+    command: /bin/sh -c "while sleep 1000; do :; done"
     expose:
       - "8080"
+    user: node
     volumes:
       - .:/workspace:cached
-    tty: true
 
   reverse-proxy:
     labels:
