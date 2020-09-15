@@ -5,7 +5,7 @@ import { catchError, mapTo, switchMap } from "rxjs/operators"
 
 import { LinkStatus } from "./types"
 
-const influxHealthURL = `http://${window.location.host}/influx/health`
+const influxHealthURL = "/influx/health"
 
 const linkStatus$ = timer(500, 10000).pipe(
   mapTo(influxHealthURL),
