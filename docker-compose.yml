@@ -76,7 +76,10 @@ services:
     labels:
       dozzle.enable: "true"
       traefik.enable: "true"
-      traefik.http.routers.opcua-bridge.rule: "PathPrefix(`/centrifuge/`)"
+      traefik.http.middlewares.bridge-stripprefix.stripprefix.prefixes: "/bridge"
+      traefik.http.middlewares.bridge-stripprefix.stripprefix.forceslash: "false"
+      traefik.http.routers.opcua-bridge.middlewares: "bridge-stripprefix@docker"
+      traefik.http.routers.opcua-bridge.rule: "PathPrefix(`/bridge/`)"
     networks:
       - net-private
 
