@@ -13,6 +13,9 @@ services:
     user: node
     volumes:
       - .:/workspace:cached
+    environment:
+      # Following environment variables will be obtained from `.env` file
+      - INFLUX_DB_NAME
 
   reverse-proxy:
     labels:
