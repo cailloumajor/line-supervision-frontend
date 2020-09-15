@@ -7,8 +7,8 @@ services:
     command: centrifugo --config config.toml
     environment:
       # Following environment variables will be obtained from `.env` file
-      - CENTRIFUGO_TOKEN_HMAC_SECRET_KEY=${MESSAGING_API_KEY:?}
-      - CENTRIFUGO_API_KEY=${MESSAGING_SECRET_KEY:?}
+      - CENTRIFUGO_API_KEY=${MESSAGING_API_KEY:?}
+      - CENTRIFUGO_TOKEN_HMAC_SECRET_KEY=${MESSAGING_SECRET_KEY:?}
     expose:
       - "8000"
     labels:
