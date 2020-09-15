@@ -1,21 +1,46 @@
-import { toRefs, watch } from "@vue/composition-api"
+import axios from "axios"
+import Centrifuge, { PublicationContext } from "centrifuge"
 import { createStore } from "pinia"
-import { Subject, Subscription, timer } from "rxjs"
-import { delayWhen, retryWhen } from "rxjs/operators"
-import { webSocket } from "rxjs/webSocket"
-
 import {
-  LinkStatus,
+  BehaviorSubject,
+  ReplaySubject,
+  Subject,
+  concat,
+  from,
+  fromEvent,
+  merge,
+  of
+} from "rxjs"
+import {
+  catchError,
+  distinctUntilChanged,
+  filter,
+  map,
+  mapTo,
+  timeout
+} from "rxjs/operators"
+import {
   LineGlobalParameters,
+  LinkStatus,
   MachineMetrics,
-  OPCMessage
+  OPCDataChangeMessage,
+  OPCStatusMessage,
+  isLineParametersMessage,
+  isMachineMetricsMessage
 } from "./types"
+
+interface HelloResponse {
+  token: string
+  last_opc_data: OPCDataChangeMessage[]
+  last_opc_status: LinkStatus
+}
 
 type StateType = {
   machinesMetrics: MachineMetrics[]
   lineGlobalParameters: LineGlobalParameters
+  bridgeLinkStatus: LinkStatus
+  centrifugoLinkStatus: LinkStatus
   opcLinkStatus: LinkStatus
-  wsLinkStatus: LinkStatus
 }
 
 const freshMachineMetrics = () =>
@@ -45,75 +70,124 @@ const useStore = createStore({
       campaignRemaining: 0,
       productionObjective: 0
     },
-    opcLinkStatus: LinkStatus.Down,
-    wsLinkStatus: LinkStatus.Down
+    bridgeLinkStatus: LinkStatus.Unknown,
+    centrifugoLinkStatus: LinkStatus.Unknown,
+    opcLinkStatus: LinkStatus.Unknown
   }),
 
   getters: {
     opcLinkStatus: state =>
-      state.wsLinkStatus === LinkStatus.Up
+      state.bridgeLinkStatus === LinkStatus.Up
         ? state.opcLinkStatus
         : LinkStatus.Unknown,
 
-    plcLinkUp: state =>
-      state.opcLinkStatus === LinkStatus.Up &&
-      state.wsLinkStatus === LinkStatus.Up
+    plcLinkUp: (_, { opcLinkStatus }) => opcLinkStatus.value === LinkStatus.Up
   }
 })
 
-const RETRY_DELAY_SEC = 5
-const openSubject = new Subject()
-const closeSubject = new Subject()
-const ws$ = webSocket<OPCMessage>({
-  url: `ws://${window.location.host}/ws`,
-  openObserver: openSubject,
-  closeObserver: closeSubject
-}).pipe(
-  retryWhen(errors =>
-    errors.pipe(delayWhen(() => timer(RETRY_DELAY_SEC * 1000)))
-  )
-)
+const bridgeHelloURL = "/bridge/hello"
+const centrifugoURL = `ws://${window.location.host}/centrifugo/connection/websocket`
 
-let wsSubscription: Subscription
+const bridgeLinkStatusSubject = new Subject<LinkStatus>()
+const centrifugoLinkStatusSubject = new Subject<LinkStatus>()
+const opcLinkStatusSubject = new BehaviorSubject(LinkStatus.Unknown)
+const initialDataSubject = new ReplaySubject<OPCDataChangeMessage>()
+const opcDataChangeSubject = new Subject<OPCDataChangeMessage>()
+
+let initialized = false
 
 export function useOpcUaStore() {
   const store = useStore()
-  const { opcLinkStatus, wsLinkStatus } = toRefs(store.state)
 
-  if (!wsSubscription) {
-    openSubject.subscribe(() => {
-      store.state.wsLinkStatus = LinkStatus.Up
-    })
-    closeSubject.subscribe(() => {
-      store.state.wsLinkStatus = LinkStatus.Down
-    })
-    wsSubscription = ws$.subscribe(message => {
-      switch (message.message_type) {
-        case "opc_data_change":
-          store.state.opcLinkStatus = LinkStatus.Up
-          switch (message.node_id) {
-            case '"dbLineSupervision"."machine"':
-              store.state.machinesMetrics = [...message.data]
-              break
-            case '"dbLineSupervision"."lineParameters"':
-              store.state.lineGlobalParameters = { ...message.data }
-              break
-          }
-          break
-        case "opc_status":
-          if (message.data === false) {
-            store.state.opcLinkStatus = LinkStatus.Down
-          }
-          break
-      }
-    })
+  const setupReactive = async () => {
+    try {
+      const response = await axios.get(bridgeHelloURL, {
+        timeout: 1000
+      })
+      const {
+        token,
+        last_opc_data: lastOpcData,
+        last_opc_status: lastOpcStatus
+      }: HelloResponse = response.data
+
+      const centrifuge = new Centrifuge(centrifugoURL, {
+        debug: process.env.NODE_ENV === "development",
+        maxRetry: 5000
+      })
+      centrifuge.setToken(token)
+
+      merge(
+        fromEvent(centrifuge, "connect").pipe(mapTo(LinkStatus.Up)),
+        fromEvent(centrifuge, "disconnect").pipe(mapTo(LinkStatus.Down))
+      ).subscribe(centrifugoLinkStatusSubject)
+
+      from(lastOpcData).subscribe(initialDataSubject)
+
+      const heartbeatSubscription = centrifuge.subscribe("heartbeat")
+      fromEvent<PublicationContext>(heartbeatSubscription, "publish")
+        .pipe(
+          mapTo(LinkStatus.Up),
+          timeout(6000),
+          catchError((err, caught) => concat(of(LinkStatus.Down), caught)),
+          distinctUntilChanged()
+        )
+        .subscribe(bridgeLinkStatusSubject)
+
+      const dataChangeSubscription = centrifuge.subscribe("opc_data_change")
+      fromEvent<PublicationContext>(dataChangeSubscription, "publish")
+        .pipe(map(publication => publication.data as OPCDataChangeMessage))
+        .subscribe(opcDataChangeSubject)
+
+      const statusSubscription = centrifuge.subscribe("opc_status")
+      concat(
+        of(lastOpcStatus),
+        fromEvent<PublicationContext>(statusSubscription, "publish").pipe(
+          map(publication => publication.data as OPCStatusMessage),
+          map(message => message.payload)
+        )
+      ).subscribe(opcLinkStatusSubject)
+
+      centrifuge.connect()
+    } catch (err) {
+      console.error(err)
+    }
   }
 
-  watch([opcLinkStatus, wsLinkStatus], statuses => {
-    if (!statuses.every(status => status === LinkStatus.Up)) {
-      store.state.machinesMetrics = freshMachineMetrics()
-    }
-  })
+  if (!initialized) {
+    initialized = true
+
+    setupReactive()
+
+    const opcData$ = concat(initialDataSubject, opcDataChangeSubject)
+    opcData$.pipe(filter(isMachineMetricsMessage)).subscribe(message => {
+      store.state.machinesMetrics = message.payload
+    })
+    opcData$.pipe(filter(isLineParametersMessage)).subscribe(message => {
+      store.state.lineGlobalParameters = message.payload
+    })
+
+    bridgeLinkStatusSubject.subscribe(status => {
+      store.state.bridgeLinkStatus = status
+    })
+
+    centrifugoLinkStatusSubject.subscribe(status => {
+      store.state.centrifugoLinkStatus = status
+    })
+
+    opcLinkStatusSubject.subscribe(status => {
+      store.state.opcLinkStatus = status
+    })
+
+    merge(
+      bridgeLinkStatusSubject,
+      centrifugoLinkStatusSubject,
+      opcLinkStatusSubject
+    )
+      .pipe(filter(status => status !== LinkStatus.Up))
+      .subscribe(() => {
+        store.state.machinesMetrics = freshMachineMetrics()
+      })
+  }
 
   return store
 }

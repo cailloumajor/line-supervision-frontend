@@ -1,7 +1,7 @@
 export enum LinkStatus {
-  Up,
-  Down,
-  Unknown
+  Up = "UP",
+  Down = "DOWN",
+  Unknown = "UNKNOWN"
 }
 
 export interface MachineState {
@@ -31,24 +31,35 @@ export interface LineGlobalParameters {
 }
 
 interface OPCMachineMetricsChangeMessage {
-  message_type: "opc_data_change"
   node_id: '"dbLineSupervision"."machine"'
-  data: MachineMetrics[]
+  payload: MachineMetrics[]
 }
 
 interface OPCLineGlobalParametersChangeMessage {
-  message_type: "opc_data_change"
   node_id: '"dbLineSupervision"."lineParameters"'
-  data: LineGlobalParameters
+  payload: LineGlobalParameters
 }
 
-type OPCDataChangeMessage =
+export type OPCDataChangeMessage =
   | OPCMachineMetricsChangeMessage
   | OPCLineGlobalParametersChangeMessage
 
-interface OPCStatusMessage {
-  message_type: "opc_status"
-  data: boolean
+export function isMachineMetricsMessage(
+  message: OPCDataChangeMessage
+): message is OPCMachineMetricsChangeMessage {
+  return message.node_id === '"dbLineSupervision"."machine"'
 }
 
-export type OPCMessage = OPCDataChangeMessage | OPCStatusMessage
+export function isLineParametersMessage(
+  message: OPCDataChangeMessage
+): message is OPCLineGlobalParametersChangeMessage {
+  return message.node_id === '"dbLineSupervision"."lineParameters"'
+}
+
+export interface OPCStatusMessage {
+  payload: LinkStatus
+}
+
+export interface HeartBeatMessage {
+  payload: null
+}

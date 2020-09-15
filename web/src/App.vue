@@ -104,7 +104,8 @@ export default defineComponent({
         }
       }
       return [
-        linkData("WS", opcUaStore.state.wsLinkStatus),
+        linkData("Centrifugo", opcUaStore.state.centrifugoLinkStatus),
+        linkData("OPC bridge", opcUaStore.state.bridgeLinkStatus),
         linkData("OPC", opcUaStore.opcLinkStatus.value),
         linkData("InfluxDB", influxDBStore.state.linkStatus)
       ]
