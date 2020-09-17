@@ -115,6 +115,6 @@ services:
 
 networks:
   net-private:
-    name: supervision-net-private
+
 volumes:
   influxdb_data:
