@@ -1,5 +1,5 @@
 # Override file for production
-version: "3.7"
+version: "2.1"
 
 services:
   influx:

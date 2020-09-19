@@ -1,5 +1,5 @@
 # Configuration common to development and production
-version: "3.7"
+version: "2.1"
 
 services:
   centrifugo:
