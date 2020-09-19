@@ -3,7 +3,7 @@ version: "2.1"
 services:
   web:
     build:
-      context: ./.devcontainer
+      context: ./web/frontend/.devcontainer
       args:
         VARIANT: 12
     # Overrides default command so things don't shut down after the process ends.
@@ -14,8 +14,7 @@ services:
     volumes:
       - .:/workspace:cached
     environment:
-      # Following environment variables will be obtained from `.env` file
-      - INFLUX_DB_NAME
+      - VUE_APP_INFLUX_DB_NAME=${INFLUX_DB_NAME}
 
   reverse-proxy:
     labels:

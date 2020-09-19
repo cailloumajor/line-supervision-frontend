@@ -126,6 +126,3 @@ npm-debug.log
 yarn-error.log
 
 # End of https://www.gitignore.io/api/node,vuejs,visualstudiocode
-
-# Don't ignore .env file (static environment variables bindings)
-!.env
