@@ -1,2 +1,3 @@
 v3_use_offset = true
 anonymous = true
+proxy_subscribe = true

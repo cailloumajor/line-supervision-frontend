@@ -1,16 +1,6 @@
-import axios from "axios"
 import Centrifuge, { PublicationContext } from "centrifuge"
 import { createStore } from "pinia"
-import {
-  BehaviorSubject,
-  ReplaySubject,
-  Subject,
-  concat,
-  from,
-  fromEvent,
-  merge,
-  of
-} from "rxjs"
+import { concat, fromEvent, merge, of } from "rxjs"
 import {
   catchError,
   distinctUntilChanged,
@@ -85,80 +75,52 @@ const useStore = createStore({
   }
 })
 
-const bridgeHelloURL = "/bridge/hello"
 const centrifugoURL = `ws://${window.location.host}/centrifugo/connection/websocket`
-
-const bridgeLinkStatusSubject = new Subject<LinkStatus>()
-const centrifugoLinkStatusSubject = new Subject<LinkStatus>()
-const opcLinkStatusSubject = new BehaviorSubject(LinkStatus.Unknown)
-const initialDataSubject = new ReplaySubject<OPCDataChangeMessage>()
-const opcDataChangeSubject = new Subject<OPCDataChangeMessage>()
+const centrifugoToken: string =
+  // eslint-disable-next-line
+  (window as any).config?.centrifugoToken || ""
 
 let initialized = false
 
 export function useOpcUaStore() {
   const store = useStore()
 
-  const setupReactive = async () => {
-    try {
-      const response = await axios.get(bridgeHelloURL, {
-        timeout: 1000
-      })
-      const {
-        token,
-        last_opc_data: lastOpcData,
-        last_opc_status: lastOpcStatus
-      }: HelloResponse = response.data
-
-      const centrifuge = new Centrifuge(centrifugoURL, {
-        debug: process.env.NODE_ENV === "development",
-        maxRetry: 5000
-      })
-      centrifuge.setToken(token)
-
-      merge(
-        fromEvent(centrifuge, "connect").pipe(mapTo(LinkStatus.Up)),
-        fromEvent(centrifuge, "disconnect").pipe(mapTo(LinkStatus.Down))
-      ).subscribe(centrifugoLinkStatusSubject)
-
-      from(lastOpcData).subscribe(initialDataSubject)
-
-      const heartbeatSubscription = centrifuge.subscribe("heartbeat")
-      fromEvent<PublicationContext>(heartbeatSubscription, "publish")
-        .pipe(
-          mapTo(LinkStatus.Up),
-          timeout(6000),
-          catchError((err, caught) => concat(of(LinkStatus.Down), caught)),
-          distinctUntilChanged()
-        )
-        .subscribe(bridgeLinkStatusSubject)
-
-      const dataChangeSubscription = centrifuge.subscribe("opc_data_change")
-      fromEvent<PublicationContext>(dataChangeSubscription, "publish")
-        .pipe(map(publication => publication.data as OPCDataChangeMessage))
-        .subscribe(opcDataChangeSubject)
-
-      const statusSubscription = centrifuge.subscribe("opc_status")
-      concat(
-        of(lastOpcStatus),
-        fromEvent<PublicationContext>(statusSubscription, "publish").pipe(
-          map(publication => publication.data as OPCStatusMessage),
-          map(message => message.payload)
-        )
-      ).subscribe(opcLinkStatusSubject)
-
-      centrifuge.connect()
-    } catch (err) {
-      console.error(err)
-    }
-  }
-
   if (!initialized) {
     initialized = true
 
-    setupReactive()
+    const centrifuge = new Centrifuge(centrifugoURL, {
+      debug: process.env.NODE_ENV === "development",
+      maxRetry: 5000
+    })
+    centrifuge.setToken(centrifugoToken)
 
-    const opcData$ = concat(initialDataSubject, opcDataChangeSubject)
+    const centrifugoLinkStatus$ = merge(
+      fromEvent(centrifuge, "connect").pipe(mapTo(LinkStatus.Up)),
+      fromEvent(centrifuge, "disconnect").pipe(mapTo(LinkStatus.Down))
+    )
+    centrifugoLinkStatus$.subscribe(status => {
+      store.state.centrifugoLinkStatus = status
+    })
+
+    const heartbeatSubscription = centrifuge.subscribe("heartbeat")
+    const bridgeLinkStatus$ = fromEvent<PublicationContext>(
+      heartbeatSubscription,
+      "publish"
+    ).pipe(
+      mapTo(LinkStatus.Up),
+      timeout(6000),
+      catchError((err, caught) => concat(of(LinkStatus.Down), caught)),
+      distinctUntilChanged()
+    )
+    bridgeLinkStatus$.subscribe(status => {
+      store.state.bridgeLinkStatus = status
+    })
+
+    const opcDataChangeSubscription = centrifuge.subscribe("opc_data_change")
+    const opcData$ = fromEvent<PublicationContext>(
+      opcDataChangeSubscription,
+      "publish"
+    ).pipe(map(publication => publication.data as OPCDataChangeMessage))
     opcData$.pipe(filter(isMachineMetricsMessage)).subscribe(message => {
       store.state.machinesMetrics = message.payload
     })
@@ -166,27 +128,25 @@ export function useOpcUaStore() {
       store.state.lineGlobalParameters = message.payload
     })
 
-    bridgeLinkStatusSubject.subscribe(status => {
-      store.state.bridgeLinkStatus = status
-    })
-
-    centrifugoLinkStatusSubject.subscribe(status => {
-      store.state.centrifugoLinkStatus = status
-    })
-
-    opcLinkStatusSubject.subscribe(status => {
+    const opcStatusSubscription = centrifuge.subscribe("opc_status")
+    const opcStatus$ = fromEvent<PublicationContext>(
+      opcStatusSubscription,
+      "publish"
+    ).pipe(
+      map(publication => publication.data as OPCStatusMessage),
+      map(message => message.payload)
+    )
+    opcStatus$.subscribe(status => {
       store.state.opcLinkStatus = status
     })
 
-    merge(
-      bridgeLinkStatusSubject,
-      centrifugoLinkStatusSubject,
-      opcLinkStatusSubject
-    )
+    merge(bridgeLinkStatus$, centrifugoLinkStatus$, opcStatus$)
       .pipe(filter(status => status !== LinkStatus.Up))
       .subscribe(() => {
         store.state.machinesMetrics = freshMachineMetrics()
       })
+
+    centrifuge.connect()
   }
 
   return store

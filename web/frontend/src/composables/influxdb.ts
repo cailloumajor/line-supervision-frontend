@@ -29,7 +29,10 @@ export type RowObject = ReturnType<FluxTableMetaData["toObject"]>
 const url = `http://${window.location.host}/influx`
 const queryAPI = new InfluxDB({ url }).getQueryApi("")
 
-export const influxDBName = process.env.VUE_APP_INFLUX_DB_NAME
+export const influxDBName: string =
+  // eslint-disable-next-line
+  (window as any).config?.influxDatabaseName ||
+  process.env.VUE_APP_INFLUX_DB_NAME
 
 export function useInfluxDB<T extends Array<unknown>>(
   queryInterval: number,

@@ -1,6 +1,10 @@
 version: "2.1"
 
 services:
+  centrifugo:
+    environment:
+      - CENTRIFUGO_CLIENT_ANONYMOUS=true
+
   web:
     build:
       context: ./web/frontend/.devcontainer

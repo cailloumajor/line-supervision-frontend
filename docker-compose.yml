@@ -7,8 +7,9 @@ services:
     command: centrifugo --config config.toml
     environment:
       # Following environment variables will be obtained from `.env` file
-      - CENTRIFUGO_API_KEY=${MESSAGING_API_KEY:?}
-      - CENTRIFUGO_TOKEN_HMAC_SECRET_KEY=${MESSAGING_SECRET_KEY:?}
+      - CENTRIFUGO_API_KEY
+      - CENTRIFUGO_TOKEN_HMAC_SECRET_KEY
+      - CENTRIFUGO_PROXY_SUBSCRIBE_ENDPOINT=http://opcua-bridge:8008/centrifugo/subscribe
     expose:
       - "8000"
     labels:
@@ -65,11 +66,10 @@ services:
     build: ./opcua-webhmi-bridge
     environment:
       - INFLUX_HOST=influx
-      - MESSAGING_API_URL=http://centrifugo:8000/api
+      - CENTRIFUGO_API_URL=http://centrifugo:8000/api
       # Following environment variables will be obtained from `.env` file
       - INFLUX_DB_NAME
-      - MESSAGING_API_KEY
-      - MESSAGING_SECRET_KEY
+      - CENTRIFUGO_API_KEY
       - OPC_SERVER_URL
       - OPC_MONITOR_NODES
       - OPC_RECORD_NODES
