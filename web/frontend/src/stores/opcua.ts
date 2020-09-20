@@ -19,12 +19,6 @@ import {
   isMachineMetricsMessage
 } from "./types"
 
-interface HelloResponse {
-  token: string
-  last_opc_data: OPCDataChangeMessage[]
-  last_opc_status: LinkStatus
-}
-
 type StateType = {
   machinesMetrics: MachineMetrics[]
   lineGlobalParameters: LineGlobalParameters
