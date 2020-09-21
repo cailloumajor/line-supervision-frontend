@@ -5,6 +5,10 @@ services:
     environment:
       - CENTRIFUGO_CLIENT_ANONYMOUS=true
 
+  influx:
+    environment:
+      - INFLUXDB_MONITOR_STORE_ENABLED=true
+
   web:
     build:
       context: ./web/frontend/.devcontainer
@@ -30,5 +34,4 @@ services:
       traefik.http.routers.dashboard.rule: "PathPrefix(`/`)"
       traefik.http.routers.dashboard.service: "dashboard@internal"
     ports:
-      - "8080:8000"
-      - "8088:8080"
+      - "8080:8080"

@@ -29,6 +29,7 @@ services:
     environment:
       - INFLUX_RP_DURATION=7d
       - INFLUXDB_CONFIG_PATH=/etc/influxdb/influxdb.conf
+      - INFLUXDB_MONITOR_STORE_ENABLED=false
       # Following environment variables will be obtained from `.env` file
       - INFLUX_DB_NAME
     labels:
@@ -84,6 +85,14 @@ services:
       - net-private
 
   web:
+    build:
+      context: ./web
+      args:
+        - NODE_TAG=12.18
+        - GOLANG_TAG=1.15
+    environment:
+      - INFLUX_DB_NAME
+      - CENTRIFUGO_TOKEN_HMAC_SECRET_KEY
     labels:
       dozzle.enable: "true"
       traefik.enable: "true"
@@ -109,6 +118,8 @@ services:
     networks:
       - default
       - net-private
+    ports:
+      - "80:8000"
     user: 2000:2000
     volumes:
       - ./traefik/traefik.toml:/etc/traefik/traefik.toml:ro
