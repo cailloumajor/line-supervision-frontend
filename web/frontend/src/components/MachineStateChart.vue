@@ -11,7 +11,8 @@
 import { flux, fluxExpression } from "@influxdata/influxdb-client"
 import { defineComponent, computed } from "@vue/composition-api"
 import { ApexOptions } from "apexcharts"
-import { cloneDeep, merge } from "lodash"
+import cloneDeep from "lodash/cloneDeep"
+import merge from "lodash/merge"
 
 import { commonOptions } from "@/charts"
 import { influxDBName, useInfluxDB, RowObject } from "@/composables/influxdb"
