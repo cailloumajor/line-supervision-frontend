@@ -1,10 +1,9 @@
 [api]
 
-[entryPoints]
-    [entryPoints.http]
-    address = ":8000"
-    [entryPoints.traefik]
-    address = ":8080"
+[entryPoints.http]
+address = ":8000"
+[entryPoints.traefik]
+address = ":8080"
 
 [log]
 level = "WARN"
