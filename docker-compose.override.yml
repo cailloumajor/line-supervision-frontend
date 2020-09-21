@@ -10,10 +10,11 @@ services:
     build:
       context: ./web
       args:
-        # Following build arguments will be obtained from `.env` file
-        - INFLUX_DB_NAME
-    volumes:
-      - caddy_data:/data
+        - NODE_TAG=12.18
+        - GOLANG_TAG=1.15
+    environment:
+      - INFLUX_DB_NAME
+      - CENTRIFUGO_TOKEN_HMAC_SECRET_KEY
 
   reverse-proxy:
     labels:
@@ -21,6 +22,3 @@ services:
       traefik.http.routers.influx-debug-noop.service: "noop@internal"
     ports:
       - "80:8000"
-
-volumes:
-  caddy_data:
