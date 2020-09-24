@@ -42,6 +42,10 @@ const freshMachineMetrics = () =>
       partControlPercent: -1,
       bufferFillPercent: -1,
       cycleTimePercent: 0
+    },
+    campaign: {
+      partReference: "",
+      materialBatch: ""
     }
   })
 

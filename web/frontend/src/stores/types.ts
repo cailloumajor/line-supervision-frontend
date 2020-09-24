@@ -20,9 +20,15 @@ export interface MachineCounters {
   cycleTimePercent: number
 }
 
+export interface MachineCampaign {
+  partReference: string
+  materialBatch: string
+}
+
 export interface MachineMetrics {
   machineState: MachineState
   counters: MachineCounters
+  campaign: MachineCampaign
 }
 
 export interface LineGlobalParameters {
