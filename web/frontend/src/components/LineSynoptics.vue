@@ -25,6 +25,16 @@
     </v-container>
     <svg viewBox="0 0 4720 1396.333">
       <defs>
+        <pattern
+          id="hatchPattern"
+          width="20"
+          height="10"
+          patternTransform="rotate(45)"
+          patternUnits="userSpaceOnUse"
+        >
+          <rect x="0" y="0" width="100%" height="100%" fill="#aaa" />
+          <line x2="0" y2="100%" stroke="green" stroke-width="15" />
+        </pattern>
         <path
           id="machine-0-path"
           d="***REMOVED***"
@@ -245,6 +255,7 @@ const LayoutData = [
 function machineThumbColor(state: MachineState, darkMode: boolean): string {
   if (state.alarm) return "#d00"
   if (state.alert) return "#d98d00"
+  if (state.missingParts || state.saturation) return "url(#hatchPattern)"
   if (state.cycle) return "green"
   return darkMode ? "#999" : "#CCC"
 }
