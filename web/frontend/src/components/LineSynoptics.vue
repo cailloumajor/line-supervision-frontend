@@ -3,13 +3,13 @@
     <v-container class="pa-0 my-1">
       <v-row align="center" justify="space-around" no-gutters>
         <v-col
-          v-for="(icon, name) in cardIcons"
+          v-for="(icon, name) in cardIcons()"
           :key="`legend-icon-${name}`"
           class="text-caption"
           md="auto"
         >
           <v-progress-circular
-            v-if="icon.progress"
+            v-if="icon.show === undefined"
             :color="icon.color"
             :rotate="-90"
             :size="28"
@@ -123,26 +123,29 @@
       outlined
       ref="machineCard"
     >
-      <v-progress-circular
-        v-for="(gauge, gaugeIndex) in card.gauges"
-        :color="gauge.color"
-        :key="`machine-card-${cardIndex}-gauge-${gaugeIndex}`"
-        :rotate="-90"
-        :size="32"
-        :value="gauge.value"
-        :width="5"
-        class="gauge"
-      >
-        <v-icon small>{{ gauge.icon }}</v-icon>
-      </v-progress-circular>
-      <v-icon
-        v-if="card.cycleTime.show"
-        :color="card.cycleTime.color"
-        class="cycle-time"
-        size="32"
-      >
-        {{ card.cycleTime.icon }}
-      </v-icon>
+      <template v-for="(icon, iconIndex) in card.icons">
+        <v-progress-circular
+          v-if="icon.value !== undefined"
+          :key="`machine-card-${cardIndex}-icon-${iconIndex}`"
+          :color="icon.color"
+          :rotate="-90"
+          :size="32"
+          :value="icon.value"
+          :width="5"
+          class="gauge"
+        >
+          <v-icon small>{{ icon.icon }}</v-icon>
+        </v-progress-circular>
+        <v-icon
+          v-if="icon.show"
+          :key="`machine-card-${cardIndex}-icon-${iconIndex}`"
+          :color="icon.color"
+          class="cycle-time"
+          size="32"
+        >
+          {{ icon.icon }}
+        </v-icon>
+      </template>
     </v-card>
   </div>
 </template>
@@ -160,32 +163,21 @@ import Vue from "vue"
 
 import { machineNames } from "@/machine-data"
 import { useOpcUaStore } from "@/stores/opcua"
-import { MachineState } from "@/stores/types"
+import { MachineCounters, MachineState } from "@/stores/types"
 
-interface CommonIcon {
+interface CardIcon {
   icon: string
   color: string
-}
-
-interface LegendIcon extends CommonIcon {
   description: string
-  progress: boolean
-}
-
-interface CycleTimeIcon extends CommonIcon {
-  show: boolean
-}
-
-interface GaugeIcon extends CommonIcon {
-  value: number
+  value?: number
+  show?: boolean
 }
 
 interface CardData {
   index: number
   x: number
   y: number
-  cycleTime: CycleTimeIcon
-  gauges: GaugeIcon[]
+  icons: CardIcon[]
 }
 
 interface LayoutMachineData {
@@ -198,43 +190,40 @@ interface LayoutMachineData {
   tagY: number
 }
 
-const iconNoLegend: (legendIcon: LegendIcon) => CommonIcon = ({
-  icon,
-  color
-}) => ({ icon, color })
-
-const cardIcons: Record<string, LegendIcon> = {
-  partControl: {
+const cardIcons = (counters?: MachineCounters): CardIcon[] => [
+  {
     icon: "mdi-eye-check",
     color: "orange darken-3",
     description: "Contrôle fréquentiel",
-    progress: true
+    value: counters?.partControlPercent
   },
-  toolChange: {
+  {
     icon: "mdi-tools",
     color: "blue darken-1",
     description: "Contrôle ou changement d'outils",
-    progress: true
+    value: counters?.toolChangePercent
   },
-  bufferFill: {
+  {
     icon: "mdi-robot-industrial",
     color: "purple darken-1",
     description: "Remplissage stockeur robot",
-    progress: true
+    value: counters?.bufferFillPercent
   },
-  cycleTimeWarn: {
+  {
     icon: "mdi-timer-outline",
     color: "orange",
     description: "Dépassement temps de cycle ≤ 105%",
-    progress: false
+    show:
+      (counters?.cycleTimePercent || 0) > 100 &&
+      (counters?.cycleTimePercent || 0) <= 105
   },
-  cycleTimeAlert: {
+  {
     icon: "mdi-timer-outline",
     color: "red accent-4",
     description: "Dépassement temps de cycle > 105%",
-    progress: false
+    show: (counters?.cycleTimePercent || 0) > 105
   }
-}
+]
 
 const LayoutData = [
   { cardX: 434, cardY: 441, tagX: 434, tagY: 411 },
@@ -280,29 +269,12 @@ export default defineComponent({
           return {
             index,
             ...cardDOMPositions.value[index],
-            cycleTime: {
-              show: counters.cycleTimePercent > 100,
-              ...(counters.cycleTimePercent <= 105
-                ? iconNoLegend(cardIcons.cycleTimeWarn)
-                : iconNoLegend(cardIcons.cycleTimeAlert))
-            },
-            gauges: [
-              {
-                value: counters.partControlPercent,
-                ...iconNoLegend(cardIcons.partControl)
-              },
-              {
-                value: counters.toolChangePercent,
-                ...iconNoLegend(cardIcons.toolChange)
-              },
-              {
-                value: counters.bufferFillPercent,
-                ...iconNoLegend(cardIcons.bufferFill)
-              }
-            ].filter(({ value }) => value >= 0)
+            icons: cardIcons(counters).filter(
+              ({ value, show }) => (value !== undefined && value >= 0) || show
+            )
           }
         })
-        .filter(({ gauges, cycleTime }) => gauges.length || cycleTime.show)
+        .filter(({ icons }) => icons.length)
     })
 
     const layoutData = computed<LayoutMachineData[]>(() => {
@@ -360,8 +332,7 @@ export default defineComponent({
         val.length !== oldVal.length ||
         val.some(
           (cardData, index) =>
-            cardData.gauges.length !== oldVal[index].gauges.length ||
-            cardData.cycleTime.show !== oldVal[index].cycleTime.show
+            cardData.icons.length !== oldVal[index].icons.length
         )
       ) {
         $nextTick(() => placeMachineCards())
