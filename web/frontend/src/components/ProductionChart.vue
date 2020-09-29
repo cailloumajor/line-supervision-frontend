@@ -11,10 +11,7 @@
 import { flux } from "@influxdata/influxdb-client"
 import { computed, defineComponent, reactive } from "@vue/composition-api"
 import { ApexOptions } from "apexcharts"
-import add from "date-fns/add"
-import format from "date-fns/format"
-import parse from "date-fns/parse"
-import sub from "date-fns/sub"
+import dayjs, { Dayjs } from "dayjs"
 import cloneDeep from "lodash/cloneDeep"
 import merge from "lodash/merge"
 
@@ -24,7 +21,7 @@ import { useOpcUaStore } from "@/stores/opcua"
 
 import BaseInfluxChart from "@/components/BaseInfluxChart.vue"
 
-type Point = [number, number]
+type Point = [string, number | null]
 
 interface DataSerie {
   name: string
@@ -44,28 +41,31 @@ export default defineComponent({
     const opcUaStore = useOpcUaStore()
 
     const timeRange = reactive({
-      start: new Date(),
-      end: new Date()
+      start: dayjs(),
+      end: dayjs()
     })
 
     function updateTimeRange() {
-      const now = new Date()
-      const shifts = ["21:30:00.0", "13:30:00.0", "05:30:00.0"].map(s =>
-        parse(s, "HH:mm:ss.S", now)
-      )
-      let currentShift = shifts.find(date => date < now)
-      if (currentShift === undefined) {
-        currentShift = sub(shifts[0], { days: 1 })
-      }
-      timeRange.start = currentShift
-      timeRange.end = add(currentShift, { hours: 8 })
+      const shiftsEnds = Array<Dayjs>(4).fill(dayjs())
+      const currentShiftEnd = shiftsEnds
+        .map((shiftEnd, index) =>
+          shiftEnd
+            .hour(5)
+            .minute(30)
+            .second(0)
+            .millisecond(0)
+            .add(8 * index, "hour")
+        )
+        .find(shiftEnd => dayjs().isBefore(shiftEnd)) as Dayjs
+      timeRange.start = currentShiftEnd.subtract(8, "hour")
+      timeRange.end = currentShiftEnd
     }
 
     updateTimeRange()
 
     const query = flux`\
       from(bucket: "${influxDBName}")
-        |> range(start: ${timeRange.start})
+        |> range(start: ${timeRange.start.toDate()})
         |> filter(fn: (r) =>
           r._measurement == "dbLineSupervision.machine" and
           r._field == "counters.production" and
@@ -81,7 +81,7 @@ export default defineComponent({
     const reducer = (acc: DataSerie[], value: RowObject): DataSerie[] => {
       updateTimeRange()
       const serieName = seriesNames[value.machine_index]
-      const point: Point = [Date.parse(value._time), value._value]
+      const point: Point = [value._time, value._value]
       const serieIndex = acc.findIndex(s => s.name === serieName)
       if (serieIndex < 0) {
         return [
@@ -104,9 +104,9 @@ export default defineComponent({
       {
         name: "Objectif",
         data: [
-          [timeRange.start.getTime(), 0],
+          [timeRange.start.toISOString(), 0],
           [
-            timeRange.end.getTime(),
+            timeRange.end.toISOString(),
             opcUaStore.state.lineGlobalParameters.productionObjective
           ]
         ]
@@ -144,7 +144,7 @@ export default defineComponent({
         xaxis: {
           labels: {
             datetimeUTC: false,
-            formatter: (val, timestamp) => format(timestamp as number, "H:mm"),
+            formatter: value => dayjs(value).format("HH:mm"),
             offsetY: 5,
             rotateAlways: true
           },
