@@ -21,7 +21,7 @@
       "type": "firefox",
       "request": "attach",
       "name": "Attach to Firefox",
-      "url": "http://localhost:8080",
+      "url": "http://localhost",
       "webRoot": "${workspaceFolder}/src",
       "pathMappings": [{ "url": "webpack:///src/", "path": "${webRoot}/" }]
     }
