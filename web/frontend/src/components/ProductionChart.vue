@@ -61,25 +61,25 @@ export default defineComponent({
       timeRange.end = currentShiftEnd
     }
 
-    updateTimeRange()
-
-    const query = flux`\
-      from(bucket: "${influxDBName}")
-        |> range(start: ${timeRange.start.toDate()})
-        |> filter(fn: (r) =>
-          r._measurement == "dbLineSupervision.machine" and
-          r._field == "counters.production" and
-          contains(value: r.machine_index, set: ${Object.keys(seriesNames)})
-        )
-        |> increase()
-        |> aggregateWindow(every: 1m, fn: mean)
-        |> toInt()
-    `
+    const generateQuery = () => {
+      updateTimeRange()
+      return flux`\
+        from(bucket: "${influxDBName}")
+          |> range(start: ${timeRange.start.toDate()})
+          |> filter(fn: (r) =>
+            r._measurement == "dbLineSupervision.machine" and
+            r._field == "counters.production" and
+            contains(value: r.machine_index, set: ${Object.keys(seriesNames)})
+          )
+          |> increase()
+          |> aggregateWindow(every: 1m, fn: mean)
+          |> toInt()
+      `
+    }
 
     const seed: DataSerie[] = []
 
     const reducer = (acc: DataSerie[], value: RowObject): DataSerie[] => {
-      updateTimeRange()
       const serieName = seriesNames[value.machine_index]
       const point: Point = [value._time, value._value]
       const serieIndex = acc.findIndex(s => s.name === serieName)
@@ -98,7 +98,12 @@ export default defineComponent({
       }
     }
 
-    const { influxData, queryError } = useInfluxDB(60000, query, seed, reducer)
+    const { influxData, queryError } = useInfluxDB(
+      60000,
+      generateQuery,
+      seed,
+      reducer
+    )
 
     const dataSeries = computed<DataSerie[]>(() => [
       {

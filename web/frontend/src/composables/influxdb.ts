@@ -11,7 +11,7 @@ import {
   toRefs,
   watch
 } from "@vue/composition-api"
-import { from, of, Subject, Subscription, timer } from "rxjs"
+import { defer, of, Subject, Subscription, timer } from "rxjs"
 import {
   catchError,
   map,
@@ -36,7 +36,7 @@ export const influxDBName: string =
 
 export function useInfluxDB<T extends Array<unknown>>(
   queryInterval: number,
-  query: ParameterizedQuery,
+  generateQuery: () => ParameterizedQuery,
   seed: T,
   reducer: (acc: T, value: RowObject) => T
 ) {
@@ -48,7 +48,7 @@ export function useInfluxDB<T extends Array<unknown>>(
   const influxData = ref(seed)
   const queryError = ref("")
 
-  const query$ = from(queryAPI.rows(query)).pipe(
+  const query$ = defer(() => queryAPI.rows(generateQuery())).pipe(
     tap({
       error: (err: Error) => {
         if (err instanceof HttpError) {

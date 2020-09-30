@@ -46,7 +46,7 @@ const stateDurationOps = fluxExpression(
     )
     .join("")
 )
-const query = flux`\
+const generateQuery = () => flux`\
   from(bucket: "${influxDBName}")
     |> range(start: -8h)  // TODO: set the start time according to needs
     |> filter(fn: (r) =>
@@ -123,7 +123,12 @@ export default defineComponent({
       return clone
     }
 
-    const { influxData, queryError } = useInfluxDB(60000, query, seed, reducer)
+    const { influxData, queryError } = useInfluxDB(
+      60000,
+      generateQuery,
+      seed,
+      reducer
+    )
 
     return {
       chartOptions,
