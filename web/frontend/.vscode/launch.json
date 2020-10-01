@@ -5,6 +5,19 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "type": "firefox",
+      "request": "attach",
+      "name": "Attach to Firefox",
+      "url": "http://localhost",
+      "webRoot": "${workspaceFolder}/src",
+      "pathMappings": [
+        {
+          "url": "webpack:///src/",
+          "path": "${webRoot}/"
+        }
+      ]
+    },
+    {
       "type": "node",
       "request": "launch",
       "name": "Debug Jest Tests",
@@ -16,14 +29,6 @@
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
       "port": 9229
-    },
-    {
-      "type": "firefox",
-      "request": "attach",
-      "name": "Attach to Firefox",
-      "url": "http://localhost",
-      "webRoot": "${workspaceFolder}/src",
-      "pathMappings": [{ "url": "webpack:///src/", "path": "${webRoot}/" }]
     }
   ]
 }
