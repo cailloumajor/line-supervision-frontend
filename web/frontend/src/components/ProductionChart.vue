@@ -172,10 +172,11 @@ export default defineComponent({
         },
         yaxis: {
           forceNiceScale: true,
-          max:
-            Math.floor(
-              opcUaStore.state.lineGlobalParameters.productionObjective / 10
-            ) * 15,
+          max: max =>
+            Math.max(
+              opcUaStore.state.lineGlobalParameters.productionObjective,
+              max
+            ),
           min: 0
         }
       }
