@@ -1,14 +1,14 @@
 <template>
   <base-influx-chart
     :chart-options="chartOptions"
-    :chart-series="dataSeries"
+    :chart-series="influxData"
     :error="queryError"
     chart-type="line"
   />
 </template>
 
 <script lang="ts">
-import { flux } from "@influxdata/influxdb-client"
+import { flux, fluxDuration, fluxExpression } from "@influxdata/influxdb-client"
 import { computed, defineComponent, reactive } from "@vue/composition-api"
 import { ApexOptions } from "apexcharts"
 import dayjs, { Dayjs } from "dayjs"
@@ -28,9 +28,8 @@ interface DataSerie {
   data: Point[]
 }
 
-const seriesNames: Record<string, string> = {
-  "12": "Total ligne"
-}
+const machineIndexes = ["2", "3"]
+const serieName = "***REMOVED*** + ***REMOVED***"
 
 export default defineComponent({
   components: {
@@ -63,37 +62,47 @@ export default defineComponent({
 
     const generateQuery = () => {
       updateTimeRange()
+      const windowOffset = fluxDuration(`${timeRange.start.minute()}m`)
+      const machineColumns = machineIndexes.map(idx => `machine${idx}`)
+      const machineSum = fluxExpression(
+        machineColumns.map(mc => `r.${mc}`).join(" + ")
+      )
       return flux`\
         from(bucket: "${influxDBName}")
           |> range(start: ${timeRange.start.toDate()})
           |> filter(fn: (r) =>
             r._measurement == "dbLineSupervision.machine" and
             r._field == "counters.production" and
-            contains(value: r.machine_index, set: ${Object.keys(seriesNames)})
+            contains(value: r.machine_index, set: ${machineIndexes})
           )
-          |> increase()
-          |> aggregateWindow(every: 1m, fn: mean)
-          |> toInt()
+          |> map(fn: (r) => ({ r with machine_index: "machine" + r.machine_index }))
+          |> pivot(columnKey: ["machine_index"], rowKey: ["_time"], valueColumn: "_value")
+          |> window(every: 1h, offset: ${windowOffset})
+          |> increase(columns: ${machineColumns})
+          |> top(n: 1, columns: ["_time"])
+          |> map(fn: (r) => ({ r with total: ${machineSum} }))
       `
     }
 
     const seed: DataSerie[] = []
 
     const reducer = (acc: DataSerie[], value: RowObject): DataSerie[] => {
-      const serieName = seriesNames[value.machine_index]
-      const point: Point = [value._time, value._value]
+      const points: [Point, Point] = [
+        [value._start, value.total],
+        [value._time, value.total]
+      ]
       const serieIndex = acc.findIndex(s => s.name === serieName)
       if (serieIndex < 0) {
         return [
           ...acc,
           {
             name: serieName,
-            data: [point]
+            data: [...points]
           }
         ]
       } else {
         const clone = cloneDeep(acc)
-        clone[serieIndex].data.push(point)
+        clone[serieIndex].data.push(...points)
         return clone
       }
     }
@@ -105,30 +114,29 @@ export default defineComponent({
       reducer
     )
 
-    const dataSeries = computed<DataSerie[]>(() => [
-      {
-        name: "Objectif",
-        data: [
-          [timeRange.start.toISOString(), 0],
-          [
-            timeRange.end.toISOString(),
-            opcUaStore.state.lineGlobalParameters.productionObjective
-          ]
-        ]
-      },
-      ...influxData.value
-    ])
-
     const chartOptions = computed<ApexOptions>(() => {
-      const strokeWidths = [2, ...Array(dataSeries.value.length - 1).fill(5)]
       const options: ApexOptions = {
-        colors: ["#FF4560", "#008FFB", "#00E396", "#FEB019", "#775DD0"],
+        annotations: {
+          position: "back",
+          yaxis: [
+            {
+              borderColor: "#FF4560",
+              borderWidth: 2,
+              label: {
+                offsetY: -10,
+                style: {
+                  background: "#FF4560"
+                },
+                text: "Objectif / heure"
+              },
+              strokeDashArray: 0,
+              y: opcUaStore.state.lineGlobalParameters.productionObjective
+            }
+          ]
+        },
+        colors: ["#008FFB"],
         dataLabels: {
-          enabled: true,
-          enabledOnSeries: [0],
-          formatter: value => (value === 0 ? "" : value),
-          offsetY: -5,
-          textAnchor: "end"
+          enabled: false
         },
         grid: {
           xaxis: {
@@ -137,11 +145,15 @@ export default defineComponent({
             }
           }
         },
+        legend: {
+          showForSingleSeries: true
+        },
         markers: {
           showNullDataPoints: false
         },
         stroke: {
-          width: strokeWidths
+          curve: "stepline",
+          width: 3
         },
         title: {
           text: "Production"
@@ -153,8 +165,18 @@ export default defineComponent({
             offsetY: 5,
             rotateAlways: true
           },
+          max: timeRange.end.valueOf(),
+          min: timeRange.start.valueOf(),
           tickAmount: 8,
           type: "datetime"
+        },
+        yaxis: {
+          forceNiceScale: true,
+          max:
+            Math.floor(
+              opcUaStore.state.lineGlobalParameters.productionObjective / 10
+            ) * 15,
+          min: 0
         }
       }
       return merge(options, commonOptions($vuetify.theme.dark))
@@ -162,7 +184,7 @@ export default defineComponent({
 
     return {
       chartOptions,
-      dataSeries,
+      influxData,
       queryError
     }
   }
