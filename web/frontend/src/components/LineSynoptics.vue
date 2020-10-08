@@ -161,7 +161,7 @@ import {
 } from "@vue/composition-api"
 import Vue from "vue"
 
-import { machineNames } from "@/machine-data"
+import { machineNames } from "@/config"
 import { useOpcUaStore } from "@/stores/opcua"
 import { MachineCounters, MachineState } from "@/stores/types"
 

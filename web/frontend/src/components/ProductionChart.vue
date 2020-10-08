@@ -16,6 +16,7 @@ import cloneDeep from "lodash/cloneDeep"
 import merge from "lodash/merge"
 
 import { commonOptions } from "@/charts"
+import { machineNames, productionChart as config } from "@/config"
 import { influxDBName, useInfluxDB, RowObject } from "@/composables/influxdb"
 import { useOpcUaStore } from "@/stores/opcua"
 
@@ -28,8 +29,9 @@ interface DataSerie {
   data: Point[]
 }
 
-const machineIndexes = ["2", "3"]
-const serieName = "***REMOVED*** + ***REMOVED***"
+const serieName = config.machineIndexes
+  .map(machIdx => machineNames[parseInt(machIdx)])
+  .join(" + ")
 
 export default defineComponent({
   components: {
@@ -63,7 +65,7 @@ export default defineComponent({
     const generateQuery = () => {
       updateTimeRange()
       const windowOffset = fluxDuration(`${timeRange.start.minute()}m`)
-      const machineColumns = machineIndexes.map(idx => `machine${idx}`)
+      const machineColumns = config.machineIndexes.map(idx => `machine${idx}`)
       const machineSum = fluxExpression(
         machineColumns.map(mc => `r.${mc}`).join(" + ")
       )
@@ -73,7 +75,7 @@ export default defineComponent({
           |> filter(fn: (r) =>
             r._measurement == "dbLineSupervision.machine" and
             r._field == "counters.production" and
-            contains(value: r.machine_index, set: ${machineIndexes})
+            contains(value: r.machine_index, set: ${config.machineIndexes})
           )
           |> map(fn: (r) => ({ r with machine_index: "machine" + r.machine_index }))
           |> pivot(columnKey: ["machine_index"], rowKey: ["_time"], valueColumn: "_value")

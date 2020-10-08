@@ -15,8 +15,8 @@ import cloneDeep from "lodash/cloneDeep"
 import merge from "lodash/merge"
 
 import { commonOptions } from "@/charts"
+import { machineNames } from "@/config"
 import { influxDBName, useInfluxDB, RowObject } from "@/composables/influxdb"
-import { machineNames } from "@/machine-data"
 
 import BaseInfluxChart from "@/components/BaseInfluxChart.vue"
 
