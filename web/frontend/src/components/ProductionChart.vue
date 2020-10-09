@@ -12,7 +12,6 @@ import { flux, fluxDuration, fluxExpression } from "@influxdata/influxdb-client"
 import { computed, defineComponent, reactive } from "@vue/composition-api"
 import { ApexOptions } from "apexcharts"
 import dayjs, { Dayjs } from "dayjs"
-import cloneDeep from "lodash/cloneDeep"
 import merge from "lodash/merge"
 
 import { commonOptions } from "@/charts"
@@ -86,27 +85,20 @@ export default defineComponent({
       `
     }
 
-    const seed: DataSerie[] = []
+    const seed: DataSerie[] = [{ name: serieName, data: [] }]
 
     const reducer = (acc: DataSerie[], value: RowObject): DataSerie[] => {
-      const points: [Point, Point] = [
-        [value._start, value.total],
-        [value._time, value.total]
+      const currentData = acc.find(serie => serie.name == serieName)?.data
+      return [
+        {
+          name: serieName,
+          data: [
+            ...(currentData as Point[]),
+            [value._start, value.total],
+            [value._time, value.total]
+          ]
+        }
       ]
-      const serieIndex = acc.findIndex(s => s.name === serieName)
-      if (serieIndex < 0) {
-        return [
-          ...acc,
-          {
-            name: serieName,
-            data: [...points]
-          }
-        ]
-      } else {
-        const clone = cloneDeep(acc)
-        clone[serieIndex].data.push(...points)
-        return clone
-      }
     }
 
     const { influxData, queryError } = useInfluxDB(
