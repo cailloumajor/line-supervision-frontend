@@ -76,7 +76,7 @@ const useStore = createStore({
 const centrifugoURL = `ws://${window.location.host}/centrifugo/connection/websocket`
 const centrifugoToken: string =
   // eslint-disable-next-line
-  (window as any).config?.centrifugoToken || ""
+  (window as any).config?.centrifugoToken ?? ""
 
 let initialized = false
 

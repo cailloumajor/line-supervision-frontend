@@ -31,7 +31,7 @@ const queryAPI = new InfluxDB({ url }).getQueryApi("")
 
 export const influxDBName: string =
   // eslint-disable-next-line
-  (window as any).config?.influxDatabaseName ||
+  (window as any).config?.influxDatabaseName ??
   process.env.VUE_APP_INFLUX_DB_NAME
 
 export function useInfluxDB<T extends Array<unknown>>(
