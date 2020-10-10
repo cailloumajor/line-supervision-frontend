@@ -88,7 +88,7 @@ export default defineComponent({
     const seed: DataSerie[] = [{ name: serieName, data: [] }]
 
     const reducer = (acc: DataSerie[], value: RowObject): DataSerie[] => {
-      const currentData = acc.find(serie => serie.name == serieName)?.data
+      const currentData = acc.find(({ name }) => name === serieName)?.data
       return [
         {
           name: serieName,
