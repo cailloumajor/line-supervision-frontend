@@ -1,8 +1,12 @@
-import Centrifuge, { PublicationContext } from "centrifuge"
+import Centrifuge, {
+  PublicationContext,
+  SubscribeErrorContext
+} from "centrifuge"
 import { createStore } from "pinia"
 import { concat, fromEvent, merge, of } from "rxjs"
 import {
   catchError,
+  delay,
   distinctUntilChanged,
   filter,
   map,
@@ -26,6 +30,8 @@ type StateType = {
   centrifugoLinkStatus: LinkStatus
   opcLinkStatus: LinkStatus
 }
+
+const subscribeRetryDelay = 5000 // Centrifuge subscriptions retry delay in milliseconds
 
 const freshMachineMetrics = () =>
   Array<MachineMetrics>(13).fill({
@@ -137,6 +143,20 @@ export function useOpcUaStore() {
     opcStatus$.subscribe(status => {
       store.state.opcLinkStatus = status
     })
+
+    merge(
+      ...[
+        heartbeatSubscription,
+        opcDataChangeSubscription,
+        opcStatusSubscription
+      ].map(sub =>
+        fromEvent<SubscribeErrorContext>(sub, "error").pipe(mapTo(sub))
+      )
+    )
+      .pipe(delay(subscribeRetryDelay))
+      .subscribe(sub => {
+        sub.subscribe()
+      })
 
     merge(bridgeLinkStatus$, centrifugoLinkStatus$, opcStatus$)
       .pipe(filter(status => status !== LinkStatus.Up))
