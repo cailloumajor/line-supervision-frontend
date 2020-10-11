@@ -4,68 +4,34 @@
     :chart-series="influxData"
     :loading="loading"
     :error="queryError"
-    chart-type="bar"
+    chart-type="rangeBar"
   />
 </template>
 
 <script lang="ts">
-import { flux, fluxExpression } from "@influxdata/influxdb-client"
-import { defineComponent, computed } from "@vue/composition-api"
+import { flux } from "@influxdata/influxdb-client"
+import { computed, defineComponent, reactive } from "@vue/composition-api"
 import { ApexOptions } from "apexcharts"
+import dayjs from "dayjs"
 import cloneDeep from "lodash/cloneDeep"
 import merge from "lodash/merge"
 
 import { commonOptions } from "@/charts"
-import { machineNames } from "@/config"
+import { stateShapes } from "@/common"
+import { machineNames, machineStateChart as config } from "@/config"
 import { influxDBName, useInfluxDB, RowObject } from "@/composables/influxdb"
 
 import BaseInfluxChart from "@/components/BaseInfluxChart.vue"
 
 interface DataSerie {
-  name: string
-  data: number[]
+  name: string // Machine state
+  data: {
+    x: string // Machine name
+    y: [number, number] // Start and end timestamps
+  }[]
 }
 
-const monitoredStates = ["alarm", "alert", "cycle"]
-const renderedStates = monitoredStates.concat("unknown")
-const sortedStates = [2, 1, 3, 0].map(i => renderedStates[i])
-const stateFields = monitoredStates.map(state => `machineState.${state}`)
-const durationColumns = renderedStates.map(state => `${state}_duration`)
-const anyStateCondition = fluxExpression(
-  stateFields.map(s => `r["${s}"]`).join(" or ")
-)
-const stateDurationOps = fluxExpression(
-  stateFields
-    .map(
-      (field, idx) => `\
-        |> stateDuration(
-          fn: (r) => r["${field}"],
-          column: "${durationColumns[idx]}",
-          unit: 30s
-        )
-      `
-    )
-    .join("")
-)
-const generateQuery = () => flux`\
-  from(bucket: "${influxDBName}")
-    |> range(start: -8h)  // TODO: set the start time according to needs
-    |> filter(fn: (r) =>
-      r._measurement == "dbLineSupervision.machine" and
-      contains(value: r._field, set: ${stateFields})
-    )
-    |> group(columns: ["machine_index"])
-    |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
-    ${stateDurationOps}
-    |> stateDuration(
-      fn: (r) => not(${anyStateCondition}),
-      column: "${durationColumns.slice(-1)}",
-      unit: 30s
-    )
-    |> increase(columns: ${durationColumns})
-    |> top(n:1, columns: ["_time"])
-    |> drop(columns: ["_time"])
-`
+let lastStateSentinel: { [machineIndex: string]: number | null | undefined }
 
 export default defineComponent({
   components: {
@@ -73,54 +39,77 @@ export default defineComponent({
   },
 
   setup(_, { root: { $vuetify } }) {
-    const chartOptions = computed<ApexOptions>(() => {
-      const darkMode = $vuetify.theme.dark
-      const options: ApexOptions = {
-        chart: {
-          stacked: true,
-          stackType: "100%"
-        },
-        colors: ["#080", "#D98D00", darkMode ? "#999" : "#CCC", "#D00"],
-        dataLabels: {
-          enabled: false
-        },
-        fill: {
-          opacity: 0.6
-        },
-        grid: {
-          yaxis: {
-            lines: {
-              show: false
-            }
-          }
-        },
-        legend: {
-          show: false
-        },
-        title: {
-          text: "Fonctionnement machines sur l'équipe"
-        },
-        xaxis: {
-          categories: machineNames
-        },
-        yaxis: {
-          show: false
-        }
-      }
-      return merge(options, commonOptions(darkMode))
+    const timeRange = reactive({
+      start: dayjs(),
+      end: dayjs()
     })
 
-    const seed = sortedStates.map(state => ({
-      name: state,
-      data: new Array(machineNames.length).fill(null)
+    function updateTimeRange() {
+      timeRange.start = dayjs().subtract(24, "hour")
+      timeRange.end = dayjs()
+    }
+
+    const generateQuery = () => {
+      lastStateSentinel = {}
+      updateTimeRange()
+      return flux`\
+        from(bucket: "${influxDBName}")
+          |> range(start: ${timeRange.start.toDate()}, stop: ${timeRange.end.toDate()})
+          |> filter(fn: (r) =>
+            r._measurement == "dbLineSupervision.machine" and
+            r._field =~ /^machineState\./ and
+            contains(value: r.machine_index, set: ${config.machineIndexes})
+        	)
+          |> group(columns: ["machine_index"])
+          |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+          |> map(fn: (r) => ({
+            r with
+            state_index:
+              if r["machineState.cycle"] then 1
+              else if r["machineState.alert"] then 1
+              else if r["machineState.alarm"] then 3
+              else 0
+            })
+          )
+          |> drop(fn: (column) => column =~ /^machineState\./)
+          |> aggregateWindow(
+            every: 1m,
+            column: "state_index",
+            fn: (tables=<-, column) => tables |> min(column) |> sum(column)
+          )
+      `
+    }
+
+    const seed: DataSerie[] = stateShapes.map(shape => ({
+      name: shape.description,
+      data: []
     }))
 
     const reducer = (acc: DataSerie[], value: RowObject) => {
-      const machineIndex = parseInt(value.machine_index, 10)
+      function getLastElement<T>(arr: Array<T>) {
+        return arr[arr.length - 1]
+      }
+      const machineIndex: string = value.machine_index
+      const stateIndex: number | null = value.state_index
+      const time = dayjs(value._time).valueOf()
+      const lastMachineState = lastStateSentinel[machineIndex]
       const clone = cloneDeep(acc)
-      clone.forEach(serie => {
-        serie.data[machineIndex] = value[`${serie.name}_duration`]
-      })
+      if (lastMachineState !== undefined && lastMachineState !== null) {
+        if (lastMachineState !== stateIndex) {
+          getLastElement(clone[lastMachineState].data).y[1] = time
+        } else {
+          getLastElement(clone[stateIndex].data).y[1] = time
+        }
+      }
+      if (lastMachineState !== stateIndex) {
+        if (stateIndex !== null) {
+          clone[stateIndex].data.push({
+            x: machineNames[parseInt(machineIndex, 10)],
+            y: [time, time]
+          })
+        }
+        lastStateSentinel[machineIndex] = stateIndex
+      }
       return clone
     }
 
@@ -130,6 +119,56 @@ export default defineComponent({
       seed,
       reducer
     )
+
+    const chartOptions = computed<ApexOptions>(() => {
+      const darkMode = $vuetify.theme.dark
+      const options: ApexOptions = {
+        colors: stateShapes.map(({ color }) => color(darkMode)),
+        dataLabels: {
+          enabled: false
+        },
+        fill: {
+          opacity: 0.8
+        },
+        grid: {
+          xaxis: {
+            lines: {
+              show: true
+            }
+          },
+          yaxis: {
+            lines: {
+              show: false
+            }
+          }
+        },
+        legend: {
+          show: false
+        },
+        plotOptions: {
+          bar: {
+            horizontal: true,
+            rangeBarGroupRows: true
+          }
+        },
+        title: {
+          text: "Statuts machines sur 24h"
+        },
+        xaxis: {
+          labels: {
+            datetimeUTC: false,
+            formatter: value => dayjs(value).format("HH:mm"),
+            minHeight: 45,
+            rotateAlways: true
+          },
+          max: timeRange.end.valueOf(),
+          min: timeRange.start.valueOf(),
+          tickAmount: 8,
+          type: "datetime"
+        }
+      }
+      return merge(options, commonOptions(darkMode))
+    })
 
     return {
       chartOptions,

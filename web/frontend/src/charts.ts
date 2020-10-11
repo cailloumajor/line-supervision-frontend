@@ -34,6 +34,18 @@ export function commonOptions(darkMode: boolean): ApexOptions {
     },
     tooltip: {
       enabled: false
+    },
+    states: {
+      active: {
+        filter: {
+          type: "none"
+        }
+      },
+      hover: {
+        filter: {
+          type: "none"
+        }
+      }
     }
   }
 }
