@@ -2,6 +2,7 @@
   <base-influx-chart
     :chart-options="chartOptions"
     :chart-series="influxData"
+    :loading="loading"
     :error="queryError"
     chart-type="line"
   />
@@ -101,7 +102,7 @@ export default defineComponent({
       ]
     }
 
-    const { influxData, queryError } = useInfluxDB(
+    const { influxData, loading, queryError } = useInfluxDB(
       60000,
       generateQuery,
       seed,
@@ -180,6 +181,7 @@ export default defineComponent({
     return {
       chartOptions,
       influxData,
+      loading,
       queryError
     }
   }

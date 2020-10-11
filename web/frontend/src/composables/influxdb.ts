@@ -46,11 +46,16 @@ export function useInfluxDB<T extends Array<unknown>>(
 
   const { linkStatus } = toRefs(influxDBStore.state)
   const influxData = ref(seed)
+  const loading = ref(false)
   const queryError = ref("")
 
-  const query$ = defer(() => queryAPI.rows(generateQuery())).pipe(
+  const query$ = defer(() => {
+    loading.value = true
+    return queryAPI.rows(generateQuery())
+  }).pipe(
     tap({
       error: (err: Error) => {
+        loading.value = false
         if (err instanceof HttpError) {
           queryError.value = `${err.statusCode} ${err.statusMessage}`
           if (err.body) {
@@ -61,6 +66,7 @@ export function useInfluxDB<T extends Array<unknown>>(
         }
       },
       complete: () => {
+        loading.value = false
         queryError.value = ""
       }
     }),
@@ -100,6 +106,7 @@ export function useInfluxDB<T extends Array<unknown>>(
 
   return {
     influxData,
+    loading,
     queryError
   }
 }

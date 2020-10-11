@@ -8,12 +8,13 @@
     <v-overlay
       :dark="null"
       :light="null"
-      :value="error"
+      :value="error || loading"
       absolute
       opacity="0"
       z-index="1"
     >
       <v-alert
+        v-if="error"
         border="bottom"
         class="caption"
         colored-border
@@ -25,6 +26,7 @@
           {{ error }}
         </div>
       </v-alert>
+      <v-progress-circular v-if="loading" indeterminate />
     </v-overlay>
   </div>
 </template>
@@ -49,7 +51,8 @@ export default defineComponent({
       type: String,
       required: true
     },
-    error: String
+    error: String,
+    loading: Boolean
   }
 })
 </script>
