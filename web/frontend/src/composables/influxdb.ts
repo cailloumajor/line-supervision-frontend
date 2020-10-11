@@ -26,8 +26,9 @@ import { LinkStatus } from "@/stores/types"
 
 export type RowObject = ReturnType<FluxTableMetaData["toObject"]>
 
-const url = `http://${window.location.host}/influx`
-const queryAPI = new InfluxDB({ url }).getQueryApi("")
+const influxURL = "/influx"
+
+const queryAPI = new InfluxDB(influxURL).getQueryApi("")
 
 export const influxDBName: string =
   // eslint-disable-next-line
