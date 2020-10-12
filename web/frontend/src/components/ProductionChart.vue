@@ -17,7 +17,7 @@ import merge from "lodash/merge"
 
 import { commonOptions } from "@/charts"
 import { machineNames, productionChart as config } from "@/config"
-import { useInfluxDB, RowObject } from "@/composables/influxdb"
+import useInfluxDB from "@/composables/influxdb"
 import { useOpcUaStore } from "@/stores/opcua"
 
 import BaseInfluxChart from "@/components/BaseInfluxChart.vue"
@@ -62,52 +62,49 @@ export default defineComponent({
       timeRange.end = currentShiftEnd
     }
 
-    const generateQuery = (dbName: string) => {
-      updateTimeRange()
-      const windowOffset = fluxDuration(`${timeRange.start.minute()}m`)
-      const machineColumns = config.machineIndexes.map(idx => `machine${idx}`)
-      const machineSum = fluxExpression(
-        machineColumns.map(mc => `r.${mc}`).join(" + ")
-      )
-      return flux`\
-        from(bucket: "${dbName}")
-          |> range(start: ${timeRange.start.toDate()})
-          |> filter(fn: (r) =>
-            r._measurement == "dbLineSupervision.machine" and
-            r._field == "counters.production" and
-            contains(value: r.machine_index, set: ${config.machineIndexes})
-          )
-          |> map(fn: (r) => ({ r with machine_index: "machine" + r.machine_index }))
-          |> pivot(columnKey: ["machine_index"], rowKey: ["_time"], valueColumn: "_value")
-          |> window(every: 1h, offset: ${windowOffset})
-          |> increase(columns: ${machineColumns})
-          |> top(n: 1, columns: ["_time"])
-          |> map(fn: (r) => ({ r with total: ${machineSum} }))
-      `
-    }
+    const { influxData, loading, queryError } = useInfluxDB<DataSerie[]>({
+      queryInterval: 60000,
 
-    const seed: DataSerie[] = [{ name: serieName, data: [] }]
+      generateQuery: dbName => {
+        updateTimeRange()
+        const windowOffset = fluxDuration(`${timeRange.start.minute()}m`)
+        const machineColumns = config.machineIndexes.map(idx => `machine${idx}`)
+        const machineSum = fluxExpression(
+          machineColumns.map(mc => `r.${mc}`).join(" + ")
+        )
+        return flux`\
+          from(bucket: "${dbName}")
+            |> range(start: ${timeRange.start.toDate()})
+            |> filter(fn: (r) =>
+              r._measurement == "dbLineSupervision.machine" and
+              r._field == "counters.production" and
+              contains(value: r.machine_index, set: ${config.machineIndexes})
+            )
+            |> map(fn: (r) => ({ r with machine_index: "machine" + r.machine_index }))
+            |> pivot(columnKey: ["machine_index"], rowKey: ["_time"], valueColumn: "_value")
+            |> window(every: 1h, offset: ${windowOffset})
+            |> increase(columns: ${machineColumns})
+            |> top(n: 1, columns: ["_time"])
+            |> map(fn: (r) => ({ r with total: ${machineSum} }))
+        `
+      },
 
-    const reducer = (acc: DataSerie[], value: RowObject): DataSerie[] => {
-      const currentData = acc.find(({ name }) => name === serieName)?.data
-      return [
-        {
-          name: serieName,
-          data: [
-            ...(currentData as Point[]),
-            [value._start, value.total],
-            [value._time, value.total]
-          ]
-        }
-      ]
-    }
+      seed: [{ name: serieName, data: [] }],
 
-    const { influxData, loading, queryError } = useInfluxDB(
-      60000,
-      generateQuery,
-      seed,
-      reducer
-    )
+      reducer: (acc, value) => {
+        const currentData = acc.find(({ name }) => name === serieName)?.data
+        return [
+          {
+            name: serieName,
+            data: [
+              ...(currentData as Point[]),
+              [value._start, value.total],
+              [value._time, value.total]
+            ]
+          }
+        ]
+      }
+    })
 
     const chartOptions = computed<ApexOptions>(() => {
       const options: ApexOptions = {

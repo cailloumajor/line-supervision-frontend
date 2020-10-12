@@ -24,7 +24,7 @@ import {
 import { useInfluxDBStore } from "@/stores/influxdb"
 import { LinkStatus } from "@/stores/types"
 
-export type RowObject = ReturnType<FluxTableMetaData["toObject"]>
+type RowObject = ReturnType<FluxTableMetaData["toObject"]>
 
 const influxURL = "/influx"
 
@@ -35,24 +35,24 @@ const influxDBName: string =
   (window as any).config?.influxDatabaseName ??
   process.env.VUE_APP_INFLUX_DB_NAME
 
-export function useInfluxDB<T extends Array<unknown>>(
-  queryInterval: number,
-  generateQuery: (dbName: string) => ParameterizedQuery,
-  seed: T,
+export default <T extends Array<unknown>>(opts: {
+  queryInterval: number
+  generateQuery: (dbName: string) => ParameterizedQuery
+  seed: T
   reducer: (acc: T, value: RowObject) => T
-) {
+}) => {
   let subscription: Subscription
 
   const influxDBStore = useInfluxDBStore()
 
   const { linkStatus } = toRefs(influxDBStore.state)
-  const influxData = ref(seed)
+  const influxData = ref(opts.seed)
   const loading = ref(false)
   const queryError = ref("")
 
   const query$ = defer(() => {
     loading.value = true
-    return queryAPI.rows(generateQuery(influxDBName))
+    return queryAPI.rows(opts.generateQuery(influxDBName))
   }).pipe(
     tap({
       error: (err: Error) => {
@@ -72,16 +72,16 @@ export function useInfluxDB<T extends Array<unknown>>(
       }
     }),
     map(({ values, tableMeta }) => tableMeta.toObject(values)),
-    reduce(reducer, seed),
-    catchError(() => of(seed))
+    reduce(opts.reducer, opts.seed),
+    catchError(() => of(opts.seed))
   )
 
   const linkStatusSubject = new Subject<LinkStatus>()
   const influxData$ = linkStatusSubject.pipe(
     switchMap(status =>
       status === LinkStatus.Up
-        ? timer(500, queryInterval).pipe(switchMapTo(query$))
-        : of(seed).pipe(
+        ? timer(500, opts.queryInterval).pipe(switchMapTo(query$))
+        : of(opts.seed).pipe(
             tap(() => {
               queryError.value = ""
             })

@@ -19,7 +19,7 @@ import merge from "lodash/merge"
 import { commonOptions } from "@/charts"
 import { stateShapes } from "@/common"
 import { machineNames, machineStateChart as config } from "@/config"
-import { useInfluxDB, RowObject } from "@/composables/influxdb"
+import useInfluxDB from "@/composables/influxdb"
 
 import BaseInfluxChart from "@/components/BaseInfluxChart.vue"
 
@@ -49,76 +49,70 @@ export default defineComponent({
       timeRange.end = dayjs()
     }
 
-    const generateQuery = (dbName: string) => {
-      lastStateSentinel = {}
-      updateTimeRange()
-      return flux`\
-        from(bucket: "${dbName}")
-          |> range(start: ${timeRange.start.toDate()}, stop: ${timeRange.end.toDate()})
-          |> filter(fn: (r) =>
-            r._measurement == "dbLineSupervision.machine" and
-            r._field =~ /^machineState\./ and
-            contains(value: r.machine_index, set: ${config.machineIndexes})
-        	)
-          |> group(columns: ["machine_index"])
-          |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
-          |> map(fn: (r) => ({
-            r with
-            state_index:
-              if r["machineState.cycle"] then 1
-              else if r["machineState.alert"] then 1
-              else if r["machineState.alarm"] then 3
-              else 0
-            })
-          )
-          |> drop(fn: (column) => column =~ /^machineState\./)
-          |> aggregateWindow(
-            every: 1m,
-            column: "state_index",
-            fn: (tables=<-, column) => tables |> min(column) |> sum(column)
-          )
-      `
-    }
+    const { influxData, loading, queryError } = useInfluxDB<DataSerie[]>({
+      queryInterval: 60000,
 
-    const seed: DataSerie[] = stateShapes.map(shape => ({
-      name: shape.description,
-      data: []
-    }))
+      generateQuery: dbName => {
+        lastStateSentinel = {}
+        updateTimeRange()
+        return flux`\
+          from(bucket: "${dbName}")
+            |> range(start: ${timeRange.start.toDate()}, stop: ${timeRange.end.toDate()})
+            |> filter(fn: (r) =>
+              r._measurement == "dbLineSupervision.machine" and
+              r._field =~ /^machineState\./ and
+              contains(value: r.machine_index, set: ${config.machineIndexes})
+          	)
+            |> group(columns: ["machine_index"])
+            |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+            |> map(fn: (r) => ({
+              r with
+              state_index:
+                if r["machineState.cycle"] then 1
+                else if r["machineState.alert"] then 1
+                else if r["machineState.alarm"] then 3
+                else 0
+              })
+            )
+            |> drop(fn: (column) => column =~ /^machineState\./)
+            |> aggregateWindow(
+              every: 1m,
+              column: "state_index",
+              fn: (tables=<-, column) => tables |> min(column) |> sum(column)
+            )
+        `
+      },
 
-    const reducer = (acc: DataSerie[], value: RowObject) => {
-      function getLastElement<T>(arr: Array<T>) {
-        return arr[arr.length - 1]
-      }
-      const machineIndex: string = value.machine_index
-      const stateIndex: number | null = value.state_index
-      const time = dayjs(value._time).valueOf()
-      const lastMachineState = lastStateSentinel[machineIndex]
-      const clone = cloneDeep(acc)
-      if (lastMachineState !== undefined && lastMachineState !== null) {
+      seed: stateShapes.map(shape => ({ name: shape.description, data: [] })),
+
+      reducer: (acc, value) => {
+        function getLastElement<T>(arr: Array<T>) {
+          return arr[arr.length - 1]
+        }
+        const machineIndex: string = value.machine_index
+        const stateIndex: number | null = value.state_index
+        const time = dayjs(value._time).valueOf()
+        const lastMachineState = lastStateSentinel[machineIndex]
+        const clone = cloneDeep(acc)
+        if (lastMachineState !== undefined && lastMachineState !== null) {
+          if (lastMachineState !== stateIndex) {
+            getLastElement(clone[lastMachineState].data).y[1] = time
+          } else {
+            getLastElement(clone[stateIndex].data).y[1] = time
+          }
+        }
         if (lastMachineState !== stateIndex) {
-          getLastElement(clone[lastMachineState].data).y[1] = time
-        } else {
-          getLastElement(clone[stateIndex].data).y[1] = time
+          if (stateIndex !== null) {
+            clone[stateIndex].data.push({
+              x: machineNames[parseInt(machineIndex, 10)],
+              y: [time, time]
+            })
+          }
+          lastStateSentinel[machineIndex] = stateIndex
         }
+        return clone
       }
-      if (lastMachineState !== stateIndex) {
-        if (stateIndex !== null) {
-          clone[stateIndex].data.push({
-            x: machineNames[parseInt(machineIndex, 10)],
-            y: [time, time]
-          })
-        }
-        lastStateSentinel[machineIndex] = stateIndex
-      }
-      return clone
-    }
-
-    const { influxData, loading, queryError } = useInfluxDB(
-      60000,
-      generateQuery,
-      seed,
-      reducer
-    )
+    })
 
     const chartOptions = computed<ApexOptions>(() => {
       const darkMode = $vuetify.theme.dark
