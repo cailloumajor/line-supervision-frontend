@@ -19,7 +19,7 @@ import merge from "lodash/merge"
 import { commonOptions } from "@/charts"
 import { stateShapes } from "@/common"
 import { machineNames, machineStateChart as config } from "@/config"
-import { influxDBName, useInfluxDB, RowObject } from "@/composables/influxdb"
+import { useInfluxDB, RowObject } from "@/composables/influxdb"
 
 import BaseInfluxChart from "@/components/BaseInfluxChart.vue"
 
@@ -49,11 +49,11 @@ export default defineComponent({
       timeRange.end = dayjs()
     }
 
-    const generateQuery = () => {
+    const generateQuery = (dbName: string) => {
       lastStateSentinel = {}
       updateTimeRange()
       return flux`\
-        from(bucket: "${influxDBName}")
+        from(bucket: "${dbName}")
           |> range(start: ${timeRange.start.toDate()}, stop: ${timeRange.end.toDate()})
           |> filter(fn: (r) =>
             r._measurement == "dbLineSupervision.machine" and

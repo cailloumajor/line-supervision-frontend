@@ -17,7 +17,7 @@ import merge from "lodash/merge"
 
 import { commonOptions } from "@/charts"
 import { machineNames, productionChart as config } from "@/config"
-import { influxDBName, useInfluxDB, RowObject } from "@/composables/influxdb"
+import { useInfluxDB, RowObject } from "@/composables/influxdb"
 import { useOpcUaStore } from "@/stores/opcua"
 
 import BaseInfluxChart from "@/components/BaseInfluxChart.vue"
@@ -62,7 +62,7 @@ export default defineComponent({
       timeRange.end = currentShiftEnd
     }
 
-    const generateQuery = () => {
+    const generateQuery = (dbName: string) => {
       updateTimeRange()
       const windowOffset = fluxDuration(`${timeRange.start.minute()}m`)
       const machineColumns = config.machineIndexes.map(idx => `machine${idx}`)
@@ -70,7 +70,7 @@ export default defineComponent({
         machineColumns.map(mc => `r.${mc}`).join(" + ")
       )
       return flux`\
-        from(bucket: "${influxDBName}")
+        from(bucket: "${dbName}")
           |> range(start: ${timeRange.start.toDate()})
           |> filter(fn: (r) =>
             r._measurement == "dbLineSupervision.machine" and

@@ -30,14 +30,14 @@ const influxURL = "/influx"
 
 const queryAPI = new InfluxDB(influxURL).getQueryApi("")
 
-export const influxDBName: string =
+const influxDBName: string =
   // eslint-disable-next-line
   (window as any).config?.influxDatabaseName ??
   process.env.VUE_APP_INFLUX_DB_NAME
 
 export function useInfluxDB<T extends Array<unknown>>(
   queryInterval: number,
-  generateQuery: () => ParameterizedQuery,
+  generateQuery: (dbName: string) => ParameterizedQuery,
   seed: T,
   reducer: (acc: T, value: RowObject) => T
 ) {
@@ -52,7 +52,7 @@ export function useInfluxDB<T extends Array<unknown>>(
 
   const query$ = defer(() => {
     loading.value = true
-    return queryAPI.rows(generateQuery())
+    return queryAPI.rows(generateQuery(influxDBName))
   }).pipe(
     tap({
       error: (err: Error) => {
