@@ -154,6 +154,7 @@
 import {
   computed,
   defineComponent,
+  nextTick,
   onBeforeUnmount,
   onMounted,
   ref,
@@ -161,6 +162,7 @@ import {
 } from "@vue/composition-api"
 import Vue from "vue"
 
+import { useTheme } from "@/composables/theme"
 import { machineNames } from "@/config"
 import { useOpcUaStore } from "@/stores/opcua"
 import { MachineCounters, MachineState } from "@/stores/types"
@@ -250,10 +252,11 @@ function machineThumbColor(state: MachineState, darkMode: boolean): string {
 }
 
 export default defineComponent({
-  setup(_, { root: { $nextTick, $vuetify } }) {
+  setup() {
     let resizeObs: ResizeObserver
 
     const opcUaStore = useOpcUaStore()
+    const theme = useTheme()
 
     const cardAnchor = ref<SVGCircleElement[] | null>(null)
     const layoutContainer = ref<HTMLDivElement | null>(null)
@@ -282,7 +285,7 @@ export default defineComponent({
         return {
           ...LayoutData[index],
           tagText: machineNames[index],
-          thumbFill: machineThumbColor(machineState, $vuetify.theme.dark),
+          thumbFill: machineThumbColor(machineState, theme.value.dark),
           thumbBlink: machineState.alarm
         }
       })
@@ -335,7 +338,7 @@ export default defineComponent({
             cardData.icons.length !== oldVal[index].icons.length
         )
       ) {
-        $nextTick(() => placeMachineCards())
+        nextTick(() => placeMachineCards())
       }
     })
 

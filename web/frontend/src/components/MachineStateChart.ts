@@ -6,6 +6,7 @@ import cloneDeep from "lodash/cloneDeep"
 
 import { stateShapes } from "@/common"
 import useInfluxChart from "@/composables/influx-chart"
+import { useTheme } from "@/composables/theme"
 import { machineNames, machineStateChart as config } from "@/config"
 
 interface DataSerie {
@@ -17,8 +18,10 @@ interface DataSerie {
 }
 
 export default defineComponent({
-  setup(_, { root: { $vuetify } }) {
+  setup() {
     let lastStateSentinel: { [machineIndex: string]: number | null | undefined }
+
+    const theme = useTheme()
 
     const timeRange = reactive({
       start: dayjs(),
@@ -98,7 +101,7 @@ export default defineComponent({
 
       chartOptions: computed<ApexOptions>(() => {
         return {
-          colors: stateShapes.map(({ color }) => color($vuetify.theme.dark)),
+          colors: stateShapes.map(({ color }) => color(theme.value.dark)),
           dataLabels: {
             enabled: false
           },
