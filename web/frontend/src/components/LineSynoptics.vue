@@ -380,10 +380,6 @@ export default defineComponent({
   .machine-path {
     stroke: #c8c8c8;
   }
-
-  .gauge ::v-deep .v-progress-circular__underlay {
-    stroke: rgba(white, 0.1);
-  }
 }
 
 .layout-container {

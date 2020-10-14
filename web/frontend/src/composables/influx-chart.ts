@@ -99,7 +99,7 @@ export default <T extends Array<unknown>>(ctx: ComponentContext<T>) => {
             elevation: 2,
             type: "error"
           },
-          class: "caption"
+          class: "text-caption"
         },
         [
           "Erreur de requête InfluxDB :",
