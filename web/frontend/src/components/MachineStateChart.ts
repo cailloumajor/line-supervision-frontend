@@ -141,7 +141,7 @@ export default defineComponent({
             },
             max: timeRange.end.valueOf(),
             min: timeRange.start.valueOf(),
-            tickAmount: 8,
+            tickAmount: 12,
             type: "datetime"
           }
         }
