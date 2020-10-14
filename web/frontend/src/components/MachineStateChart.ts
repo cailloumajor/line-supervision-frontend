@@ -67,7 +67,15 @@ export default defineComponent({
         `
       },
 
-      seed: stateShapes.map(shape => ({ name: shape.description, data: [] })),
+      seed: stateShapes.map(shape => {
+        return {
+          name: shape.description,
+          data: config.machineIndexes.map(machineIndex => ({
+            x: machineNames[parseInt(machineIndex, 10)],
+            y: [0, 0]
+          }))
+        }
+      }),
 
       reducer: (acc, value) => {
         function getLastElement<T>(arr: Array<T>) {
