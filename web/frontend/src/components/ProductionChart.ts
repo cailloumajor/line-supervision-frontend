@@ -1,26 +1,11 @@
-<template>
-  <base-influx-chart
-    :chart-options="chartOptions"
-    :chart-series="influxData"
-    :loading="loading"
-    :error="queryError"
-    chart-type="line"
-  />
-</template>
-
-<script lang="ts">
 import { flux, fluxDuration, fluxExpression } from "@influxdata/influxdb-client"
 import { computed, defineComponent, reactive } from "@vue/composition-api"
 import { ApexOptions } from "apexcharts"
 import dayjs, { Dayjs } from "dayjs"
-import merge from "lodash/merge"
 
-import { commonOptions } from "@/charts"
 import { machineNames, productionChart as config } from "@/config"
-import useInfluxDB from "@/composables/influxdb"
+import useInfluxChart from "@/composables/influx-chart"
 import { useOpcUaStore } from "@/stores/opcua"
-
-import BaseInfluxChart from "@/components/BaseInfluxChart.vue"
 
 type Point = [string, number | null]
 
@@ -34,11 +19,7 @@ const serieName = config.machineIndexes
   .join(" + ")
 
 export default defineComponent({
-  components: {
-    BaseInfluxChart
-  },
-
-  setup(_, { root: { $vuetify } }) {
+  setup() {
     const opcUaStore = useOpcUaStore()
 
     const timeRange = reactive({
@@ -62,7 +43,7 @@ export default defineComponent({
       timeRange.end = currentShiftEnd
     }
 
-    const { influxData, loading, queryError } = useInfluxDB<DataSerie[]>({
+    return useInfluxChart<DataSerie[]>({
       queryInterval: 60000,
 
       generateQuery: dbName => {
@@ -103,11 +84,11 @@ export default defineComponent({
             ]
           }
         ]
-      }
-    })
+      },
 
-    const chartOptions = computed<ApexOptions>(() => {
-      const options: ApexOptions = {
+      chartType: "line",
+
+      chartOptions: computed<ApexOptions>(() => ({
         annotations: {
           position: "back",
           yaxis: [
@@ -171,16 +152,7 @@ export default defineComponent({
             ),
           min: 0
         }
-      }
-      return merge(options, commonOptions($vuetify.theme.dark))
+      }))
     })
-
-    return {
-      chartOptions,
-      influxData,
-      loading,
-      queryError
-    }
   }
 })
-</script>

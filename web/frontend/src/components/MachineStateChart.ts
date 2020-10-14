@@ -1,27 +1,12 @@
-<template>
-  <base-influx-chart
-    :chart-options="chartOptions"
-    :chart-series="influxData"
-    :loading="loading"
-    :error="queryError"
-    chart-type="rangeBar"
-  />
-</template>
-
-<script lang="ts">
 import { flux } from "@influxdata/influxdb-client"
 import { computed, defineComponent, reactive } from "@vue/composition-api"
 import { ApexOptions } from "apexcharts"
 import dayjs from "dayjs"
 import cloneDeep from "lodash/cloneDeep"
-import merge from "lodash/merge"
 
-import { commonOptions } from "@/charts"
 import { stateShapes } from "@/common"
+import useInfluxChart from "@/composables/influx-chart"
 import { machineNames, machineStateChart as config } from "@/config"
-import useInfluxDB from "@/composables/influxdb"
-
-import BaseInfluxChart from "@/components/BaseInfluxChart.vue"
 
 interface DataSerie {
   name: string // Machine state
@@ -31,14 +16,10 @@ interface DataSerie {
   }[]
 }
 
-let lastStateSentinel: { [machineIndex: string]: number | null | undefined }
-
 export default defineComponent({
-  components: {
-    BaseInfluxChart
-  },
-
   setup(_, { root: { $vuetify } }) {
+    let lastStateSentinel: { [machineIndex: string]: number | null | undefined }
+
     const timeRange = reactive({
       start: dayjs(),
       end: dayjs()
@@ -49,7 +30,7 @@ export default defineComponent({
       timeRange.end = dayjs()
     }
 
-    const { influxData, loading, queryError } = useInfluxDB<DataSerie[]>({
+    return useInfluxChart<DataSerie[]>({
       queryInterval: 60000,
 
       generateQuery: dbName => {
@@ -111,65 +92,57 @@ export default defineComponent({
           lastStateSentinel[machineIndex] = stateIndex
         }
         return clone
-      }
-    })
+      },
 
-    const chartOptions = computed<ApexOptions>(() => {
-      const darkMode = $vuetify.theme.dark
-      const options: ApexOptions = {
-        colors: stateShapes.map(({ color }) => color(darkMode)),
-        dataLabels: {
-          enabled: false
-        },
-        fill: {
-          opacity: 0.8
-        },
-        grid: {
+      chartType: "rangeBar",
+
+      chartOptions: computed<ApexOptions>(() => {
+        return {
+          colors: stateShapes.map(({ color }) => color($vuetify.theme.dark)),
+          dataLabels: {
+            enabled: false
+          },
+          fill: {
+            opacity: 0.8
+          },
+          grid: {
+            xaxis: {
+              lines: {
+                show: true
+              }
+            },
+            yaxis: {
+              lines: {
+                show: false
+              }
+            }
+          },
+          legend: {
+            show: false
+          },
+          plotOptions: {
+            bar: {
+              horizontal: true,
+              rangeBarGroupRows: true
+            }
+          },
+          title: {
+            text: "Statuts machines sur 24h"
+          },
           xaxis: {
-            lines: {
-              show: true
-            }
-          },
-          yaxis: {
-            lines: {
-              show: false
-            }
+            labels: {
+              datetimeUTC: false,
+              formatter: value => dayjs(value).format("HH:mm"),
+              minHeight: 45,
+              rotateAlways: true
+            },
+            max: timeRange.end.valueOf(),
+            min: timeRange.start.valueOf(),
+            tickAmount: 8,
+            type: "datetime"
           }
-        },
-        legend: {
-          show: false
-        },
-        plotOptions: {
-          bar: {
-            horizontal: true,
-            rangeBarGroupRows: true
-          }
-        },
-        title: {
-          text: "Statuts machines sur 24h"
-        },
-        xaxis: {
-          labels: {
-            datetimeUTC: false,
-            formatter: value => dayjs(value).format("HH:mm"),
-            minHeight: 45,
-            rotateAlways: true
-          },
-          max: timeRange.end.valueOf(),
-          min: timeRange.start.valueOf(),
-          tickAmount: 8,
-          type: "datetime"
         }
-      }
-      return merge(options, commonOptions(darkMode))
+      })
     })
-
-    return {
-      chartOptions,
-      influxData,
-      loading,
-      queryError
-    }
   }
 })
-</script>

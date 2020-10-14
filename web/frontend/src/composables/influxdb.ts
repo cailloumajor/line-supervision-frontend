@@ -35,12 +35,14 @@ const influxDBName: string =
   (window as any).config?.influxDatabaseName ??
   process.env.VUE_APP_INFLUX_DB_NAME
 
-export default <T extends Array<unknown>>(opts: {
+export interface Options<T> {
   queryInterval: number
   generateQuery: (dbName: string) => ParameterizedQuery
   seed: T
   reducer: (acc: T, value: RowObject) => T
-}) => {
+}
+
+export default <T extends Array<unknown>>(opts: Options<T>) => {
   let subscription: Subscription
 
   const influxDBStore = useInfluxDBStore()

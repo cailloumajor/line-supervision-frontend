@@ -65,6 +65,7 @@
 import { computed, defineComponent, ref } from "@vue/composition-api"
 import * as CSS from "csstype"
 
+import { provideTheme } from "@/composables/theme"
 import { useInfluxDBStore } from "@/stores/influxdb"
 import { useOpcUaStore } from "@/stores/opcua"
 import { LinkStatus } from "@/stores/types"
@@ -77,6 +78,8 @@ interface LinkData {
 
 export default defineComponent({
   setup(_, { root: { $vuetify } }) {
+    provideTheme(computed(() => $vuetify.theme))
+
     const influxDBStore = useInfluxDBStore()
     const opcUaStore = useOpcUaStore()
 

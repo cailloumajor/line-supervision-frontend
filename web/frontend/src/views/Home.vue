@@ -13,18 +13,17 @@
 </template>
 
 <script>
-import { Component, Vue } from "vue-property-decorator"
+import { defineComponent } from "@vue/composition-api"
 
 import LineSynoptics from "@/components/LineSynoptics.vue"
-import MachineStateChart from "@/components/MachineStateChart.vue"
-import ProductionChart from "@/components/ProductionChart.vue"
+import MachineStateChart from "@/components/MachineStateChart"
+import ProductionChart from "@/components/ProductionChart"
 
-@Component({
+export default defineComponent({
   components: {
     LineSynoptics,
     MachineStateChart,
     ProductionChart
   }
 })
-export default class Home extends Vue {}
 </script>
