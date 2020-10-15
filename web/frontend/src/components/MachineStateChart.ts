@@ -107,53 +107,51 @@ export default defineComponent({
 
       chartType: "rangeBar",
 
-      chartOptions: computed<ApexOptions>(() => {
-        return {
-          colors: stateShapes.map(({ color }) => color(theme.value.dark)),
-          dataLabels: {
-            enabled: false
-          },
-          fill: {
-            opacity: 0.8
-          },
-          grid: {
-            xaxis: {
-              lines: {
-                show: true
-              }
-            },
-            yaxis: {
-              lines: {
-                show: false
-              }
-            }
-          },
-          legend: {
-            show: false
-          },
-          plotOptions: {
-            bar: {
-              horizontal: true,
-              rangeBarGroupRows: true
-            }
-          },
-          title: {
-            text: "Statuts machines sur 24h"
-          },
+      chartOptions: computed<ApexOptions>(() => ({
+        colors: stateShapes.map(({ color }) => color(theme.value.dark)),
+        dataLabels: {
+          enabled: false
+        },
+        fill: {
+          opacity: 0.8
+        },
+        grid: {
           xaxis: {
-            labels: {
-              datetimeUTC: false,
-              formatter: value => dayjs(value).format("HH:mm"),
-              minHeight: 45,
-              rotateAlways: true
-            },
-            max: timeRange.end.valueOf(),
-            min: timeRange.start.valueOf(),
-            tickAmount: 12,
-            type: "datetime"
+            lines: {
+              show: true
+            }
+          },
+          yaxis: {
+            lines: {
+              show: false
+            }
           }
+        },
+        legend: {
+          show: false
+        },
+        plotOptions: {
+          bar: {
+            horizontal: true,
+            rangeBarGroupRows: true
+          }
+        },
+        title: {
+          text: "Statuts machines sur 24h"
+        },
+        xaxis: {
+          labels: {
+            datetimeUTC: false,
+            formatter: value => dayjs(value).format("HH:mm"),
+            minHeight: 45,
+            rotateAlways: true
+          },
+          max: timeRange.end.valueOf(),
+          min: timeRange.start.valueOf(),
+          tickAmount: 12,
+          type: "datetime"
         }
-      })
+      }))
     })
   }
 })
