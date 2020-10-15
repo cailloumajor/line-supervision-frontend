@@ -27,7 +27,7 @@ const useStore = createStore({
   })
 })
 
-export function useInfluxDBStore() {
+export default () => {
   const store = useStore()
 
   if (!linkStatusSubscription) {

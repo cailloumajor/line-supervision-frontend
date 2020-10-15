@@ -164,7 +164,7 @@ import Vue from "vue"
 
 import { useTheme } from "@/composables/theme"
 import { machineNames } from "@/config"
-import { useOpcUaStore } from "@/stores/opcua"
+import useOpcUaStore from "@/stores/opcua"
 import { MachineCounters, MachineState } from "@/stores/types"
 
 interface CardIcon {

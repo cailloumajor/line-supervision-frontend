@@ -86,7 +86,7 @@ const centrifugoToken: string =
 
 let initialized = false
 
-export function useOpcUaStore() {
+export default () => {
   const store = useStore()
 
   if (!initialized) {

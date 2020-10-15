@@ -66,8 +66,8 @@ import { computed, defineComponent, ref } from "@vue/composition-api"
 import * as CSS from "csstype"
 
 import { provideTheme } from "@/composables/theme"
-import { useInfluxDBStore } from "@/stores/influxdb"
-import { useOpcUaStore } from "@/stores/opcua"
+import useInfluxDBStore from "@/stores/influxdb"
+import useOpcUaStore from "@/stores/opcua"
 import { LinkStatus } from "@/stores/types"
 
 interface LinkData {

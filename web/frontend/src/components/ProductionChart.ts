@@ -5,7 +5,7 @@ import dayjs, { Dayjs } from "dayjs"
 
 import { machineNames, productionChart as config } from "@/config"
 import useInfluxChart from "@/composables/influx-chart"
-import { useOpcUaStore } from "@/stores/opcua"
+import useOpcUaStore from "@/stores/opcua"
 
 type Point = [string, number | null]
 

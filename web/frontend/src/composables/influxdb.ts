@@ -21,7 +21,7 @@ import {
   tap
 } from "rxjs/operators"
 
-import { useInfluxDBStore } from "@/stores/influxdb"
+import useInfluxDBStore from "@/stores/influxdb"
 import { LinkStatus } from "@/stores/types"
 
 type RowObject = ReturnType<FluxTableMetaData["toObject"]>
