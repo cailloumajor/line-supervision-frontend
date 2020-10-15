@@ -135,6 +135,7 @@ export default defineComponent({
           labels: {
             datetimeUTC: false,
             formatter: value => dayjs(value).format("HH:mm"),
+            minHeight: 45,
             offsetY: 5,
             rotateAlways: true
           },

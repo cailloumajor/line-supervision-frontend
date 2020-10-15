@@ -142,13 +142,11 @@ export default defineComponent({
         xaxis: {
           labels: {
             datetimeUTC: false,
-            formatter: value => dayjs(value).format("HH:mm"),
             minHeight: 45,
             rotateAlways: true
           },
           max: timeRange.end.valueOf(),
           min: timeRange.start.valueOf(),
-          tickAmount: 12,
           type: "datetime"
         }
       }))
