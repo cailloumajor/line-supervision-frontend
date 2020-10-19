@@ -26,14 +26,16 @@
     <svg viewBox="0 0 4720 1396.333">
       <defs>
         <pattern
-          id="hatchPattern"
+          v-for="pat in hatches"
+          :key="pat.id"
+          :id="pat.id"
           width="20"
           height="10"
           patternTransform="rotate(45)"
           patternUnits="userSpaceOnUse"
         >
-          <rect x="0" y="0" width="100%" height="100%" fill="#aaa" />
-          <line x2="0" y2="100%" stroke="green" stroke-width="15" />
+          <rect :fill="pat.secondary" width="100%" height="100%" />
+          <line :stroke="pat.primary" x2="0" y2="100%" stroke-width="15" />
         </pattern>
         <path
           id="machine-0-path"
@@ -160,8 +162,10 @@ import {
   ref,
   watch
 } from "@vue/composition-api"
+import kebabCase from "lodash/kebabCase"
 import Vue from "vue"
 
+import { statePalette, MachineStateShape, ShapeID } from "@/common"
 import { useTheme } from "@/composables/theme"
 import { machineNames } from "@/config"
 import useOpcUaStore from "@/stores/opcua"
@@ -243,12 +247,27 @@ const LayoutData = [
   { cardX: 4550, cardY: 686, tagX: 4550, tagY: 656 }
 ]
 
+function hatchID(key: string): string {
+  return `hatch-${kebabCase(key)}`
+}
+
 function machineThumbColor(state: MachineState, darkMode: boolean): string {
-  if (state.alarm) return "#d00"
-  if (state.alert) return "#d98d00"
-  if (state.missingParts || state.saturation) return "url(#hatchPattern)"
-  if (state.cycle) return "green"
-  return darkMode ? "#999" : "#CCC"
+  const shape = ((): ShapeID => {
+    if (state.alarm) return "alarm"
+    if (state.cycle) {
+      if (state.alert) return "alertInCycle"
+      if (state.missingParts || state.saturation) return "interruptedFlow"
+      return "cycle"
+    }
+    if (state.alert) return "alert"
+    return "outOfProduction"
+  })()
+  const { primaryColor, secondaryColor } = statePalette[shape]
+  if (secondaryColor === undefined) {
+    return primaryColor(darkMode)
+  } else {
+    return `url(#${hatchID(shape)})`
+  }
 }
 
 export default defineComponent({
@@ -264,6 +283,19 @@ export default defineComponent({
 
     const cardDOMPositions = ref(
       [...Array(LayoutData.length)].map(() => ({ x: 0, y: 0 }))
+    )
+
+    const hatches = computed(() =>
+      Object.entries(statePalette)
+        .filter((entry): entry is [string, Required<MachineStateShape>] => {
+          const [, { secondaryColor }] = entry
+          return secondaryColor !== undefined
+        })
+        .map(([key, { primaryColor, secondaryColor }]) => ({
+          id: hatchID(key),
+          primary: primaryColor(theme.value.dark),
+          secondary: secondaryColor(theme.value.dark)
+        }))
     )
 
     const cardsData = computed<CardData[]>(() => {
@@ -344,11 +376,12 @@ export default defineComponent({
 
     return {
       cardAnchor,
-      layoutContainer,
-      machineCard,
       cardIcons,
       cardsData,
+      hatches,
+      layoutContainer,
       layoutData,
+      machineCard,
       opcUaState: opcUaStore.state
     }
   }

@@ -4,7 +4,7 @@ import { ApexOptions } from "apexcharts"
 import dayjs from "dayjs"
 import cloneDeep from "lodash/cloneDeep"
 
-import { stateShapes } from "@/common"
+import { statePalette, ShapeID } from "@/common"
 import useInfluxChart from "@/composables/influx-chart"
 import { useTheme } from "@/composables/theme"
 import { machineNames, machineStateChart as config } from "@/config"
@@ -16,6 +16,13 @@ interface DataSerie {
     y: [number, number] // Start and end timestamps
   }[]
 }
+
+const monitoredStates: ShapeID[] = [
+  "outOfProduction",
+  "alarm",
+  "alert",
+  "cycle"
+]
 
 export default defineComponent({
   setup() {
@@ -52,9 +59,9 @@ export default defineComponent({
             |> map(fn: (r) => ({
               r with
               state_index:
-                if r["machineState.cycle"] then 1
-                else if r["machineState.alert"] then 1
-                else if r["machineState.alarm"] then 3
+                if r["machineState.alarm"] then 1
+                else if r["machineState.alert"] then 2
+                else if r["machineState.cycle"] then 3
                 else 0
               })
             )
@@ -67,15 +74,13 @@ export default defineComponent({
         `
       },
 
-      seed: stateShapes.map(shape => {
-        return {
-          name: shape.description,
-          data: config.machineIndexes.map(machineIndex => ({
-            x: machineNames[parseInt(machineIndex, 10)],
-            y: [0, 0]
-          }))
-        }
-      }),
+      seed: monitoredStates.map(state => ({
+        name: statePalette[state].description,
+        data: config.machineIndexes.map(machineIndex => ({
+          x: machineNames[parseInt(machineIndex, 10)],
+          y: [0, 0]
+        }))
+      })),
 
       reducer: (acc, value) => {
         function getLastElement<T>(arr: Array<T>) {
@@ -84,16 +89,14 @@ export default defineComponent({
         const machineIndex: string = value.machine_index
         const stateIndex: number | null = value.state_index
         const time = dayjs(value._time).valueOf()
-        const lastMachineState = lastStateSentinel[machineIndex]
+        const lastStateIndex = lastStateSentinel[machineIndex]
         const clone = cloneDeep(acc)
-        if (lastMachineState !== undefined && lastMachineState !== null) {
-          if (lastMachineState !== stateIndex) {
-            getLastElement(clone[lastMachineState].data).y[1] = time
-          } else {
-            getLastElement(clone[stateIndex].data).y[1] = time
-          }
+        if (lastStateIndex !== undefined && lastStateIndex !== null) {
+          const stateIndexToUpdate =
+            lastStateIndex !== stateIndex ? lastStateIndex : stateIndex
+          getLastElement(clone[stateIndexToUpdate].data).y[1] = time
         }
-        if (lastMachineState !== stateIndex) {
+        if (lastStateIndex !== stateIndex) {
           if (stateIndex !== null) {
             clone[stateIndex].data.push({
               x: machineNames[parseInt(machineIndex, 10)],
@@ -108,7 +111,9 @@ export default defineComponent({
       chartType: "rangeBar",
 
       chartOptions: computed<ApexOptions>(() => ({
-        colors: stateShapes.map(({ color }) => color(theme.value.dark)),
+        colors: monitoredStates.map(state =>
+          statePalette[state].primaryColor(theme.value.dark)
+        ),
         dataLabels: {
           enabled: false
         },

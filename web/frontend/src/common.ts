@@ -1,14 +1,48 @@
-interface MachineStateShape {
+type ThemeableColor = (darkMode: boolean) => string
+
+export type ShapeID =
+  | "outOfProduction"
+  | "cycle"
+  | "alert"
+  | "alarm"
+  | "alertInCycle"
+  | "interruptedFlow"
+
+export interface MachineStateShape {
   description: string
-  color: (darkMode: boolean) => string
+  primaryColor: ThemeableColor
+  secondaryColor?: ThemeableColor
 }
 
-export const stateShapes: MachineStateShape[] = [
-  {
+const themedGrey: ThemeableColor = dark => (dark ? "#999" : "#CCC")
+const cycleColor = "#080"
+const alertColor = "#d98d00"
+
+export const statePalette: Record<ShapeID, MachineStateShape> = {
+  outOfProduction: {
     description: "Hors production",
-    color: darkMode => (darkMode ? "#999" : "#CCC")
+    primaryColor: themedGrey
   },
-  { description: "En cycle", color: () => "#080" },
-  { description: "Alerte", color: () => "#d98d00" },
-  { description: "Défaut", color: () => "#d00" }
-]
+  cycle: {
+    description: "En cycle",
+    primaryColor: () => cycleColor
+  },
+  alert: {
+    description: "Arrêt avec avertissement",
+    primaryColor: () => alertColor
+  },
+  alarm: {
+    description: "Arrêt en défaut",
+    primaryColor: () => "#d00"
+  },
+  alertInCycle: {
+    description: "En cycle avec avertissement",
+    primaryColor: () => cycleColor,
+    secondaryColor: () => alertColor
+  },
+  interruptedFlow: {
+    description: "Manque pièces ou saturation",
+    primaryColor: () => cycleColor,
+    secondaryColor: themedGrey
+  }
+}
