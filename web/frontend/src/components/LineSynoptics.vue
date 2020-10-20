@@ -109,6 +109,18 @@
           visibility="hidden"
         />
       </g>
+      <g transform="translate(2300, 930)">
+        <g
+          v-for="(shape, key, index) in thumbFillPalette"
+          :key="`legend-shape-${index}`"
+          :transform="`translate(0 ${75 * index})`"
+        >
+          <rect :fill="shape.fill" width="100" height="50" />
+          <text x="120" y="45" font-size="50">
+            {{ shape.description }}
+          </text>
+        </g>
+      </g>
       <text class="remaining-counter" x="450" y="130">
         Reste à produire rafale
         <tspan x="450" dy="1.2em">
@@ -163,6 +175,7 @@ import {
   watch
 } from "@vue/composition-api"
 import kebabCase from "lodash/kebabCase"
+import mapValues from "lodash/mapValues"
 import Vue from "vue"
 
 import { statePalette, MachineStateShape, ShapeID } from "@/common"
@@ -251,23 +264,15 @@ function hatchID(key: string): string {
   return `hatch-${kebabCase(key)}`
 }
 
-function machineThumbColor(state: MachineState, darkMode: boolean): string {
-  const shape = ((): ShapeID => {
-    if (state.alarm) return "alarm"
-    if (state.cycle) {
-      if (state.alert) return "alertInCycle"
-      if (state.missingParts || state.saturation) return "interruptedFlow"
-      return "cycle"
-    }
-    if (state.alert) return "alert"
-    return "outOfProduction"
-  })()
-  const { primaryColor, secondaryColor } = statePalette[shape]
-  if (secondaryColor === undefined) {
-    return primaryColor(darkMode)
-  } else {
-    return `url(#${hatchID(shape)})`
+function fillShape(state: MachineState): ShapeID {
+  if (state.alarm) return "alarm"
+  if (state.cycle) {
+    if (state.alert) return "alertInCycle"
+    if (state.missingParts || state.saturation) return "interruptedFlow"
+    return "cycle"
   }
+  if (state.alert) return "alert"
+  return "outOfProduction"
 }
 
 export default defineComponent({
@@ -283,6 +288,22 @@ export default defineComponent({
 
     const cardDOMPositions = ref(
       [...Array(LayoutData.length)].map(() => ({ x: 0, y: 0 }))
+    )
+
+    const thumbFillPalette = computed(() =>
+      mapValues(
+        statePalette,
+        ({ description, primaryColor, secondaryColor }, key) => {
+          const fill =
+            secondaryColor === undefined
+              ? primaryColor(theme.value.dark)
+              : `url(#${hatchID(key)})`
+          return {
+            description,
+            fill
+          }
+        }
+      )
     )
 
     const hatches = computed(() =>
@@ -317,7 +338,7 @@ export default defineComponent({
         return {
           ...LayoutData[index],
           tagText: machineNames[index],
-          thumbFill: machineThumbColor(machineState, theme.value.dark),
+          thumbFill: thumbFillPalette.value[fillShape(machineState)].fill,
           thumbBlink: machineState.alarm
         }
       })
@@ -382,7 +403,8 @@ export default defineComponent({
       layoutContainer,
       layoutData,
       machineCard,
-      opcUaState: opcUaStore.state
+      opcUaState: opcUaStore.state,
+      thumbFillPalette
     }
   }
 })
