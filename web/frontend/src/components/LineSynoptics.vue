@@ -1,28 +1,26 @@
 <template>
   <div class="layout-container" ref="layoutContainer">
-    <v-container class="pa-0 my-1">
-      <v-row align="center" justify="space-around" no-gutters>
-        <v-col
-          v-for="(icon, name) in cardIcons()"
-          :key="`legend-icon-${name}`"
-          class="text-caption"
-          md="auto"
+    <v-row align="center" justify="space-around" no-gutters>
+      <v-col
+        v-for="(icon, name) in cardIcons()"
+        :key="`legend-icon-${name}`"
+        class="text-caption"
+        md="auto"
+      >
+        <v-progress-circular
+          v-if="icon.show === undefined"
+          :color="icon.color"
+          :rotate="-90"
+          :size="28"
+          :value="80"
+          class="gauge"
         >
-          <v-progress-circular
-            v-if="icon.show === undefined"
-            :color="icon.color"
-            :rotate="-90"
-            :size="28"
-            :value="80"
-            class="gauge"
-          >
-            <v-icon x-small>{{ icon.icon }}</v-icon>
-          </v-progress-circular>
-          <v-icon v-else :color="icon.color">{{ icon.icon }}</v-icon>
-          {{ icon.description }}
-        </v-col>
-      </v-row>
-    </v-container>
+          <v-icon x-small>{{ icon.icon }}</v-icon>
+        </v-progress-circular>
+        <v-icon v-else :color="icon.color">{{ icon.icon }}</v-icon>
+        {{ icon.description }}
+      </v-col>
+    </v-row>
     <svg viewBox="0 0 4720 1396.333">
       <defs>
         <pattern
