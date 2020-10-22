@@ -1,14 +1,18 @@
 <template>
-  <v-row dense justify="center">
-    <v-col cols="10">
-      <line-synoptics />
-    </v-col>
-    <v-col cols="4">
-      <machine-state-chart />
-    </v-col>
-    <v-col cols="4">
-      <production-chart />
-    </v-col>
+  <v-row>
+    <v-row dense justify="center">
+      <v-col cols="10">
+        <line-synoptics />
+      </v-col>
+    </v-row>
+    <v-row dense justify="center">
+      <v-col cols="4">
+        <machine-state-chart />
+      </v-col>
+      <v-col cols="4">
+        <production-chart />
+      </v-col>
+    </v-row>
   </v-row>
 </template>
 
