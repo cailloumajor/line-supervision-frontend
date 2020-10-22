@@ -101,7 +101,7 @@ export default defineComponent({
           }[state],
           icon: {
             [LinkStatus.Up]: "mdi-swap-horizontal",
-            [LinkStatus.Down]: "mdi-link-off",
+            [LinkStatus.Down]: "mdi-link-variant-off",
             [LinkStatus.Unknown]: "mdi-help"
           }[state]
         }
