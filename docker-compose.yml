@@ -64,9 +64,9 @@ services:
     user: 2000:2000
 
   opcua-bridge:
-    build: ./opcua-webhmi-bridge
+    image: ghcr.io/cailloumajor/opcua-webhmi-bridge:20201214.1
     environment:
-      - INFLUX_HOST=influx
+      - INFLUX_ROOT_URL=http://influx:8086
       - CENTRIFUGO_API_URL=http://centrifugo:8000/api
       # Following environment variables will be obtained from `.env` file
       - INFLUX_DB_NAME

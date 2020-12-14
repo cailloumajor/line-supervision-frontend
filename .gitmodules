@@ -1,3 +1,0 @@
-[submodule "opcua-webhmi-bridge"]
-	path = opcua-webhmi-bridge
-	url = https://github.com/cailloumajor/opcua-webhmi-bridge.git
