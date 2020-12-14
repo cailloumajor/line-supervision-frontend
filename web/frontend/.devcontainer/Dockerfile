@@ -1,6 +1,6 @@
-# See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.134.1/containers/javascript-node/.devcontainer/base.Dockerfile
-ARG VARIANT="14"
-FROM mcr.microsoft.com/vscode/devcontainers/javascript-node:0-${VARIANT}
+# [Choice] Node.js version: 14, 12, 10
+ARG VARIANT=14
+FROM mcr.microsoft.com/vscode/devcontainers/javascript-node:${VARIANT}
 
 # [Optional] Uncomment this section to install additional OS packages.
 # RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
@@ -12,4 +12,5 @@ FROM mcr.microsoft.com/vscode/devcontainers/javascript-node:0-${VARIANT}
 
 # [Optional] Uncomment if you want to install more global node modules
 # RUN sudo -u node npm install -g <your-package-list-here>
+
 RUN yarn global add @vue/cli
