@@ -107,9 +107,28 @@ export default () => {
     })
 
     const heartbeatSubscription = centrifuge.subscribe("heartbeat")
-    const bridgeLinkStatus$ = fromEvent<PublicationContext>(
+    const opcDataChangeSubscription = centrifuge.subscribe("opc_data_change")
+    const opcStatusSubscription = centrifuge.subscribe("opc_status")
+    const opcBridgeSubscriptions = [
       heartbeatSubscription,
-      "publish"
+      opcDataChangeSubscription,
+      opcStatusSubscription
+    ]
+
+    merge(
+      ...opcBridgeSubscriptions.map(sub =>
+        fromEvent<SubscribeErrorContext>(sub, "error").pipe(mapTo(sub))
+      )
+    )
+      .pipe(delay(subscribeRetryDelay))
+      .subscribe(sub => {
+        sub.subscribe()
+      })
+
+    const bridgeLinkStatus$ = merge(
+      ...opcBridgeSubscriptions.map(sub =>
+        fromEvent<PublicationContext>(sub, "publish")
+      )
     ).pipe(
       mapTo(LinkStatus.Up),
       timeout(6000),
@@ -120,7 +139,6 @@ export default () => {
       store.state.bridgeLinkStatus = status
     })
 
-    const opcDataChangeSubscription = centrifuge.subscribe("opc_data_change")
     const opcData$ = fromEvent<PublicationContext>(
       opcDataChangeSubscription,
       "publish"
@@ -132,7 +150,6 @@ export default () => {
       store.state.lineGlobalParameters = message.payload
     })
 
-    const opcStatusSubscription = centrifuge.subscribe("opc_status")
     const opcStatus$ = fromEvent<PublicationContext>(
       opcStatusSubscription,
       "publish"
@@ -143,20 +160,6 @@ export default () => {
     opcStatus$.subscribe(status => {
       store.state.opcLinkStatus = status
     })
-
-    merge(
-      ...[
-        heartbeatSubscription,
-        opcDataChangeSubscription,
-        opcStatusSubscription
-      ].map(sub =>
-        fromEvent<SubscribeErrorContext>(sub, "error").pipe(mapTo(sub))
-      )
-    )
-      .pipe(delay(subscribeRetryDelay))
-      .subscribe(sub => {
-        sub.subscribe()
-      })
 
     merge(bridgeLinkStatus$, centrifugoLinkStatus$, opcStatus$)
       .pipe(filter(status => status !== LinkStatus.Up))
