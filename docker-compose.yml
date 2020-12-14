@@ -6,10 +6,10 @@ services:
     image: centrifugo/centrifugo:v2.6
     command: centrifugo --config config.toml
     environment:
+      - CENTRIFUGO_PROXY_SUBSCRIBE_ENDPOINT=http://opcua-bridge:8008/centrifugo/subscribe
       # Following environment variables will be obtained from `.env` file
       - CENTRIFUGO_API_KEY
       - CENTRIFUGO_TOKEN_HMAC_SECRET_KEY
-      - CENTRIFUGO_PROXY_SUBSCRIBE_ENDPOINT=http://opcua-bridge:8008/centrifugo/subscribe
     expose:
       - "8000"
     labels:
