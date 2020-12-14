@@ -1,7 +1,7 @@
 ARG NODE_TAG
 ARG GOLANG_TAG
 
-FROM node:12.18 as frontend-builder
+FROM node:14.15 as frontend-builder
 
 ARG INFLUX_DB_NAME
 ENV INFLUX_DB_NAME ${INFLUX_DB_NAME}
