@@ -1,7 +1,7 @@
 ARG NODE_TAG
 ARG GOLANG_TAG
 
-FROM node:${NODE_TAG} as frontend-builder
+FROM node:12.18 as frontend-builder
 
 ARG INFLUX_DB_NAME
 ENV INFLUX_DB_NAME ${INFLUX_DB_NAME}
@@ -19,7 +19,7 @@ COPY frontend/.browserslistrc \
      ./
 RUN yarn run build --modern
 
-FROM golang:${GOLANG_TAG} as server-buider
+FROM golang:1.15 as server-buider
 
 WORKDIR /usr/src/app
 COPY server/go.mod server/go.sum server/main.go ./
