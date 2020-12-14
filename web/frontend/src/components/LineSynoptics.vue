@@ -167,11 +167,10 @@ import {
   computed,
   defineComponent,
   nextTick,
-  onBeforeUnmount,
-  onMounted,
   ref,
   watch
 } from "@vue/composition-api"
+import { useResizeObserver } from "@vueuse/core"
 import kebabCase from "lodash/kebabCase"
 import mapValues from "lodash/mapValues"
 import Vue from "vue"
@@ -275,8 +274,6 @@ function fillShape(state: MachineState): ShapeID {
 
 export default defineComponent({
   setup() {
-    let resizeObs: ResizeObserver
-
     const opcUaStore = useOpcUaStore()
     const theme = useTheme()
 
@@ -365,20 +362,12 @@ export default defineComponent({
       })
     }
 
-    onMounted(() => {
-      resizeObs = new ResizeObserver(entries => {
-        for (const entry of entries) {
-          if (entry.target === layoutContainer.value) {
-            placeMachineCards()
-          }
+    useResizeObserver(layoutContainer, entries => {
+      for (const entry of entries) {
+        if (entry.target == layoutContainer.value) {
+          placeMachineCards()
         }
-      })
-      resizeObs.observe(layoutContainer.value as HTMLDivElement)
-      placeMachineCards()
-    })
-
-    onBeforeUnmount(() => {
-      resizeObs.disconnect()
+      }
     })
 
     watch(cardsData, (val, oldVal) => {

@@ -15,11 +15,7 @@
     "types": [
       "webpack-env",
       "jest",
-      "vuetify",
-      // TODO: remove when included in TypeScript
-      // (including @types/resize-observer-browser package)
-      // Status: https://github.com/microsoft/TSJS-lib-generator/pull/847
-      "resize-observer-browser"
+      "vuetify"
     ],
     "paths": {
       "@/*": [
