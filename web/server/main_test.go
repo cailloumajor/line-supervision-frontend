@@ -2,31 +2,36 @@ package main
 
 import (
 	"net/http"
+	"os"
 	"reflect"
 	"testing"
 )
 
 func Test_getEnvVar(t *testing.T) {
-	type args struct {
-		key string
-	}
+	const key = "TESTING_ENV_VAR"
 	tests := []struct {
 		name    string
-		args    args
+		envVal  string
 		wantVal string
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{"Missing envvar", "!UNSET!", "", true},
+		{"Empty envvar", "", "", true},
+		{"Non-empty envvar", "Value", "Value", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotVal, err := getEnvVar(tt.args.key)
+			if tt.envVal == "!UNSET!" {
+				os.Unsetenv(key)
+			} else {
+				os.Setenv(key, tt.envVal)
+			}
+			gotVal, err := getEnvVar(key)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("getEnvVar() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				t.Fatalf("getEnvVar() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if gotVal != tt.wantVal {
-				t.Errorf("getEnvVar() = %v, want %v", gotVal, tt.wantVal)
+				t.Fatalf("getEnvVar() = %v, want %v", gotVal, tt.wantVal)
 			}
 		})
 	}
