@@ -28,44 +28,39 @@ func getEnvVar(key string) (val string, err error) {
 	return val, nil
 }
 
-type frontendConfig struct {
-	CentrifugoToken    string
-	InfluxDatabaseName string
-}
-
-func getFrontendConfig() (frontendConfig, error) {
-	var fc frontendConfig
+func getFrontendConfig() (map[string]string, error) {
+	cm := make(map[string]string)
 
 	val, err := getEnvVar(centrifugoSecretEnvVar)
 	if err != nil {
-		return fc, err
+		return nil, err
 	}
 
 	sec, err := uuid.Parse(val)
 	if err != nil {
-		return fc, fmt.Errorf("Centrifugo secret key: %v", err)
+		return nil, fmt.Errorf("Centrifugo secret key: %v", err)
 	}
 
 	if sec.Version() != uuid.Version(4) {
-		return fc, errors.New("Centrifugo secret key must be a version 4 UUID")
+		return nil, errors.New("Centrifugo secret key must be a version 4 UUID")
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{Subject: ""})
 	signed, err := token.SignedString([]byte(sec.String()))
 	if err != nil {
-		return fc, fmt.Errorf("JWT signing: %v", err)
+		return nil, fmt.Errorf("JWT signing: %v", err)
 	}
 
-	fc.CentrifugoToken = signed
+	cm["centrifugo_token"] = signed
 
 	val, err = getEnvVar(influxDBNameEnvVar)
 	if err != nil {
-		return fc, err
+		return nil, err
 	}
 
-	fc.InfluxDatabaseName = val
+	cm["influx_db_name"] = val
 
-	return fc, nil
+	return cm, nil
 }
 
 func templateIndexHandler(next http.Handler) http.Handler {

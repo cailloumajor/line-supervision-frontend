@@ -40,20 +40,59 @@ func Test_getEnvVar(t *testing.T) {
 func Test_getFrontendConfig(t *testing.T) {
 	tests := []struct {
 		name    string
-		want    frontendConfig
+		setenv  map[string]string
+		want    map[string]string
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			"Centrifugo secret env var not set",
+			map[string]string{},
+			nil,
+			true,
+		},
+		{
+			"Bad Centrifugo secret UUID format",
+			map[string]string{centrifugoSecretEnvVar: "42"},
+			nil,
+			true,
+		},
+		{
+			"Bad Centrifugo secret UUID version",
+			map[string]string{centrifugoSecretEnvVar: "00000000-0000-0000-0000-000000000000"},
+			nil,
+			true,
+		},
+		{
+			"InfluxDB DB name env var not set",
+			map[string]string{centrifugoSecretEnvVar: "ba7e8d26-ea52-47dc-bf76-40a4f9d41eb8"},
+			nil,
+			true,
+		},
+		{
+			"Success",
+			map[string]string{
+				centrifugoSecretEnvVar: "ba7e8d26-ea52-47dc-bf76-40a4f9d41eb8",
+				influxDBNameEnvVar:     "db",
+			},
+			map[string]string{
+				"centrifugo_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.VMyWo-77A4z9hZrBGQWglCNOwjOpKYmlboEzzVa7_do",
+				"influx_db_name":   "db",
+			},
+			false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			for k, v := range tt.setenv {
+				os.Setenv(k, v)
+			}
 			got, err := getFrontendConfig()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("getFrontendConfig() error = %v, wantErr %v", err, tt.wantErr)
+				t.Fatalf("getFrontendConfig() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("getFrontendConfig() = %v, want %v", got, tt.want)
+				t.Fatalf("getFrontendConfig() = %v, want %v", got, tt.want)
 			}
 		})
 	}
