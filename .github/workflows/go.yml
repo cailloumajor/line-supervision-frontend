@@ -1,0 +1,47 @@
+name: Go module CI
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "web/server/**"
+  pull_request:
+    branches:
+      - master
+    paths:
+      - "web/server/**"
+
+env:
+  SUBDIR: web/server
+
+jobs:
+  lint:
+    name: Lint Go code
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: golangci/golangci-lint-action@v2
+        with:
+          version: v1.33
+          working-directory: ${{ env.SUBDIR }}
+  test:
+    name: Test and code coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.15
+      - uses: actions/checkout@v2
+      - name: Test
+        run: |
+          cd "$SUBDIR"
+          go test -coverprofile cover.out -race -v
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_UPLOAD_TOKEN }}
+          file: ${{ env.SUBDIR }}/cover.out
+          flags: go-unittests
+          fail_ci_if_error: true
