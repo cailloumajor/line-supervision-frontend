@@ -23,5 +23,9 @@
         "staticcheck": false,
     },
     "go.autocompleteUnimportedPackages": true,
-    "go.formatTool": "goimports"
+    "go.formatTool": "goimports",
+    "go.lintTool": "golangci-lint",
+    "go.lintFlags": [
+        "--fast"
+    ]
 }
