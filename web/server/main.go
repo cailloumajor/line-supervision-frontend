@@ -6,8 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path"
-	"text/template"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
@@ -75,32 +73,20 @@ func (fcg *defaultFrontendConfigGetter) getFrontendConfig() (map[string]string, 
 	return cm, nil
 }
 
-func templateIndexHandler(next http.Handler) http.Handler {
+func configCookiesMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fail := func(err error) {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-
-		if r.URL.Path == "/" {
+		if r.URL.Path == "/" && r.Method == http.MethodGet {
 			fc, err := fcg.getFrontendConfig()
 			if err != nil {
-				fail(err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 
-			t, err := template.ParseFiles(path.Join(staticRoot, "index.html"))
-			if err != nil {
-				fail(err)
-				return
+			for k, v := range fc {
+				http.SetCookie(w, &http.Cookie{Name: k, Value: v})
 			}
-
-			if err := t.Execute(w, fc); err != nil {
-				fail(err)
-				return
-			}
-		} else {
-			next.ServeHTTP(w, r)
 		}
+		next.ServeHTTP(w, r)
 	})
 }
 
@@ -115,12 +101,10 @@ func init() {
 }
 
 func main() {
+	const addr = ":8080"
 	fsh := http.FileServer(http.Dir(staticRoot))
-	h := handlers.CombinedLoggingHandler(os.Stdout, templateIndexHandler(fsh))
-	s := &http.Server{
-		Addr:    ":8080",
-		Handler: h,
-	}
-	log.Printf("Listening for HTTP requests on %v", s.Addr)
-	log.Fatal(s.ListenAndServe())
+	mw := configCookiesMiddleware(fsh)
+	lh := handlers.CombinedLoggingHandler(os.Stdout, mw)
+	log.Printf("Listening for HTTP requests on %v", addr)
+	log.Fatal(http.ListenAndServe(addr, lh))
 }

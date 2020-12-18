@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"reflect"
 	"testing"
@@ -102,21 +103,73 @@ func Test_getFrontendConfig(t *testing.T) {
 	}
 }
 
-func Test_templateIndexHandler(t *testing.T) {
-	type args struct {
-		next http.Handler
+var cookiesFixture = map[string]string{
+	"cookie_1": "value_1",
+	"cookie_2": "value_2",
+}
+
+type frontConfGetterMock struct {
+	fail bool
+}
+
+func (fcg *frontConfGetterMock) getFrontendConfig() (map[string]string, error) {
+	if fcg.fail {
+		return nil, errors.New("")
+	} else {
+		return cookiesFixture, nil
 	}
+}
+
+func Test_configCookiesMiddleware(t *testing.T) {
+	const resp = "Response text"
+
+	h := configCookiesMiddleware(
+		http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}),
+	)
+
 	tests := []struct {
-		name string
-		args args
-		want http.Handler
+		name       string
+		method     string
+		path       string
+		mockFail   bool
+		expStatus  int
+		expCookies bool
 	}{
-		// TODO: Add test cases.
+		{"Not GET method", http.MethodPost, "/", false, 200, false},
+		{"Not root path", http.MethodGet, "/favicon.ico", false, 200, false},
+		{"Error getting config", http.MethodGet, "/", true, 500, false},
+		{"Success", http.MethodGet, "/", false, 200, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := templateIndexHandler(tt.args.next); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("templateIndexHandler() = %v, want %v", got, tt.want)
+			fcg = &frontConfGetterMock{tt.mockFail}
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest(tt.method, tt.path, nil)
+			h.ServeHTTP(w, req)
+			if w.Result().StatusCode != tt.expStatus {
+				t.Fatalf(
+					"expected %v status, got %v",
+					tt.expStatus,
+					w.Result().StatusCode,
+				)
+			}
+			exp := len(cookiesFixture)
+			found := 0
+			for k, v := range cookiesFixture {
+				for _, c := range w.Result().Cookies() {
+					if c.Name == k && c.Value == v {
+						found++
+					}
+				}
+			}
+			if tt.expCookies {
+				if found != exp {
+					t.Fatalf("expected %v cookies, got %v", exp, found)
+				}
+			} else {
+				if found != 0 {
+					t.Fatalf("expected no cookie, found %v", found)
+				}
 			}
 		})
 	}
