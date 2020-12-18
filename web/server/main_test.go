@@ -121,8 +121,6 @@ func (fcg *frontConfGetterMock) getFrontendConfig() (map[string]string, error) {
 }
 
 func Test_configCookiesMiddleware(t *testing.T) {
-	const resp = "Response text"
-
 	h := configCookiesMiddleware(
 		http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}),
 	)
