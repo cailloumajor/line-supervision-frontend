@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"net/http"
 	"os"
 	"reflect"
@@ -26,7 +27,7 @@ func Test_getEnvVar(t *testing.T) {
 			} else {
 				os.Setenv(key, tt.envVal)
 			}
-			gotVal, err := getEnvVar(key)
+			gotVal, err := evg.getEnvVar(key)
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("getEnvVar() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -37,43 +38,48 @@ func Test_getEnvVar(t *testing.T) {
 	}
 }
 
+type envVarGetterMock struct {
+	retVals []string
+}
+
+func (evg *envVarGetterMock) getEnvVar(key string) (val string, err error) {
+	var retVal string
+	retVal, evg.retVals = evg.retVals[0], evg.retVals[1:]
+	if retVal == "" {
+		return "", errors.New("")
+	} else {
+		return retVal, nil
+	}
+}
+
 func Test_getFrontendConfig(t *testing.T) {
 	tests := []struct {
-		name    string
-		setenv  map[string]string
-		want    map[string]string
-		wantErr bool
+		name        string
+		mockRetVals []string
+		want        map[string]string
+		wantErr     bool
 	}{
 		{
-			"Centrifugo secret env var not set",
-			map[string]string{},
-			nil,
-			true,
+			"Error getting Centrifugo secret", []string{""}, nil, true,
 		},
 		{
-			"Bad Centrifugo secret UUID format",
-			map[string]string{centrifugoSecretEnvVar: "42"},
-			nil,
-			true,
+			"Bad Centrifugo secret UUID format", []string{"42"}, nil, true,
 		},
 		{
 			"Bad Centrifugo secret UUID version",
-			map[string]string{centrifugoSecretEnvVar: "00000000-0000-0000-0000-000000000000"},
+			[]string{"00000000-0000-0000-0000-000000000000"},
 			nil,
 			true,
 		},
 		{
-			"InfluxDB DB name env var not set",
-			map[string]string{centrifugoSecretEnvVar: "ba7e8d26-ea52-47dc-bf76-40a4f9d41eb8"},
+			"Error getting InfluxDB DB name",
+			[]string{"ba7e8d26-ea52-47dc-bf76-40a4f9d41eb8", ""},
 			nil,
 			true,
 		},
 		{
 			"Success",
-			map[string]string{
-				centrifugoSecretEnvVar: "ba7e8d26-ea52-47dc-bf76-40a4f9d41eb8",
-				influxDBNameEnvVar:     "db",
-			},
+			[]string{"ba7e8d26-ea52-47dc-bf76-40a4f9d41eb8", "db"},
 			map[string]string{
 				"centrifugo_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.VMyWo-77A4z9hZrBGQWglCNOwjOpKYmlboEzzVa7_do",
 				"influx_db_name":   "db",
@@ -83,10 +89,8 @@ func Test_getFrontendConfig(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			for k, v := range tt.setenv {
-				os.Setenv(k, v)
-			}
-			got, err := getFrontendConfig()
+			evg = &envVarGetterMock{tt.mockRetVals}
+			got, err := fcg.getFrontendConfig()
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("getFrontendConfig() error = %v, wantErr %v", err, tt.wantErr)
 				return

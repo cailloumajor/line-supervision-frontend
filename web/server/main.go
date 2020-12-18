@@ -20,7 +20,13 @@ const (
 	influxDBNameEnvVar     = "INFLUX_DB_NAME"
 )
 
-func getEnvVar(key string) (val string, err error) {
+type envVarGetter interface {
+	getEnvVar(string) (string, error)
+}
+
+type defaultEnvVarGetter struct{}
+
+func (evg *defaultEnvVarGetter) getEnvVar(key string) (val string, err error) {
 	val, ok := os.LookupEnv(key)
 	if !ok || val == "" {
 		return "", fmt.Errorf("Missing %v environment variable", key)
@@ -28,10 +34,16 @@ func getEnvVar(key string) (val string, err error) {
 	return val, nil
 }
 
-func getFrontendConfig() (map[string]string, error) {
+type frontendConfigGetter interface {
+	getFrontendConfig() (map[string]string, error)
+}
+
+type defaultFrontendConfigGetter struct{}
+
+func (fcg *defaultFrontendConfigGetter) getFrontendConfig() (map[string]string, error) {
 	cm := make(map[string]string)
 
-	val, err := getEnvVar(centrifugoSecretEnvVar)
+	val, err := evg.getEnvVar(centrifugoSecretEnvVar)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +65,7 @@ func getFrontendConfig() (map[string]string, error) {
 
 	cm["centrifugo_token"] = signed
 
-	val, err = getEnvVar(influxDBNameEnvVar)
+	val, err = evg.getEnvVar(influxDBNameEnvVar)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +82,7 @@ func templateIndexHandler(next http.Handler) http.Handler {
 		}
 
 		if r.URL.Path == "/" {
-			fc, err := getFrontendConfig()
+			fc, err := fcg.getFrontendConfig()
 			if err != nil {
 				fail(err)
 				return
@@ -90,6 +102,16 @@ func templateIndexHandler(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 		}
 	})
+}
+
+var (
+	evg envVarGetter
+	fcg frontendConfigGetter
+)
+
+func init() {
+	evg = &defaultEnvVarGetter{}
+	fcg = &defaultFrontendConfigGetter{}
 }
 
 func main() {
