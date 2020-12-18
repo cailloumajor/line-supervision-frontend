@@ -7,9 +7,10 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/gorilla/handlers"
+	"gopkg.in/square/go-jose.v2"
+	"gopkg.in/square/go-jose.v2/jwt"
 )
 
 const (
@@ -55,10 +56,20 @@ func (fcg *defaultFrontendConfigGetter) getFrontendConfig() (map[string]string, 
 		return nil, errors.New("Centrifugo secret key must be a version 4 UUID")
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{Subject: ""})
-	signed, err := token.SignedString([]byte(sec.String()))
+	sig, err := jose.NewSigner(
+		jose.SigningKey{Algorithm: jose.HS256, Key: []byte(sec.String())},
+		(&jose.SignerOptions{}).WithType("JWT"),
+	)
 	if err != nil {
-		return nil, fmt.Errorf("JWT signing: %v", err)
+		return nil, fmt.Errorf("Error creating JWT signer: %v", err)
+	}
+
+	cl := jwt.Claims{
+		Subject: "",
+	}
+	signed, err := jwt.Signed(sig).Claims(cl).CompactSerialize()
+	if err != nil {
+		return nil, fmt.Errorf("Error signing JWT: %v", err)
 	}
 
 	cm["centrifugo_token"] = signed
