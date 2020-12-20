@@ -6,12 +6,11 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path"
-	"text/template"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/gorilla/handlers"
+	"gopkg.in/square/go-jose.v2"
+	"gopkg.in/square/go-jose.v2/jwt"
 )
 
 const (
@@ -20,7 +19,13 @@ const (
 	influxDBNameEnvVar     = "INFLUX_DB_NAME"
 )
 
-func getEnvVar(key string) (val string, err error) {
+type envVarGetter interface {
+	getEnvVar(string) (string, error)
+}
+
+type defaultEnvVarGetter struct{}
+
+func (evg *defaultEnvVarGetter) getEnvVar(key string) (val string, err error) {
 	val, ok := os.LookupEnv(key)
 	if !ok || val == "" {
 		return "", fmt.Errorf("Missing %v environment variable", key)
@@ -28,82 +33,89 @@ func getEnvVar(key string) (val string, err error) {
 	return val, nil
 }
 
-type frontendConfig struct {
-	CentrifugoToken    string
-	InfluxDatabaseName string
+type frontendConfigGetter interface {
+	getFrontendConfig() (map[string]string, error)
 }
 
-func getFrontendConfig() (frontendConfig, error) {
-	var fc frontendConfig
+type defaultFrontendConfigGetter struct{}
 
-	val, err := getEnvVar(centrifugoSecretEnvVar)
+func (fcg *defaultFrontendConfigGetter) getFrontendConfig() (map[string]string, error) {
+	cm := make(map[string]string)
+
+	val, err := evg.getEnvVar(centrifugoSecretEnvVar)
 	if err != nil {
-		return fc, err
+		return nil, err
 	}
 
 	sec, err := uuid.Parse(val)
 	if err != nil {
-		return fc, fmt.Errorf("Centrifugo secret key: %v", err)
+		return nil, fmt.Errorf("Centrifugo secret key: %v", err)
 	}
 
 	if sec.Version() != uuid.Version(4) {
-		return fc, errors.New("Centrifugo secret key must be a version 4 UUID")
+		return nil, errors.New("Centrifugo secret key must be a version 4 UUID")
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{Subject: ""})
-	signed, err := token.SignedString([]byte(sec.String()))
+	sig, err := jose.NewSigner(
+		jose.SigningKey{Algorithm: jose.HS256, Key: []byte(sec.String())},
+		(&jose.SignerOptions{}).WithType("JWT"),
+	)
 	if err != nil {
-		return fc, fmt.Errorf("JWT signing: %v", err)
+		return nil, fmt.Errorf("Error creating JWT signer: %v", err)
 	}
 
-	fc.CentrifugoToken = signed
-
-	val, err = getEnvVar(influxDBNameEnvVar)
+	cl := jwt.Claims{
+		Subject: "",
+	}
+	signed, err := jwt.Signed(sig).Claims(cl).CompactSerialize()
 	if err != nil {
-		return fc, err
+		return nil, fmt.Errorf("Error signing JWT: %v", err)
 	}
 
-	fc.InfluxDatabaseName = val
+	cm["centrifugo_token"] = signed
 
-	return fc, nil
+	val, err = evg.getEnvVar(influxDBNameEnvVar)
+	if err != nil {
+		return nil, err
+	}
+
+	cm["influx_db_name"] = val
+
+	return cm, nil
 }
 
-func templateIndexHandler(next http.Handler) http.Handler {
+func configCookiesMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fail := func(err error) {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-
-		if r.URL.Path == "/" {
-			fc, err := getFrontendConfig()
+		if r.URL.Path == "/" && r.Method == http.MethodGet {
+			fc, err := fcg.getFrontendConfig()
 			if err != nil {
-				fail(err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 
-			t, err := template.ParseFiles(path.Join(staticRoot, "index.html"))
-			if err != nil {
-				fail(err)
-				return
+			for k, v := range fc {
+				http.SetCookie(w, &http.Cookie{Name: k, Value: v})
 			}
-
-			if err := t.Execute(w, fc); err != nil {
-				fail(err)
-				return
-			}
-		} else {
-			next.ServeHTTP(w, r)
 		}
+		next.ServeHTTP(w, r)
 	})
 }
 
+var (
+	evg envVarGetter
+	fcg frontendConfigGetter
+)
+
+func init() {
+	evg = &defaultEnvVarGetter{}
+	fcg = &defaultFrontendConfigGetter{}
+}
+
 func main() {
+	const addr = ":8080"
 	fsh := http.FileServer(http.Dir(staticRoot))
-	h := handlers.CombinedLoggingHandler(os.Stdout, templateIndexHandler(fsh))
-	s := &http.Server{
-		Addr:    ":8080",
-		Handler: h,
-	}
-	log.Printf("Listening for HTTP requests on %v", s.Addr)
-	log.Fatal(s.ListenAndServe())
+	mw := configCookiesMiddleware(fsh)
+	lh := handlers.CombinedLoggingHandler(os.Stdout, mw)
+	log.Printf("Listening for HTTP requests on %v", addr)
+	log.Fatal(http.ListenAndServe(addr, lh))
 }
