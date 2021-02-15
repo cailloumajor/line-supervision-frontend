@@ -3,11 +3,11 @@ ARG GOLANG_TAG
 
 FROM node:14.15 as frontend-builder
 
-ARG INFLUX_DB_NAME
-ENV INFLUX_DB_NAME ${INFLUX_DB_NAME}
 WORKDIR /app
+
 COPY frontend/package.json frontend/yarn.lock ./
 RUN yarn install
+
 COPY frontend/public ./public
 COPY frontend/src ./src
 COPY frontend/.browserslistrc \
