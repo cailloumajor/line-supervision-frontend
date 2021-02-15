@@ -3,7 +3,7 @@ import { computed, defineComponent, reactive } from "@vue/composition-api"
 import { ApexOptions } from "apexcharts"
 import dayjs, { Dayjs } from "dayjs"
 
-import { machineNames, productionChart as config } from "@/config"
+import { machineNames, productionChart as custom } from "@/customization"
 import useInfluxChart from "@/composables/influx-chart"
 import useOpcUaStore from "@/stores/opcua"
 
@@ -14,7 +14,7 @@ interface DataSerie {
   data: Point[]
 }
 
-const serieName = config.machineIndexes
+const serieName = custom.machineIndexes
   .map(machIdx => machineNames[parseInt(machIdx)])
   .join(" + ")
 
@@ -49,7 +49,7 @@ export default defineComponent({
       generateQuery: dbName => {
         updateTimeRange()
         const windowOffset = fluxDuration(`${timeRange.start.minute()}m`)
-        const machineColumns = config.machineIndexes.map(idx => `machine${idx}`)
+        const machineColumns = custom.machineIndexes.map(idx => `machine${idx}`)
         const machineSum = fluxExpression(
           machineColumns.map(mc => `r.${mc}`).join(" + ")
         )
@@ -59,7 +59,7 @@ export default defineComponent({
             |> filter(fn: (r) =>
               r._measurement == "dbLineSupervision.machine" and
               r._field == "counters.production" and
-              contains(value: r.machine_index, set: ${config.machineIndexes})
+              contains(value: r.machine_index, set: ${custom.machineIndexes})
             )
             |> map(fn: (r) => ({ r with machine_index: "machine" + r.machine_index }))
             |> pivot(columnKey: ["machine_index"], rowKey: ["_time"], valueColumn: "_value")

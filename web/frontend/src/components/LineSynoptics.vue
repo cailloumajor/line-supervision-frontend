@@ -177,7 +177,7 @@ import Vue from "vue"
 
 import { statePalette, MachineStateShape, ShapeID } from "@/common"
 import { useTheme } from "@/composables/theme"
-import { machineNames } from "@/config"
+import { machineNames } from "@/customization"
 import useOpcUaStore from "@/stores/opcua"
 import { MachineCounters, MachineState } from "@/stores/types"
 

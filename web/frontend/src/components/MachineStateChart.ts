@@ -7,7 +7,7 @@ import cloneDeep from "lodash/cloneDeep"
 import { statePalette, ShapeID } from "@/common"
 import useInfluxChart from "@/composables/influx-chart"
 import { useTheme } from "@/composables/theme"
-import { machineNames, machineStateChart as config } from "@/config"
+import { machineNames, machineStateChart as custom } from "@/customization"
 
 interface DataSerie {
   name: string // Machine state
@@ -52,7 +52,7 @@ export default defineComponent({
             |> filter(fn: (r) =>
               r._measurement == "dbLineSupervision.machine" and
               r._field =~ /^machineState\./ and
-              contains(value: r.machine_index, set: ${config.machineIndexes})
+              contains(value: r.machine_index, set: ${custom.machineIndexes})
           	)
             |> group(columns: ["machine_index"])
             |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
@@ -76,7 +76,7 @@ export default defineComponent({
 
       seed: monitoredStates.map(state => ({
         name: statePalette[state].description,
-        data: config.machineIndexes.map(machineIndex => ({
+        data: custom.machineIndexes.map(machineIndex => ({
           x: machineNames[parseInt(machineIndex, 10)],
           y: [0, 0]
         }))
