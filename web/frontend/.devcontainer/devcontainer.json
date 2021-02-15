@@ -19,7 +19,7 @@
 
   // Set *default* container specific settings.json values on container create.
   "settings": {
-    "terminal.integrated.shell.linux": "/bin/bash",
+    "terminal.integrated.shell.linux": "/bin/zsh",
     "editor.formatOnSave": true
   },
 
@@ -30,7 +30,7 @@
     "esbenp.prettier-vscode",
     "fabiospampinato.vscode-todo-plus",
     "octref.vetur"
-  ]
+  ],
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [],
@@ -45,5 +45,5 @@
   // "postCreateCommand": "apt-get update && apt-get install -y curl",
 
   // Uncomment to connect as a non-root user if you've added one. See https://aka.ms/vscode-remote/containers/non-root.
-  // "remoteUser": "vscode"
+  "remoteUser": "node"
 }
