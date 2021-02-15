@@ -13,6 +13,8 @@ import {
   mapTo,
   timeout
 } from "rxjs/operators"
+
+import { cookieValue } from "@/config"
 import {
   LineGlobalParameters,
   LinkStatus,
@@ -80,9 +82,7 @@ const useStore = createStore({
 })
 
 const centrifugoURL = `ws://${window.location.host}/centrifugo/connection/websocket`
-const centrifugoToken: string =
-  // eslint-disable-next-line
-  (window as any).config?.centrifugoToken ?? ""
+const centrifugoToken = cookieValue("centrifugo_token")
 
 let initialized = false
 

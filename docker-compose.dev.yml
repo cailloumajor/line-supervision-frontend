@@ -1,10 +1,6 @@
 version: "2.1"
 
 services:
-  centrifugo:
-    environment:
-      - CENTRIFUGO_CLIENT_ANONYMOUS=true
-
   influx:
     environment:
       - INFLUXDB_MONITOR_STORE_ENABLED=true
@@ -22,6 +18,7 @@ services:
       - .:/workspace:cached
     environment:
       - VUE_APP_INFLUX_DB_NAME=${INFLUX_DB_NAME}
+      - VUE_APP_CENTRIFUGO_TOKEN=${CENTRIFUGO_TOKEN}
 
   reverse-proxy:
     labels:

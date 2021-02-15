@@ -20,6 +20,7 @@
     "lodash": "4.17.20",
     "pinia": "0.0.7",
     "rxjs": "6.6.3",
+    "universal-cookie": "^4.0.4",
     "vue": "2.6.12",
     "vue-apexcharts": "1.6.0",
     "vue-router": "3.4.9",

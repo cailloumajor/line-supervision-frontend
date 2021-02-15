@@ -21,6 +21,7 @@ import {
   tap
 } from "rxjs/operators"
 
+import { cookieValue } from "@/config"
 import useInfluxDBStore from "@/stores/influxdb"
 import { LinkStatus } from "@/stores/types"
 
@@ -30,10 +31,7 @@ const influxURL = "/influx"
 
 const queryAPI = new InfluxDB(influxURL).getQueryApi("")
 
-const influxDBName: string =
-  // eslint-disable-next-line
-  (window as any).config?.influxDatabaseName ??
-  process.env.VUE_APP_INFLUX_DB_NAME
+const influxDBName = cookieValue("influx_db_name")
 
 export interface Options<T> {
   queryInterval: number
