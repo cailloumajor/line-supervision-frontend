@@ -1,6 +1,3 @@
-ARG NODE_TAG
-ARG GOLANG_TAG
-
 FROM node:14.15 as frontend-builder
 
 WORKDIR /app
