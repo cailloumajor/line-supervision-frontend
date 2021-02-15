@@ -158,6 +158,9 @@ func Test_configCookiesMiddleware(t *testing.T) {
 					if c.Name == k && c.Value == v {
 						found++
 					}
+					if c.SameSite != http.SameSiteStrictMode {
+						t.Fatal("expected cookies to have SameSite=Strict")
+					}
 				}
 			}
 			if tt.expCookies {

@@ -56,10 +56,12 @@ func (fcg *defaultFrontendConfigGetter) getFrontendConfig() (map[string]string, 
 		return nil, errors.New("Centrifugo secret key must be a version 4 UUID")
 	}
 
-	sig, err := jose.NewSigner(
-		jose.SigningKey{Algorithm: jose.HS256, Key: []byte(sec.String())},
-		(&jose.SignerOptions{}).WithType("JWT"),
-	)
+	sk := jose.SigningKey{
+		Algorithm: jose.HS256,
+		Key:       []byte(sec.String()),
+	}
+	so := &jose.SignerOptions{}
+	sig, err := jose.NewSigner(sk, so.WithType("JWT"))
 	if err != nil {
 		return nil, fmt.Errorf("Error creating JWT signer: %v", err)
 	}
@@ -94,7 +96,12 @@ func configCookiesMiddleware(next http.Handler) http.Handler {
 			}
 
 			for k, v := range fc {
-				http.SetCookie(w, &http.Cookie{Name: k, Value: v})
+				c := &http.Cookie{
+					Name:     k,
+					Value:    v,
+					SameSite: http.SameSiteStrictMode,
+				}
+				http.SetCookie(w, c)
 			}
 		}
 		next.ServeHTTP(w, r)
