@@ -16,7 +16,7 @@
     "@vueuse/core": "4.0.0-rc.8",
     "apexcharts": "3.23.0",
     "axios": "0.21.1",
-    "centrifuge": "2.6.4",
+    "centrifuge": "2.7.1",
     "core-js": "3.6.5",
     "dayjs": "1.10.4",
     "lodash": "4.17.20",
