@@ -3,7 +3,7 @@ import {
   HttpError,
   InfluxDB,
   ParameterizedQuery
-} from "@influxdata/influxdb-client"
+} from "@influxdata/influxdb-client-browser"
 import {
   onMounted,
   onUnmounted,

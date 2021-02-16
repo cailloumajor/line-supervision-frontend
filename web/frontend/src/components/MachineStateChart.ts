@@ -1,4 +1,4 @@
-import { flux } from "@influxdata/influxdb-client"
+import { flux } from "@influxdata/influxdb-client-browser"
 import { computed, defineComponent, reactive } from "@vue/composition-api"
 import { ApexOptions } from "apexcharts"
 import dayjs from "dayjs"
