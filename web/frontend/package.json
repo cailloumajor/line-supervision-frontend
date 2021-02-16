@@ -24,7 +24,7 @@
     "vue": "2.6.12",
     "vue-apexcharts": "1.6.0",
     "vue-router": "3.4.9",
-    "vuetify": "2.3.21"
+    "vuetify": "2.4.4"
   },
   "devDependencies": {
     "@types/jest": "^24.9.1",
@@ -45,11 +45,11 @@
     "eslint-plugin-prettier": "^3.1.4",
     "eslint-plugin-vue": "^6.2.2",
     "prettier": "^1.19.1",
-    "sass": "^1.26.10",
-    "sass-loader": "^8.0.2",
+    "sass": "^1.32.0",
+    "sass-loader": "^10.0.0",
     "typescript": "^3.9.7",
-    "vue-cli-plugin-vuetify": "^2.0.8",
+    "vue-cli-plugin-vuetify": "^2.1.0",
     "vue-template-compiler": "^2.6.12",
-    "vuetify-loader": "^1.6.0"
+    "vuetify-loader": "^1.7.0"
   }
 }
