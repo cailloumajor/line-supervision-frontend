@@ -20,7 +20,7 @@
     "core-js": "3.6.5",
     "dayjs": "1.10.4",
     "lodash": "4.17.20",
-    "pinia": "0.0.7",
+    "pinia": "0.1.0",
     "rxjs": "6.6.3",
     "universal-cookie": "^4.0.4",
     "vue": "2.6.12",
