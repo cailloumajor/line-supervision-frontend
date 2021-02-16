@@ -1,3 +1,7 @@
+// Load self-hosted webfonts
+import "@mdi/font/css/materialdesignicons.css"
+import "@fontsource/roboto"
+
 import Vue from "vue"
 import Vuetify from "vuetify/lib/framework"
 

@@ -894,6 +894,11 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
+"@fontsource/roboto@4.2.1":
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/@fontsource/roboto/-/roboto-4.2.1.tgz#fc75a2c6f5267230f37c40c00bec5bf05d61c5c0"
+  integrity sha512-C236dlY57hG+Gg4C9SS2i5qNBILg31uzSdVhO6wUk27rgOz+rtztcUA17VI+HWdAd4LQaTp/vF6NDi303KRtqg==
+
 "@hapi/address@2.x.x":
   version "2.1.4"
   resolved "https://registry.yarnpkg.com/@hapi/address/-/address-2.1.4.tgz#5d67ed43f3fd41a69d4b9ff7b56e7c0d1d0a81e5"
@@ -1087,6 +1092,11 @@
     "@types/istanbul-lib-coverage" "^2.0.0"
     "@types/istanbul-reports" "^1.1.1"
     "@types/yargs" "^13.0.0"
+
+"@mdi/font@5.9.55":
+  version "5.9.55"
+  resolved "https://registry.yarnpkg.com/@mdi/font/-/font-5.9.55.tgz#41acd50b88073ded7095fc3029d8712b6e12f38e"
+  integrity sha512-jswRF6q3eq8NWpWiqct6q+6Fg/I7nUhrxYJfiEM8JJpap0wVJLQdbKtyS65GdlK7S7Ytnx3TTi/bmw+tBhkGmg==
 
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"
