@@ -107,7 +107,7 @@ export default defineComponent({
                 text: "Objectif / heure"
               },
               strokeDashArray: 0,
-              y: opcUaStore.state.lineGlobalParameters.productionObjective
+              y: opcUaStore.lineGlobalParameters.productionObjective
             }
           ]
         },
@@ -151,10 +151,7 @@ export default defineComponent({
         yaxis: {
           forceNiceScale: true,
           max: max =>
-            Math.max(
-              opcUaStore.state.lineGlobalParameters.productionObjective,
-              max
-            ),
+            Math.max(opcUaStore.lineGlobalParameters.productionObjective, max),
           min: 0
         }
       }))

@@ -72,12 +72,13 @@ const useStore = createStore({
   }),
 
   getters: {
-    opcLinkStatus: state =>
-      state.bridgeLinkStatus === LinkStatus.Up
-        ? state.opcLinkStatus
-        : LinkStatus.Unknown,
-
-    plcLinkUp: (_, { opcLinkStatus }) => opcLinkStatus.value === LinkStatus.Up
+    opcLinkStatusDisplay(): LinkStatus {
+      if (this.bridgeLinkStatus === LinkStatus.Up) {
+        return this.opcLinkStatus
+      } else {
+        return LinkStatus.Unknown
+      }
+    }
   }
 })
 
@@ -103,7 +104,7 @@ export default () => {
       fromEvent(centrifuge, "disconnect").pipe(mapTo(LinkStatus.Down))
     )
     centrifugoLinkStatus$.subscribe(status => {
-      store.state.centrifugoLinkStatus = status
+      store.centrifugoLinkStatus = status
     })
 
     const heartbeatSubscription = centrifuge.subscribe("heartbeat")
@@ -136,7 +137,7 @@ export default () => {
       distinctUntilChanged()
     )
     bridgeLinkStatus$.subscribe(status => {
-      store.state.bridgeLinkStatus = status
+      store.bridgeLinkStatus = status
     })
 
     const opcData$ = fromEvent<PublicationContext>(
@@ -144,10 +145,10 @@ export default () => {
       "publish"
     ).pipe(map(publication => publication.data as OPCDataChangeMessage))
     opcData$.pipe(filter(isMachineMetricsMessage)).subscribe(message => {
-      store.state.machinesMetrics = message.payload
+      store.machinesMetrics = message.payload
     })
     opcData$.pipe(filter(isLineParametersMessage)).subscribe(message => {
-      store.state.lineGlobalParameters = message.payload
+      store.lineGlobalParameters = message.payload
     })
 
     const opcStatus$ = fromEvent<PublicationContext>(
@@ -158,13 +159,13 @@ export default () => {
       map(message => message.payload)
     )
     opcStatus$.subscribe(status => {
-      store.state.opcLinkStatus = status
+      store.opcLinkStatus = status
     })
 
     merge(bridgeLinkStatus$, centrifugoLinkStatus$, opcStatus$)
       .pipe(filter(status => status !== LinkStatus.Up))
       .subscribe(() => {
-        store.state.machinesMetrics = freshMachineMetrics()
+        store.machinesMetrics = freshMachineMetrics()
       })
 
     centrifuge.connect()

@@ -315,7 +315,7 @@ export default defineComponent({
     )
 
     const cardsData = computed<CardData[]>(() => {
-      return opcUaStore.state.machinesMetrics
+      return opcUaStore.machinesMetrics
         .map(({ counters }, index) => {
           return {
             index,
@@ -329,7 +329,7 @@ export default defineComponent({
     })
 
     const layoutData = computed<LayoutMachineData[]>(() => {
-      return opcUaStore.state.machinesMetrics.map(({ machineState }, index) => {
+      return opcUaStore.machinesMetrics.map(({ machineState }, index) => {
         return {
           ...LayoutData[index],
           tagText: machineNames[index],
