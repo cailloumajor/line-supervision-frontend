@@ -107,10 +107,10 @@ export default defineComponent({
         }
       }
       return [
-        linkData("Centrifugo", opcUaStore.state.centrifugoLinkStatus),
-        linkData("OPC bridge", opcUaStore.state.bridgeLinkStatus),
-        linkData("OPC", opcUaStore.opcLinkStatus.value),
-        linkData("InfluxDB", influxDBStore.state.linkStatus)
+        linkData("Centrifugo", opcUaStore.centrifugoLinkStatus),
+        linkData("OPC bridge", opcUaStore.bridgeLinkStatus),
+        linkData("OPC", opcUaStore.opcLinkStatusDisplay),
+        linkData("InfluxDB", influxDBStore.linkStatus)
       ]
     })
 
@@ -119,12 +119,16 @@ export default defineComponent({
       height: "90%"
     }))
 
+    const plcLinkUp = computed(
+      () => opcUaStore.opcLinkStatusDisplay == LinkStatus.Up
+    )
+
     return {
       routes,
       drawer,
       linksData,
       logoStyle,
-      plcLinkUp: opcUaStore.plcLinkUp
+      plcLinkUp
     }
   }
 })

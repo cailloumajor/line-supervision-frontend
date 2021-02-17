@@ -32,7 +32,7 @@ export default () => {
 
   if (!linkStatusSubscription) {
     linkStatusSubscription = linkStatus$.subscribe(status => {
-      store.state.linkStatus = status
+      store.linkStatus = status
     })
   }
 
