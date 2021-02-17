@@ -1,6 +1,7 @@
 import Centrifuge, {
   PublicationContext,
-  SubscribeErrorContext
+  SubscribeErrorContext,
+  Subscription
 } from "centrifuge"
 import { createStore } from "pinia"
 import { concat, fromEvent, merge, of } from "rxjs"
@@ -108,12 +109,22 @@ export default () => {
     })
 
     const heartbeatSubscription = centrifuge.subscribe("heartbeat")
-    const opcDataChangeSubscription = centrifuge.subscribe("opc_data_change")
-    const opcStatusSubscription = centrifuge.subscribe("opc_status")
-    const opcBridgeSubscriptions = [
-      heartbeatSubscription,
+
+    const opcDataChangeSubscription = centrifuge.subscribe(
+      "proxied:opc_data_change"
+    )
+    opcDataChangeSubscription.unsubscribe()
+
+    const opcStatusSubscription = centrifuge.subscribe("proxied:opc_status")
+    opcStatusSubscription.unsubscribe()
+
+    const proxiedChannelsSubscriptions = [
       opcDataChangeSubscription,
       opcStatusSubscription
+    ]
+    const opcBridgeSubscriptions = [
+      heartbeatSubscription,
+      ...proxiedChannelsSubscriptions
     ]
 
     merge(
@@ -126,10 +137,9 @@ export default () => {
         sub.subscribe()
       })
 
-    const bridgeLinkStatus$ = merge(
-      ...opcBridgeSubscriptions.map(sub =>
-        fromEvent<PublicationContext>(sub, "publish")
-      )
+    const bridgeLinkStatus$ = fromEvent<PublicationContext>(
+      heartbeatSubscription,
+      "publish"
     ).pipe(
       mapTo(LinkStatus.Up),
       timeout(6000),
@@ -138,6 +148,16 @@ export default () => {
     )
     bridgeLinkStatus$.subscribe(status => {
       store.bridgeLinkStatus = status
+      function subscriptionAction(sub: Subscription) {
+        if (status == LinkStatus.Up) {
+          sub.subscribe()
+        } else if (status == LinkStatus.Down) {
+          sub.unsubscribe()
+        }
+      }
+      for (const proxied of proxiedChannelsSubscriptions) {
+        subscriptionAction(proxied)
+      }
     })
 
     const opcData$ = fromEvent<PublicationContext>(

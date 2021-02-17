@@ -1,3 +1,7 @@
 v3_use_offset = true
 anonymous = true
+
+[[namespaces]]
+name = "proxied"
+anonymous = true
 proxy_subscribe = true
