@@ -3,7 +3,7 @@ version: "2.1"
 
 services:
   centrifugo:
-    image: centrifugo/centrifugo:v2.6
+    image: centrifugo/centrifugo:v2.6.2
     command: centrifugo --config config.toml
     environment:
       - CENTRIFUGO_PROXY_SUBSCRIBE_ENDPOINT=http://opcua-bridge:8008/centrifugo/subscribe
@@ -26,7 +26,7 @@ services:
       - ./centrifugo/config.toml:/centrifugo/config.toml:ro
 
   influx:
-    image: influxdb:1.8
+    image: influxdb:1.8.4
     environment:
       - INFLUX_RP_DURATION=7d
       - INFLUXDB_CONFIG_PATH=/etc/influxdb/influxdb.conf
@@ -112,7 +112,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
   reverse-proxy:
-    image: traefik:v2.2
+    image: traefik:v2.2.11
     labels:
       dozzle.enable: "true"
     networks:
