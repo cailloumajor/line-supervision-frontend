@@ -34,6 +34,7 @@ type StateType = {
   opcLinkStatus: LinkStatus
 }
 
+const heartbeatTimeout = 8000 // OPC-UA bridge heartbeat timeout in milliseconds
 const subscribeRetryDelay = 5000 // Centrifuge subscriptions retry delay in milliseconds
 
 const freshMachineMetrics = () =>
@@ -142,7 +143,7 @@ export default () => {
       "publish"
     ).pipe(
       mapTo(LinkStatus.Up),
-      timeout(6000),
+      timeout(heartbeatTimeout),
       catchError((err, caught) => concat(of(LinkStatus.Down), caught)),
       distinctUntilChanged()
     )
