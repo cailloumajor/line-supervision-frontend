@@ -3,7 +3,7 @@ version: "2.1"
 
 services:
   centrifugo:
-    image: centrifugo/centrifugo:v2.6.2
+    image: centrifugo/centrifugo:v2.8.2
     command: centrifugo --config config.toml
     environment:
       - CENTRIFUGO_PROXY_SUBSCRIBE_ENDPOINT=http://opcua-bridge:8008/centrifugo/subscribe
