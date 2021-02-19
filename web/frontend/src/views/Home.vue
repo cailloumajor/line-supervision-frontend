@@ -1,5 +1,5 @@
 <template>
-  <v-row>
+  <div>
     <v-row dense justify="center">
       <v-col cols="10">
         <line-synoptics />
@@ -13,7 +13,7 @@
         <production-chart />
       </v-col>
     </v-row>
-  </v-row>
+  </div>
 </template>
 
 <script>
