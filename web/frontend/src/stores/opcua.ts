@@ -1,7 +1,6 @@
 import Centrifuge, {
   PublicationContext,
-  SubscribeErrorContext,
-  Subscription
+  SubscribeErrorContext
 } from "centrifuge"
 import { createStore } from "pinia"
 import { concat, fromEvent, merge, of } from "rxjs"
@@ -10,6 +9,7 @@ import {
   delay,
   distinctUntilChanged,
   filter,
+  first,
   map,
   mapTo,
   timeout
@@ -128,6 +128,14 @@ export default () => {
       ...proxiedChannelsSubscriptions
     ]
 
+    fromEvent<PublicationContext>(heartbeatSubscription, "publish")
+      .pipe(first())
+      .subscribe(() => {
+        for (const proxied of proxiedChannelsSubscriptions) {
+          proxied.subscribe()
+        }
+      })
+
     merge(
       ...opcBridgeSubscriptions.map(sub =>
         fromEvent<SubscribeErrorContext>(sub, "error").pipe(mapTo(sub))
@@ -138,9 +146,10 @@ export default () => {
         sub.subscribe()
       })
 
-    const bridgeLinkStatus$ = fromEvent<PublicationContext>(
-      heartbeatSubscription,
-      "publish"
+    const bridgeLinkStatus$ = merge(
+      ...opcBridgeSubscriptions.map(sub =>
+        fromEvent<PublicationContext>(sub, "publish")
+      )
     ).pipe(
       mapTo(LinkStatus.Up),
       timeout(heartbeatTimeout),
@@ -149,16 +158,6 @@ export default () => {
     )
     bridgeLinkStatus$.subscribe(status => {
       store.bridgeLinkStatus = status
-      function subscriptionAction(sub: Subscription) {
-        if (status == LinkStatus.Up) {
-          sub.subscribe()
-        } else if (status == LinkStatus.Down) {
-          sub.unsubscribe()
-        }
-      }
-      for (const proxied of proxiedChannelsSubscriptions) {
-        subscriptionAction(proxied)
-      }
     })
 
     const opcData$ = fromEvent<PublicationContext>(
