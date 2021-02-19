@@ -42,6 +42,7 @@
     </v-main>
 
     <v-footer fixed>
+      <span class="text-body-2">{{ clock }}</span>
       <v-spacer />
       <v-chip
         v-for="state of linksData"
@@ -63,7 +64,9 @@
 
 <script lang="ts">
 import { computed, defineComponent, ref } from "@vue/composition-api"
+import { useTimestamp } from "@vueuse/core"
 import * as CSS from "csstype"
+import dayjs from "dayjs"
 
 import { provideTheme } from "@/composables/theme"
 import useInfluxDBStore from "@/stores/influxdb"
@@ -89,6 +92,11 @@ export default defineComponent({
     ]
 
     const drawer = ref(false)
+
+    const { timestamp } = useTimestamp()
+    const clock = computed(() =>
+      dayjs(timestamp.value).format("DD/MM/YYYY HH:mm:ss")
+    )
 
     const linksData = computed<LinkData[]>(() => {
       function linkData(text: string, state: LinkStatus): LinkData {
@@ -126,6 +134,7 @@ export default defineComponent({
     return {
       routes,
       drawer,
+      clock,
       linksData,
       logoStyle,
       plcLinkUp
