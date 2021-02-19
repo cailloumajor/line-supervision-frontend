@@ -124,7 +124,7 @@ export default defineComponent({
 
     const logoStyle = computed<CSS.Properties>(() => ({
       filter: $vuetify.theme.dark === true ? "brightness(1.5)" : undefined,
-      height: "90%"
+      height: "80%"
     }))
 
     const plcLinkUp = computed(
