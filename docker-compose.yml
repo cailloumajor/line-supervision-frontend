@@ -106,7 +106,7 @@ services:
       - net-private
 
   docker-socket-proxy:
-    image: tecnativa/docker-socket-proxy
+    image: ghcr.io/tecnativa/docker-socket-proxy:0.1.1
     environment:
       - CONTAINERS=1
     labels:
