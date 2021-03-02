@@ -66,12 +66,10 @@ services:
     user: 2000:2000
 
   opcua-bridge:
-    image: ghcr.io/cailloumajor/opcua-webhmi-bridge:20210301.1
+    image: ghcr.io/cailloumajor/opcua-webhmi-bridge:20210302.2
     environment:
       - INFLUX_ROOT_URL=http://influx:8086
       - CENTRIFUGO_API_URL=http://centrifugo:8000/api
-      - OPC_CERT_FILE=/certs/cert.der
-      - OPC_PRIVATE_KEY_FILE=/certs/key.pem
       # Following environment variables will be obtained from `.env` file
       - INFLUX_DB_NAME
       - CENTRIFUGO_API_KEY
@@ -88,8 +86,8 @@ services:
     networks:
       - net-private
     volumes:
-      - ./certificates/cert.der:/certs/cert.der:ro
-      - ./certificates/key.pem:/certs/key.pem:ro
+      - ./certificates/cert.der:/tmp/certs/cert.der:ro
+      - ./certificates/key.pem:/tmp/certs/key.pem:ro
 
   web:
     build:
