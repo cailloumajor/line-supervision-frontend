@@ -14,7 +14,7 @@ COPY frontend/.browserslistrc \
      frontend/tsconfig.json \
      frontend/vue.config.js \
      ./
-RUN yarn run build --modern
+RUN yarn run build
 
 FROM golang:1.15 as server-buider
 
