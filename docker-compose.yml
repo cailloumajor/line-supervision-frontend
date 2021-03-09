@@ -66,7 +66,7 @@ services:
     user: 2000:2000
 
   opcua-bridge:
-    image: ghcr.io/cailloumajor/opcua-webhmi-bridge:20210303.1
+    image: ghcr.io/cailloumajor/opcua-webhmi-bridge:20210309.1
     environment:
       - INFLUX_ROOT_URL=http://influx:8086
       - CENTRIFUGO_API_URL=http://centrifugo:8000/api
