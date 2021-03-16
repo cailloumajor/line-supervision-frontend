@@ -1,3 +1,5 @@
+import "./influx-charts.scss"
+
 import { computed, h, ComputedRef } from "@vue/composition-api"
 import { ApexOptions } from "apexcharts"
 import merge from "lodash/merge"
@@ -8,6 +10,7 @@ import { VAlert, VOverlay, VProgressCircular } from "vuetify/lib"
 import useInfluxDB, {
   Options as InfluxComposableOptions
 } from "@/composables/influxdb"
+import useResponsiveness from "@/composables/responsiveness"
 import { useTheme } from "@/composables/theme"
 
 interface ComponentContext<T> extends InfluxComposableOptions<T> {
@@ -47,7 +50,7 @@ export default <T extends Array<unknown>>(ctx: ComponentContext<T>) => {
       mode: theme.value.dark ? "dark" : "light"
     },
     title: {
-      margin: 10,
+      margin: 20,
       floating: true
     },
     tooltip: {
@@ -71,9 +74,12 @@ export default <T extends Array<unknown>>(ctx: ComponentContext<T>) => {
     merge({}, commonOptions.value, ctx.chartOptions.value)
   )
 
+  const { isProdLineScreen } = useResponsiveness()
+
   return () => {
     const chartEl = h(ApexChart, {
       props: {
+        height: isProdLineScreen ? "200%" : "auto",
         options: chartFinalOptions.value,
         series: influxData.value,
         type: ctx.chartType

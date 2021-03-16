@@ -55,7 +55,7 @@
         </v-icon>
         {{ state.text }}
       </v-chip>
-      <v-btn href="/logs" x-small target="_blank">
+      <v-btn v-if="isProdLineScreen" href="/logs" x-small target="_blank">
         Logs
       </v-btn>
     </v-footer>
@@ -68,6 +68,7 @@ import { useTimestamp } from "@vueuse/core"
 import * as CSS from "csstype"
 import dayjs from "dayjs"
 
+import useResponsiveness from "@/composables/responsiveness"
 import { provideTheme } from "@/composables/theme"
 import useInfluxDBStore from "@/stores/influxdb"
 import useOpcUaStore from "@/stores/opcua"
@@ -131,10 +132,16 @@ export default defineComponent({
       () => opcUaStore.opcLinkStatusDisplay == LinkStatus.Up
     )
 
+    const { isProdLineScreen } = useResponsiveness()
+    if (isProdLineScreen) {
+      document.documentElement.classList.add("prod-line-client")
+    }
+
     return {
       routes,
       drawer,
       clock,
+      isProdLineScreen,
       linksData,
       logoStyle,
       plcLinkUp
@@ -142,3 +149,17 @@ export default defineComponent({
   }
 })
 </script>
+
+<style lang="scss">
+html.prod-line-client {
+  font-size: 22px !important;
+
+  .v-alert {
+    font-size: 1rem;
+  }
+
+  .v-alert__icon {
+    font-size: 1.5rem;
+  }
+}
+</style>

@@ -4,36 +4,38 @@
       <v-col
         v-for="(icon, name) in cardIcons()"
         :key="`legend-icon-${name}`"
-        class="text-caption"
         md="auto"
       >
         <v-progress-circular
           v-if="icon.show === undefined"
           :color="icon.color"
           :rotate="-90"
-          :size="28"
+          :size="gaugeDimensions.size * 0.7"
           :value="80"
+          :width="(gaugeDimensions.size * 0.7) / 6.4"
           class="gauge"
         >
-          <v-icon x-small>{{ icon.icon }}</v-icon>
+          <v-icon :size="gaugeDimensions.size * 0.375">{{ icon.icon }}</v-icon>
         </v-progress-circular>
-        <v-icon v-else :color="icon.color">{{ icon.icon }}</v-icon>
+        <v-icon v-else :color="icon.color" :size="gaugeDimensions.size * 0.7">
+          {{ icon.icon }}
+        </v-icon>
         {{ icon.description }}
       </v-col>
     </v-row>
-    <svg viewBox="0 0 4720 1396.333">
+    <svg ref="layoutSvg" viewBox="0 0 4720 1396.333">
       <defs>
         <pattern
           v-for="pat in hatches"
           :key="pat.id"
           :id="pat.id"
-          width="20"
+          width="40"
           height="10"
           patternTransform="rotate(45)"
           patternUnits="userSpaceOnUse"
         >
           <rect :fill="pat.secondary" width="100%" height="100%" />
-          <line :stroke="pat.primary" x2="0" y2="100%" stroke-width="15" />
+          <line :stroke="pat.primary" x2="0" y2="100%" stroke-width="50" />
         </pattern>
         <path
           id="machine-0-path"
@@ -114,7 +116,7 @@
           :transform="`translate(0 ${75 * index})`"
         >
           <rect :fill="shape.fill" width="100" height="50" />
-          <text x="120" y="45" font-size="50">
+          <text x="120" y="45" font-size="55">
             {{ shape.description }}
           </text>
         </g>
@@ -141,19 +143,19 @@
           :key="`machine-card-${cardIndex}-icon-${iconIndex}`"
           :color="icon.color"
           :rotate="-90"
-          :size="32"
+          :size="gaugeDimensions.size"
           :value="icon.value"
-          :width="5"
+          :width="gaugeDimensions.size / 6.4"
           class="gauge"
         >
-          <v-icon small>{{ icon.icon }}</v-icon>
+          <v-icon :size="gaugeDimensions.size / 2">{{ icon.icon }}</v-icon>
         </v-progress-circular>
         <v-icon
           v-if="icon.show"
           :key="`machine-card-${cardIndex}-icon-${iconIndex}`"
           :color="icon.color"
+          :size="gaugeDimensions.size"
           class="cycle-time"
-          size="32"
         >
           {{ icon.icon }}
         </v-icon>
@@ -167,6 +169,7 @@ import {
   computed,
   defineComponent,
   nextTick,
+  reactive,
   ref,
   watch
 } from "@vue/composition-api"
@@ -176,6 +179,7 @@ import mapValues from "lodash/mapValues"
 import Vue from "vue"
 
 import { statePalette, MachineStateShape, ShapeID } from "@/common"
+import useResponsiveness from "@/composables/responsiveness"
 import { useTheme } from "@/composables/theme"
 import { machineNames } from "@/customization"
 import useOpcUaStore from "@/stores/opcua"
@@ -279,11 +283,16 @@ export default defineComponent({
 
     const cardAnchor = ref<SVGCircleElement[] | null>(null)
     const layoutContainer = ref<HTMLDivElement | null>(null)
+    const layoutSvg = ref<SVGSVGElement | null>(null)
     const machineCard = ref<Vue[] | null>(null)
 
     const cardDOMPositions = ref(
       [...Array(LayoutData.length)].map(() => ({ x: 0, y: 0 }))
     )
+
+    const gaugeDimensions = reactive({
+      size: 32
+    })
 
     const thumbFillPalette = computed(() =>
       mapValues(
@@ -362,10 +371,22 @@ export default defineComponent({
       })
     }
 
+    const { isProdLineScreen } = useResponsiveness()
+    function resizeMachineCardsContent() {
+      const bbox = layoutSvg.value?.getBoundingClientRect()
+      if (bbox === undefined) return
+      let size = bbox.height / 11.9
+      if (isProdLineScreen) {
+        size *= 1.5
+      }
+      gaugeDimensions.size = size
+    }
+
     useResizeObserver(layoutContainer, entries => {
       for (const entry of entries) {
-        if (entry.target == layoutContainer.value) {
+        if (entry.target === layoutContainer.value) {
           placeMachineCards()
+          resizeMachineCardsContent()
         }
       }
     })
@@ -386,9 +407,11 @@ export default defineComponent({
       cardAnchor,
       cardIcons,
       cardsData,
+      gaugeDimensions,
       hatches,
       layoutContainer,
       layoutData,
+      layoutSvg,
       machineCard,
       opcUaState: opcUaStore.state,
       thumbFillPalette
@@ -450,12 +473,12 @@ export default defineComponent({
 }
 
 .machine-card {
-  padding: 1px;
+  padding: 0.2vh;
   position: absolute;
 
   .gauge,
   .cycle-time {
-    margin: 1px;
+    margin: 0.2vh;
   }
 }
 
