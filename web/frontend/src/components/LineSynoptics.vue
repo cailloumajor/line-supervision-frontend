@@ -10,14 +10,20 @@
           v-if="icon.show === undefined"
           :color="icon.color"
           :rotate="-90"
-          :size="gaugeDimensions.size * 0.7"
+          :size="responsiveDimensions.legendGaugeSize"
           :value="80"
-          :width="(gaugeDimensions.size * 0.7) / 6.4"
+          :width="responsiveDimensions.legendGaugeWidth"
           class="gauge"
         >
-          <v-icon :size="gaugeDimensions.size * 0.375">{{ icon.icon }}</v-icon>
+          <v-icon :size="responsiveDimensions.legendIconSize">
+            {{ icon.icon }}
+          </v-icon>
         </v-progress-circular>
-        <v-icon v-else :color="icon.color" :size="gaugeDimensions.size * 0.7">
+        <v-icon
+          v-else
+          :color="icon.color"
+          :size="responsiveDimensions.legendGaugeSize"
+        >
           {{ icon.icon }}
         </v-icon>
         {{ icon.description }}
@@ -143,18 +149,18 @@
           :key="`machine-card-${cardIndex}-icon-${iconIndex}`"
           :color="icon.color"
           :rotate="-90"
-          :size="gaugeDimensions.size"
+          :size="responsiveDimensions.gaugeSize"
           :value="icon.value"
-          :width="gaugeDimensions.size / 6.4"
+          :width="responsiveDimensions.gaugeWidth"
           class="gauge"
         >
-          <v-icon :size="gaugeDimensions.size / 2">{{ icon.icon }}</v-icon>
+          <v-icon :size="responsiveDimensions.iconSize">{{ icon.icon }}</v-icon>
         </v-progress-circular>
         <v-icon
           v-if="icon.show"
           :key="`machine-card-${cardIndex}-icon-${iconIndex}`"
           :color="icon.color"
-          :size="gaugeDimensions.size"
+          :size="responsiveDimensions.gaugeSize"
           class="cycle-time"
         >
           {{ icon.icon }}
@@ -290,8 +296,13 @@ export default defineComponent({
       [...Array(LayoutData.length)].map(() => ({ x: 0, y: 0 }))
     )
 
-    const gaugeDimensions = reactive({
-      size: 32
+    const responsiveDimensions = reactive({
+      gaugeSize: 32,
+      gaugeWidth: 5,
+      iconSize: 16,
+      legendGaugeSize: 32,
+      legendGaugeWidth: 5,
+      legendIconSize: 16
     })
 
     const thumbFillPalette = computed(() =>
@@ -379,7 +390,14 @@ export default defineComponent({
       if (isProdLineScreen) {
         size *= 1.5
       }
-      gaugeDimensions.size = size
+      responsiveDimensions.gaugeSize = size
+      responsiveDimensions.gaugeWidth = size / 6.4
+      responsiveDimensions.iconSize = size / 2
+      const legendRatio = 0.7
+      const { gaugeSize, gaugeWidth, iconSize } = responsiveDimensions
+      responsiveDimensions.legendGaugeSize = gaugeSize * legendRatio
+      responsiveDimensions.legendGaugeWidth = gaugeWidth * legendRatio
+      responsiveDimensions.legendIconSize = iconSize * legendRatio
     }
 
     useResizeObserver(layoutContainer, entries => {
@@ -407,7 +425,7 @@ export default defineComponent({
       cardAnchor,
       cardIcons,
       cardsData,
-      gaugeDimensions,
+      responsiveDimensions,
       hatches,
       layoutContainer,
       layoutData,
