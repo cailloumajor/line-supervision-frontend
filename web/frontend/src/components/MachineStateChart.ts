@@ -2,7 +2,6 @@ import { flux } from "@influxdata/influxdb-client-browser"
 import { computed, defineComponent, reactive } from "@vue/composition-api"
 import { ApexOptions } from "apexcharts"
 import dayjs from "dayjs"
-import cloneDeep from "lodash/cloneDeep"
 
 import { statePalette, ShapeID } from "@/common"
 import useInfluxChart from "@/composables/influx-chart"
@@ -90,22 +89,21 @@ export default defineComponent({
         const stateIndex: number | null = value.state_index
         const time = dayjs(value._time).valueOf()
         const lastStateIndex = lastStateSentinel.get(machineIndex)
-        const clone = cloneDeep(acc)
         if (lastStateIndex !== undefined && lastStateIndex !== null) {
           const stateIndexToUpdate =
             lastStateIndex !== stateIndex ? lastStateIndex : stateIndex
-          getLastElement(clone[stateIndexToUpdate].data).y[1] = time
+          getLastElement(acc[stateIndexToUpdate].data).y[1] = time
         }
         if (lastStateIndex !== stateIndex) {
           if (stateIndex !== null) {
-            clone[stateIndex].data.push({
+            acc[stateIndex].data.push({
               x: machineNames[parseInt(machineIndex, 10)],
               y: [time, time]
             })
           }
           lastStateSentinel.set(machineIndex, stateIndex)
         }
-        return clone
+        return acc
       },
 
       chartType: "rangeBar",
