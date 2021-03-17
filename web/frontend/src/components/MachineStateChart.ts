@@ -59,9 +59,9 @@ export default defineComponent({
             |> map(fn: (r) => ({
               r with
               state_index:
-                if r["machineState.alarm"] then 1
+                if r["machineState.cycle"] then 3
+                else if r["machineState.alarm"] then 1
                 else if r["machineState.alert"] then 2
-                else if r["machineState.cycle"] then 3
                 else 0
               })
             )
