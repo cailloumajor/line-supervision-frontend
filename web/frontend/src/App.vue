@@ -55,7 +55,7 @@
         </v-icon>
         {{ state.text }}
       </v-chip>
-      <v-btn v-if="isProdLineScreen" href="/logs" x-small target="_blank">
+      <v-btn v-if="!isProdLineScreen" href="/logs" x-small target="_blank">
         Logs
       </v-btn>
     </v-footer>
