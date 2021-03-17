@@ -58,8 +58,6 @@ export default defineComponent({
       })
     })
 
-    // const
-
     return {
       campaignData
     }
