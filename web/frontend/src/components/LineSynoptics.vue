@@ -388,7 +388,7 @@ export default defineComponent({
       if (bbox === undefined) return
       let size = bbox.height / 11.9
       if (isProdLineScreen) {
-        size *= 1.5
+        size *= 1.2
       }
       responsiveDimensions.gaugeSize = size
       responsiveDimensions.gaugeWidth = size / 6.4
