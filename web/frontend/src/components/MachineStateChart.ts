@@ -26,7 +26,7 @@ const monitoredStates: ShapeID[] = [
 
 export default defineComponent({
   setup() {
-    let lastStateSentinel: { [machineIndex: string]: number | null | undefined }
+    const lastStateSentinel = new Map<string, number | null>()
 
     const theme = useTheme()
 
@@ -44,7 +44,7 @@ export default defineComponent({
       queryInterval: 60000,
 
       generateQuery: dbName => {
-        lastStateSentinel = {}
+        lastStateSentinel.clear()
         updateTimeRange()
         return flux`\
           from(bucket: "${dbName}")
@@ -89,7 +89,7 @@ export default defineComponent({
         const machineIndex: string = value.machine_index
         const stateIndex: number | null = value.state_index
         const time = dayjs(value._time).valueOf()
-        const lastStateIndex = lastStateSentinel[machineIndex]
+        const lastStateIndex = lastStateSentinel.get(machineIndex)
         const clone = cloneDeep(acc)
         if (lastStateIndex !== undefined && lastStateIndex !== null) {
           const stateIndexToUpdate =
@@ -103,7 +103,7 @@ export default defineComponent({
               y: [time, time]
             })
           }
-          lastStateSentinel[machineIndex] = stateIndex
+          lastStateSentinel.set(machineIndex, stateIndex)
         }
         return clone
       },
