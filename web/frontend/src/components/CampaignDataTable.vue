@@ -20,7 +20,7 @@
 <script lang="ts">
 import { computed, defineComponent } from "@vue/composition-api"
 
-import { campaignDataTable as config, machineNames } from "@/customization"
+import { campaignDataTable as custom, machineNames } from "@/customization"
 import useOpcUaStore from "@/stores/opcua"
 
 const differenciatingClasses = ["pink--text", "yellow--text"]
@@ -43,7 +43,7 @@ export default defineComponent({
     const campaignData = computed(() => {
       const refClasses = new DifferenciatingMap()
       const batchClasses = new DifferenciatingMap()
-      return config.machineIndexes.map(machineIndex => {
+      return custom.machineIndexes.map(machineIndex => {
         const {
           partReference: ref,
           materialBatch: batch
