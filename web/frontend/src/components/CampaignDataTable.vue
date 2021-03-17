@@ -23,7 +23,13 @@ import { computed, defineComponent } from "@vue/composition-api"
 import { campaignDataTable as custom, machineNames } from "@/customization"
 import useOpcUaStore from "@/stores/opcua"
 
-const differenciatingClasses = ["pink--text", "yellow--text"]
+const differenciatingClasses = [
+  "blue--text text--lighten-1",
+  "green--text",
+  "orange--text text--darken-2",
+  "purple--text text--lighten-2",
+  "brown--text text--lighten-2"
+]
 
 class DifferenciatingMap {
   private map = new Map<string, string>()
