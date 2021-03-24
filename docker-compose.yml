@@ -3,15 +3,14 @@ version: "2.1"
 
 services:
   centrifugo:
-    image: centrifugo/centrifugo:v2.8.2
-    command: centrifugo --config config.toml
+    build:
+      context: ./centrifugo
+    command: --config config.toml
     environment:
       - CENTRIFUGO_PROXY_SUBSCRIBE_ENDPOINT=http://opcua-bridge:8008/centrifugo/subscribe
       # Following environment variables will be obtained from `.env` file
       - CENTRIFUGO_API_KEY
       - CENTRIFUGO_TOKEN_HMAC_SECRET_KEY
-    expose:
-      - "8000"
     labels:
       dozzle.enable: "true"
       traefik.enable: "true"
