@@ -5,7 +5,7 @@ services:
   centrifugo:
     build:
       context: ./centrifugo
-    command: --config config.toml
+    command: --config /usr/local/etc/centrifugo.toml
     environment:
       - CENTRIFUGO_PROXY_SUBSCRIBE_ENDPOINT=http://opcua-bridge:8008/centrifugo/subscribe
       # Following environment variables will be obtained from `.env` file
@@ -22,7 +22,7 @@ services:
       - net-private
     tty: true
     volumes:
-      - ./centrifugo/config.toml:/centrifugo/config.toml:ro
+      - ./centrifugo/config.toml:/usr/local/etc/centrifugo.toml:ro
 
   influx:
     image: influxdb:1.8.4

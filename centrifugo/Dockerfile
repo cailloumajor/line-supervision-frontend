@@ -41,8 +41,6 @@ RUN set -eux; \
 
 COPY --from=builder /usr/src/centrifugo/centrifugo /usr/local/bin/
 
-WORKDIR /centrifugo
-
 ENV CENTRIFUGO_HEALTH=true
 COPY docker-healthcheck.sh /usr/local/bin/
 HEALTHCHECK CMD ["docker-healthcheck.sh"]
