@@ -16,7 +16,7 @@ COPY frontend/.browserslistrc \
      ./
 RUN yarn run build
 
-FROM golang:1.15 as server-buider
+FROM golang:1.15 as server-builder
 
 WORKDIR /usr/src/app
 COPY server/go.mod server/go.sum server/main.go ./
@@ -25,7 +25,7 @@ RUN CGO_ENABLED=0 go build -o server
 FROM scratch
 
 COPY --from=frontend-builder /app/dist /site
-COPY --from=server-buider /usr/src/app/server /server
+COPY --from=server-builder /usr/src/app/server /server
 
 EXPOSE 8080
 
