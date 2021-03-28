@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	staticRoot             = "/site"
+	bindPort               = 8080
 	centrifugoSecretEnvVar = "CENTRIFUGO_TOKEN_HMAC_SECRET_KEY"
 	influxDBNameEnvVar     = "INFLUX_DB_NAME"
 )
@@ -86,7 +86,13 @@ func (fcg *defaultFrontendConfigGetter) getFrontendConfig() (map[string]string, 
 	return cm, nil
 }
 
-func configCookiesMiddleware(next http.Handler) http.Handler {
+type configMiddlewareProvider interface {
+	configCookiesMiddleware(http.Handler) http.Handler
+}
+
+type defaultConfigMiddlewareProvider struct{}
+
+func (cmp *defaultConfigMiddlewareProvider) configCookiesMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" && r.Method == http.MethodGet {
 			fc, err := fcg.getFrontendConfig()
@@ -111,18 +117,20 @@ func configCookiesMiddleware(next http.Handler) http.Handler {
 var (
 	evg envVarGetter
 	fcg frontendConfigGetter
+	cmp configMiddlewareProvider
 )
 
 func init() {
 	evg = &defaultEnvVarGetter{}
 	fcg = &defaultFrontendConfigGetter{}
+	cmp = &defaultConfigMiddlewareProvider{}
 }
 
 func main() {
-	const addr = ":8080"
-	fsh := http.FileServer(http.Dir(staticRoot))
-	mw := configCookiesMiddleware(fsh)
+	fsh := http.FileServer(http.Dir("."))
+	mw := cmp.configCookiesMiddleware(fsh)
 	lh := handlers.CombinedLoggingHandler(os.Stdout, mw)
+	addr := fmt.Sprintf(":%v", bindPort)
 	log.Printf("Listening for HTTP requests on %v", addr)
 	log.Fatal(http.ListenAndServe(addr, lh))
 }

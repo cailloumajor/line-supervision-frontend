@@ -1,9 +1,11 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.163.1/containers/go
 {
 	"name": "Go",
 	"build": {
 		"dockerfile": "Dockerfile",
 		"args": {
-			// Update the VARIANT arg to pick a version of Go: 1, 1.15, 1.14
+			// Update the VARIANT arg to pick a version of Go: 1, 1.16, 1.15
 			"VARIANT": "1.15",
 			// Options
 			"INSTALL_NODE": "false",
@@ -15,11 +17,10 @@
 	// Set *default* container specific settings.json values on container create.
 	"settings": {
 		"terminal.integrated.shell.linux": "/bin/zsh",
-		"go.useGoProxyToCheckForToolUpdates": false,
+		"go.toolsManagement.checkForUpdates": "off",
 		"go.useLanguageServer": true,
 		"go.gopath": "/go",
-		"go.goroot": "/usr/local/go",
-		"go.toolsGopath": "/go/bin"
+		"go.goroot": "/usr/local/go"
 	},
 
 	// Add the IDs of extensions you want installed when the container is created.
