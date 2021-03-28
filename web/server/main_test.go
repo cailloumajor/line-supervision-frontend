@@ -2,11 +2,17 @@ package main
 
 import (
 	"errors"
+	"fmt"
+	"io/ioutil"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"reflect"
 	"testing"
+	"time"
+
+	"github.com/hashicorp/go-retryablehttp"
 )
 
 func Test_getEnvVar(t *testing.T) {
@@ -121,7 +127,7 @@ func (fcg *frontConfGetterMock) getFrontendConfig() (map[string]string, error) {
 }
 
 func Test_configCookiesMiddleware(t *testing.T) {
-	h := configCookiesMiddleware(
+	h := cmp.configCookiesMiddleware(
 		http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}),
 	)
 
@@ -176,15 +182,62 @@ func Test_configCookiesMiddleware(t *testing.T) {
 	}
 }
 
+type configMiddlewarewProviderMock struct {
+	callCount uint
+}
+
+func (mwp *configMiddlewarewProviderMock) configCookiesMiddleware(next http.Handler) http.Handler {
+	mwp.callCount += 1
+	return next
+}
+
 func Test_main(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		// TODO: Add test cases.
+	if err := os.Chdir(t.TempDir()); err != nil {
+		t.Fatalf("chdir to temporary directory error: %v", err)
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			main()
-		})
+
+	f, err := os.Create("index.html")
+	if err != nil {
+		t.Fatalf("error creating index.html: %v", err)
+	}
+	defer f.Close()
+
+	if _, err = f.WriteString("html content"); err != nil {
+		t.Fatalf("error writing index.html content: %v", err)
+	}
+
+	hn, err := os.Hostname()
+	if err != nil {
+		t.Fatalf("error getting hostname: %v", err)
+	}
+
+	ip, err := net.LookupHost(hn)
+	if err != nil {
+		t.Fatalf("hostname lookup error: %v", err)
+	}
+
+	cmp = &configMiddlewarewProviderMock{}
+	go main()
+
+	rc := retryablehttp.NewClient()
+	rc.RetryWaitMin = 100 * time.Millisecond
+	rc.RetryWaitMax = 200 * time.Millisecond
+	rc.RetryMax = 10
+	resp, err := rc.Get(fmt.Sprintf("http://%v:%v", ip, bindPort))
+	if err != nil {
+		t.Fatalf("GET request error: %v", err)
+	}
+
+	if resp.StatusCode != 200 {
+		t.Fatalf("expected status 200 OK, got %v", resp.Status)
+	}
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("error reading response body: %v", err)
+	}
+	if bs := string(body); bs != "html content" {
+		t.Fatalf("expected `html content` body, got: %v", bs)
 	}
 }
