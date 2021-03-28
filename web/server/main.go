@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	staticRoot             = "/site"
+	bindPort               = 8080
 	centrifugoSecretEnvVar = "CENTRIFUGO_TOKEN_HMAC_SECRET_KEY"
 	influxDBNameEnvVar     = "INFLUX_DB_NAME"
 )
@@ -119,10 +119,10 @@ func init() {
 }
 
 func main() {
-	const addr = ":8080"
-	fsh := http.FileServer(http.Dir(staticRoot))
+	fsh := http.FileServer(http.Dir("."))
 	mw := configCookiesMiddleware(fsh)
 	lh := handlers.CombinedLoggingHandler(os.Stdout, mw)
+	addr := fmt.Sprintf(":%v", bindPort)
 	log.Printf("Listening for HTTP requests on %v", addr)
 	log.Fatal(http.ListenAndServe(addr, lh))
 }
