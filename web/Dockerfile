@@ -19,7 +19,7 @@ RUN set -eux ; \
     gosu --version; \
     gosu nobody true
 
-FROM node:14.15 as frontend-builder
+FROM node:14.15.5-buster as frontend-builder
 
 WORKDIR /app
 
@@ -37,7 +37,7 @@ COPY frontend/.browserslistrc \
      ./
 RUN yarn run build
 
-FROM golang:1.15 as server-builder
+FROM golang:1.15.7-buster as server-builder
 
 WORKDIR /usr/src/app
 COPY server/go.mod server/go.sum server/main.go ./
