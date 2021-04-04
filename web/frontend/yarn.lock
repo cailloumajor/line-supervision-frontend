@@ -931,10 +931,10 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@influxdata/influxdb-client-browser@1.10.0":
-  version "1.10.0"
-  resolved "https://registry.yarnpkg.com/@influxdata/influxdb-client-browser/-/influxdb-client-browser-1.10.0.tgz#94e075eccf1c10c7c177e96be7af6697fdaf4262"
-  integrity sha512-Q3o8f5AcWxf2ucb62Issrhsj35Ccmk2AqDI5+GUoVmOEg3qrSozzIzKI2Wjw3v+7VXyLzrQ/gws1AyQ+d5hDlQ==
+"@influxdata/influxdb-client-browser@1.12.0":
+  version "1.12.0"
+  resolved "https://registry.yarnpkg.com/@influxdata/influxdb-client-browser/-/influxdb-client-browser-1.12.0.tgz#3d722925ca7dfe8ec7b0026b93fe4b5b7bc5f331"
+  integrity sha512-7qYEsW+NLj+ueGqQcSlGuboovM9tYil8RezDrNkuXsfCwrg5Hlr3KARDGWpG39oFfes1zMNjTIlL52RnISxwXg==
 
 "@intervolga/optimize-cssnano-plugin@^1.0.5":
   version "1.0.6"
