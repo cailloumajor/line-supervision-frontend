@@ -1,5 +1,5 @@
 import axios from "axios"
-import { createStore } from "pinia"
+import { defineStore } from "pinia"
 import { from, of, Subscription, timer } from "rxjs"
 import { catchError, mapTo, switchMap } from "rxjs/operators"
 
@@ -19,7 +19,7 @@ const linkStatus$ = timer(500, 10000).pipe(
 
 let linkStatusSubscription: Subscription
 
-const useStore = createStore({
+const useStore = defineStore({
   id: "InfluxDB",
 
   state: () => ({

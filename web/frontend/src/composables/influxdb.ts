@@ -45,7 +45,7 @@ export default <T extends Array<unknown>>(opts: Options<T>) => {
 
   const influxDBStore = useInfluxDBStore()
 
-  const { linkStatus } = toRefs(influxDBStore.state)
+  const { linkStatus } = toRefs(influxDBStore.$state)
   const influxData = ref(opts.seed)
   const loading = ref(false)
   const queryError = ref("")
