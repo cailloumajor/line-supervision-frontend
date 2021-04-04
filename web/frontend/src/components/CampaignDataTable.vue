@@ -53,7 +53,7 @@ export default defineComponent({
         const {
           partReference: ref,
           materialBatch: batch
-        } = opcUaStore.state.machinesMetrics[machineIndex].campaign
+        } = opcUaStore.machinesMetrics[machineIndex].campaign
         return {
           machine: machineNames[machineIndex],
           ref,

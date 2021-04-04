@@ -2,7 +2,7 @@ import Centrifuge, {
   PublicationContext,
   SubscribeErrorContext
 } from "centrifuge"
-import { createStore } from "pinia"
+import { defineStore } from "pinia"
 import { concat, fromEvent, merge, of } from "rxjs"
 import {
   catchError,
@@ -59,7 +59,7 @@ const freshMachineMetrics = () =>
     }
   })
 
-const useStore = createStore({
+const useStore = defineStore({
   id: "OPC-UA",
 
   state: (): StateType => ({

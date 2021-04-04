@@ -431,7 +431,7 @@ export default defineComponent({
       layoutData,
       layoutSvg,
       machineCard,
-      opcUaState: opcUaStore.state,
+      opcUaState: opcUaStore.$state,
       thumbFillPalette
     }
   }
