@@ -10,12 +10,12 @@
   },
   "dependencies": {
     "@fontsource/roboto": "4.2.2",
+    "@influxdata/influxdb-client-apis": "^1.12.0",
     "@influxdata/influxdb-client-browser": "1.12.0",
     "@mdi/font": "5.9.55",
     "@vue/composition-api": "1.0.0-rc.6",
     "@vueuse/core": "4.7.0",
     "apexcharts": "3.26.0",
-    "axios": "0.21.1",
     "centrifuge": "2.7.3",
     "core-js": "3.6.5",
     "dayjs": "1.10.4",

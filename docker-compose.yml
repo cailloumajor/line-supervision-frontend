@@ -24,28 +24,24 @@ services:
     volumes:
       - ./centrifugo/config.toml:/usr/local/etc/centrifugo.toml:ro
 
-  influx:
-    image: influxdb:1.8.4
+  influxdb:
+    image: influxdb:2.0.4
     environment:
-      - INFLUX_RP_DURATION=7d
-      - INFLUXDB_CONFIG_PATH=/etc/influxdb/influxdb.conf
-      - INFLUXDB_MONITOR_STORE_ENABLED=false
-      # Following environment variables will be obtained from `.env` file
-      - INFLUX_DB_NAME
+      - INFLUXD_REPORTING_DISABLED=true
+    healthcheck:
+      test: influx ping || exit 1
     labels:
       dozzle.enable: "true"
       traefik.enable: "true"
-      traefik.http.middlewares.influx-stripprefix.stripprefix.prefixes: "/influx"
-      traefik.http.middlewares.influx-stripprefix.stripprefix.forceslash: "false"
-      traefik.http.routers.influx.middlewares: "influx-stripprefix@docker"
-      traefik.http.routers.influx.rule: "PathPrefix(`/influx/`)"
+      traefik.http.middlewares.influxdb-stripprefix.stripprefix.prefixes: "/influxdb"
+      traefik.http.middlewares.influxdb-stripprefix.stripprefix.forceslash: "false"
+      traefik.http.routers.influxdb.middlewares: "influxdb-stripprefix@docker"
+      traefik.http.routers.influxdb.rule: "PathPrefix(`/influxdb/`)"
     networks:
       - net-private
     tty: true
     volumes:
-      - ./influxdb/config.toml:/etc/influxdb/influxdb.conf:ro
-      - ./influxdb/start.sh:/docker-entrypoint-initdb.d/start.sh:ro
-      - influxdb_data:/var/lib/influxdb
+      - influxdb_data:/var/lib/influxdb2
 
   log-viewer:
     image: amir20/dozzle:v2.2.0
@@ -65,12 +61,14 @@ services:
     user: 2000:2000
 
   opcua-bridge:
-    image: ghcr.io/cailloumajor/opcua-webhmi-bridge:20210324.2
+    image: ghcr.io/cailloumajor/opcua-webhmi-bridge:20210406.1
     environment:
-      - INFLUX_ROOT_URL=http://influx:8086
+      - INFLUXDB_BASE_URL=http://influxdb:8086
       - CENTRIFUGO_API_URL=http://centrifugo:8000/api
       # Following environment variables will be obtained from `.env` file
-      - INFLUX_DB_NAME
+      - INFLUXDB_ORG
+      - INFLUXDB_BUCKET
+      - INFLUXDB_WRITE_TOKEN
       - CENTRIFUGO_API_KEY
       - OPC_SERVER_URL
       - OPC_MONITOR_NODES
@@ -92,8 +90,11 @@ services:
     build:
       context: ./web
     environment:
+      - INFLUXDB_URL=/influxdb
       # Following environment variables will be obtained from `.env` file
-      - INFLUX_DB_NAME
+      - INFLUXDB_ORG
+      - INFLUXDB_BUCKET
+      - INFLUXDB_READ_TOKEN
       - CENTRIFUGO_TOKEN_HMAC_SECRET_KEY
     labels:
       dozzle.enable: "true"

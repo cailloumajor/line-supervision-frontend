@@ -1,10 +1,6 @@
 version: "2.1"
 
 services:
-  influx:
-    environment:
-      - INFLUXDB_MONITOR_STORE_ENABLED=true
-
   web:
     build:
       context: ./web/frontend/.devcontainer
@@ -17,8 +13,7 @@ services:
     volumes:
       - .:/workspace:cached
     environment:
-      - VUE_APP_INFLUX_DB_NAME=${INFLUX_DB_NAME}
-      - VUE_APP_CENTRIFUGO_TOKEN=${CENTRIFUGO_TOKEN}
+      - CENTRIFUGO_TOKEN
 
   reverse-proxy:
     labels:

@@ -1,7 +1,6 @@
 import {
   FluxTableMetaData,
   HttpError,
-  InfluxDB,
   ParameterizedQuery
 } from "@influxdata/influxdb-client-browser"
 import {
@@ -21,21 +20,19 @@ import {
   tap
 } from "rxjs/operators"
 
-import { cookieValue } from "@/config"
+import { cookieValue, influxDB } from "@/config"
 import useInfluxDBStore from "@/stores/influxdb"
 import { LinkStatus } from "@/stores/types"
 
 type RowObject = ReturnType<FluxTableMetaData["toObject"]>
 
-const influxURL = "/influx"
-
-const queryAPI = new InfluxDB(influxURL).getQueryApi("")
-
-const influxDBName = cookieValue("influx_db_name")
+const influxDBOrg = cookieValue("influxdb_org")
+const influxDBBucket = cookieValue("influxdb_bucket")
+const queryAPI = influxDB.getQueryApi(influxDBOrg)
 
 export interface Options<T> {
   queryInterval: number
-  generateQuery: (dbName: string) => ParameterizedQuery
+  generateQuery: (bucket: string) => ParameterizedQuery
   seed: T
   reducer: (acc: T, value: RowObject) => T
 }
@@ -52,7 +49,7 @@ export default <T extends Array<unknown>>(opts: Options<T>) => {
 
   const query$ = defer(() => {
     loading.value = true
-    return queryAPI.rows(opts.generateQuery(influxDBName))
+    return queryAPI.rows(opts.generateQuery(influxDBBucket))
   }).pipe(
     tap({
       error: (err: Error) => {

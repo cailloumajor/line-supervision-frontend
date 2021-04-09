@@ -8,19 +8,18 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"reflect"
 	"testing"
 	"time"
 
 	"github.com/hashicorp/go-retryablehttp"
 )
 
-func Test_getEnvVar(t *testing.T) {
+func Test_envString_getCookieValue(t *testing.T) {
 	const key = "TESTING_ENV_VAR"
 	tests := []struct {
 		name    string
 		envVal  string
-		wantVal string
+		want    string
 		wantErr bool
 	}{
 		{"Missing envvar", "!UNSET!", "", true},
@@ -34,76 +33,51 @@ func Test_getEnvVar(t *testing.T) {
 			} else {
 				os.Setenv(key, tt.envVal)
 			}
-			gotVal, err := evg.getEnvVar(key)
+			got, err := envString(key).getCookieValue()
 			if (err != nil) != tt.wantErr {
-				t.Fatalf("getEnvVar() error = %v, wantErr %v", err, tt.wantErr)
+				t.Fatalf("envString.getCookieValue() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			if gotVal != tt.wantVal {
-				t.Fatalf("getEnvVar() = %v, want %v", gotVal, tt.wantVal)
+			if got != tt.want {
+				t.Fatalf("envString.getCookieValue() = %v, want %v", got, tt.wantErr)
 			}
 		})
 	}
 }
 
-type envVarGetterMock struct {
-	retVals []string
-}
-
-func (evg *envVarGetterMock) getEnvVar(key string) (val string, err error) {
-	var retVal string
-	retVal, evg.retVals = evg.retVals[0], evg.retVals[1:]
-	if retVal == "" {
-		return "", errors.New("")
-	} else {
-		return retVal, nil
-	}
-}
-
-func Test_getFrontendConfig(t *testing.T) {
+func Test_jwtToken_getCookieValue(t *testing.T) {
+	const key = "TESTING_ENV_VAR"
 	tests := []struct {
-		name        string
-		mockRetVals []string
-		want        map[string]string
-		wantErr     bool
+		name    string
+		envVal  string
+		want    string
+		wantErr bool
 	}{
 		{
-			"Error getting Centrifugo secret", []string{""}, nil, true,
+			"Empty envvar", "", "", true,
 		},
 		{
-			"Bad Centrifugo secret UUID format", []string{"42"}, nil, true,
+			"Bad UUID format", "baduuid", "", true,
 		},
 		{
-			"Bad Centrifugo secret UUID version",
-			[]string{"00000000-0000-0000-0000-000000000000"},
-			nil,
-			true,
-		},
-		{
-			"Error getting InfluxDB DB name",
-			[]string{"ba7e8d26-ea52-47dc-bf76-40a4f9d41eb8", ""},
-			nil,
-			true,
+			"Bad UUID version", "00000000-0000-0000-0000-000000000000", "", true,
 		},
 		{
 			"Success",
-			[]string{"ba7e8d26-ea52-47dc-bf76-40a4f9d41eb8", "db"},
-			map[string]string{
-				"centrifugo_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.VMyWo-77A4z9hZrBGQWglCNOwjOpKYmlboEzzVa7_do",
-				"influx_db_name":   "db",
-			},
+			"ba7e8d26-ea52-47dc-bf76-40a4f9d41eb8",
+			"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.VMyWo-77A4z9hZrBGQWglCNOwjOpKYmlboEzzVa7_do",
 			false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			evg = &envVarGetterMock{tt.mockRetVals}
-			got, err := fcg.getFrontendConfig()
+			os.Setenv(key, tt.envVal)
+			got, err := jwtToken(key).getCookieValue()
 			if (err != nil) != tt.wantErr {
-				t.Fatalf("getFrontendConfig() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("jwtToken.getCookieValue() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Fatalf("getFrontendConfig() = %v, want %v", got, tt.want)
+			if got != tt.want {
+				t.Errorf("jwtToken.getCookieValue() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -114,16 +88,16 @@ var cookiesFixture = map[string]string{
 	"cookie_2": "value_2",
 }
 
-type frontConfGetterMock struct {
-	fail bool
+type successCookieValueGetter string
+
+func (g successCookieValueGetter) getCookieValue() (string, error) {
+	return string(g), nil
 }
 
-func (fcg *frontConfGetterMock) getFrontendConfig() (map[string]string, error) {
-	if fcg.fail {
-		return nil, errors.New("")
-	} else {
-		return cookiesFixture, nil
-	}
+type errorCookieValueGetter string
+
+func (g errorCookieValueGetter) getCookieValue() (string, error) {
+	return "", errors.New("cookie value getter error")
 }
 
 func Test_configCookiesMiddleware(t *testing.T) {
@@ -132,21 +106,31 @@ func Test_configCookiesMiddleware(t *testing.T) {
 	)
 
 	tests := []struct {
-		name       string
-		method     string
-		path       string
-		mockFail   bool
-		expStatus  int
-		expCookies bool
+		name        string
+		method      string
+		path        string
+		cookieError bool
+		expStatus   int
+		expCookies  bool
 	}{
 		{"Not GET method", http.MethodPost, "/", false, 200, false},
 		{"Not root path", http.MethodGet, "/favicon.ico", false, 200, false},
-		{"Error getting config", http.MethodGet, "/", true, 500, false},
+		{"Error getting cookie value", http.MethodGet, "/", true, 500, false},
 		{"Success", http.MethodGet, "/", false, 200, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fcg = &frontConfGetterMock{tt.mockFail}
+			if tt.cookieError {
+				environmentCookies = map[string]cookieValueGetter{
+					"cookie_1": successCookieValueGetter("value_1"),
+					"cookie_2": errorCookieValueGetter("value_2"),
+				}
+			} else {
+				environmentCookies = map[string]cookieValueGetter{
+					"cookie_1": successCookieValueGetter("value_1"),
+					"cookie_2": successCookieValueGetter("value_2"),
+				}
+			}
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest(tt.method, tt.path, nil)
 			h.ServeHTTP(w, req)

@@ -1,17 +1,20 @@
-import axios from "axios"
+import { HealthAPI } from "@influxdata/influxdb-client-apis"
 import { defineStore } from "pinia"
 import { from, of, Subscription, timer } from "rxjs"
-import { catchError, mapTo, switchMap } from "rxjs/operators"
+import { catchError, map, timeout, switchMap } from "rxjs/operators"
 
+import { influxDB } from "@/config"
 import { LinkStatus } from "./types"
 
-const influxHealthURL = "/influx/health"
+const healthAPI = new HealthAPI(influxDB)
 
 const linkStatus$ = timer(500, 10000).pipe(
-  mapTo(influxHealthURL),
-  switchMap(url =>
-    from(axios.get(url, { timeout: 1000 })).pipe(
-      mapTo(LinkStatus.Up),
+  switchMap(() =>
+    from(healthAPI.getHealth()).pipe(
+      map(health =>
+        health.status === "pass" ? LinkStatus.Up : LinkStatus.Down
+      ),
+      timeout(1000),
       catchError(() => of(LinkStatus.Down))
     )
   )

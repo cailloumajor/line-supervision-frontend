@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,47 +12,41 @@ import (
 	"gopkg.in/square/go-jose.v2/jwt"
 )
 
-const (
-	bindPort               = 8080
-	centrifugoSecretEnvVar = "CENTRIFUGO_TOKEN_HMAC_SECRET_KEY"
-	influxDBNameEnvVar     = "INFLUX_DB_NAME"
-)
+const bindPort = 8080
 
-type envVarGetter interface {
-	getEnvVar(string) (string, error)
+type cookieValueGetter interface {
+	getCookieValue() (string, error)
 }
 
-type defaultEnvVarGetter struct{}
+type envString string
 
-func (evg *defaultEnvVarGetter) getEnvVar(key string) (val string, err error) {
-	val, ok := os.LookupEnv(key)
-	if !ok || val == "" {
-		return "", fmt.Errorf("Missing %v environment variable", key)
+func (es envString) getCookieValue() (string, error) {
+	val, ok := os.LookupEnv(string(es))
+	if !ok {
+		return "", fmt.Errorf("%v: missing environment variable", es)
 	}
+	if val == "" {
+		return "", fmt.Errorf("%v: environment variable is empty", es)
+	}
+
 	return val, nil
 }
 
-type frontendConfigGetter interface {
-	getFrontendConfig() (map[string]string, error)
-}
+type jwtToken string
 
-type defaultFrontendConfigGetter struct{}
-
-func (fcg *defaultFrontendConfigGetter) getFrontendConfig() (map[string]string, error) {
-	cm := make(map[string]string)
-
-	val, err := evg.getEnvVar(centrifugoSecretEnvVar)
+func (jt jwtToken) getCookieValue() (string, error) {
+	val, err := envString(jt).getCookieValue()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	sec, err := uuid.Parse(val)
 	if err != nil {
-		return nil, fmt.Errorf("Centrifugo secret key: %v", err)
+		return "", fmt.Errorf("%v: %v", jt, err)
 	}
 
 	if sec.Version() != uuid.Version(4) {
-		return nil, errors.New("Centrifugo secret key must be a version 4 UUID")
+		return "", fmt.Errorf("%v: must be a version 4 UUID", jt)
 	}
 
 	sk := jose.SigningKey{
@@ -63,7 +56,7 @@ func (fcg *defaultFrontendConfigGetter) getFrontendConfig() (map[string]string, 
 	so := &jose.SignerOptions{}
 	sig, err := jose.NewSigner(sk, so.WithType("JWT"))
 	if err != nil {
-		return nil, fmt.Errorf("Error creating JWT signer: %v", err)
+		return "", fmt.Errorf("%v: error creating JWT signer: %v", jt, err)
 	}
 
 	cl := jwt.Claims{
@@ -71,19 +64,18 @@ func (fcg *defaultFrontendConfigGetter) getFrontendConfig() (map[string]string, 
 	}
 	signed, err := jwt.Signed(sig).Claims(cl).CompactSerialize()
 	if err != nil {
-		return nil, fmt.Errorf("Error signing JWT: %v", err)
+		return "", fmt.Errorf("%v: error signing JWT: %v", jt, err)
 	}
 
-	cm["centrifugo_token"] = signed
+	return signed, nil
+}
 
-	val, err = evg.getEnvVar(influxDBNameEnvVar)
-	if err != nil {
-		return nil, err
-	}
-
-	cm["influx_db_name"] = val
-
-	return cm, nil
+var environmentCookies = map[string]cookieValueGetter{
+	"centrifugo_token": jwtToken("CENTRIFUGO_TOKEN_HMAC_SECRET_KEY"),
+	"influxdb_url":     envString("INFLUXDB_URL"),
+	"influxdb_org":     envString("INFLUXDB_ORG"),
+	"influxdb_bucket":  envString("INFLUXDB_BUCKET"),
+	"influxdb_token":   envString("INFLUXDB_READ_TOKEN"),
 }
 
 type configMiddlewareProvider interface {
@@ -95,13 +87,18 @@ type defaultConfigMiddlewareProvider struct{}
 func (cmp *defaultConfigMiddlewareProvider) configCookiesMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" && r.Method == http.MethodGet {
-			fc, err := fcg.getFrontendConfig()
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
+			cm := make(map[string]string)
+
+			for k, v := range environmentCookies {
+				ev, err := v.getCookieValue()
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+				cm[k] = ev
 			}
 
-			for k, v := range fc {
+			for k, v := range cm {
 				c := &http.Cookie{
 					Name:     k,
 					Value:    v,
@@ -115,14 +112,10 @@ func (cmp *defaultConfigMiddlewareProvider) configCookiesMiddleware(next http.Ha
 }
 
 var (
-	evg envVarGetter
-	fcg frontendConfigGetter
 	cmp configMiddlewareProvider
 )
 
 func init() {
-	evg = &defaultEnvVarGetter{}
-	fcg = &defaultFrontendConfigGetter{}
 	cmp = &defaultConfigMiddlewareProvider{}
 }
 
