@@ -15,7 +15,7 @@ import {
   timeout
 } from "rxjs/operators"
 
-import { cookieValue } from "@/config"
+import { frontendConfig } from "@/config"
 import {
   LineGlobalParameters,
   LinkStatus,
@@ -85,7 +85,7 @@ const useStore = defineStore({
 })
 
 const centrifugoURL = `ws://${window.location.host}/centrifugo/connection/websocket`
-const centrifugoToken = cookieValue("centrifugo_token")
+const { centrifugoToken } = frontendConfig
 
 let initialized = false
 

@@ -3,7 +3,7 @@ import { defineStore } from "pinia"
 import { from, of, Subscription, timer } from "rxjs"
 import { catchError, map, timeout, switchMap } from "rxjs/operators"
 
-import { influxDB } from "@/config"
+import { influxDB } from "@/common"
 import { LinkStatus } from "./types"
 
 const healthAPI = new HealthAPI(influxDB)

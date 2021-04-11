@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 )
 
-func Test_envString_getCookieValue(t *testing.T) {
+func Test_nonEmptyEnv_fromEnv(t *testing.T) {
 	const key = "TESTING_ENV_VAR"
 	tests := []struct {
 		name    string
@@ -33,7 +33,7 @@ func Test_envString_getCookieValue(t *testing.T) {
 			} else {
 				os.Setenv(key, tt.envVal)
 			}
-			got, err := envString(key).getCookieValue()
+			got, err := nonEmptyEnv(key).fromEnv()
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("envString.getCookieValue() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -44,7 +44,7 @@ func Test_envString_getCookieValue(t *testing.T) {
 	}
 }
 
-func Test_jwtToken_getCookieValue(t *testing.T) {
+func Test_jwtToken_fromEnv(t *testing.T) {
 	const key = "TESTING_ENV_VAR"
 	tests := []struct {
 		name    string
@@ -71,7 +71,7 @@ func Test_jwtToken_getCookieValue(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			os.Setenv(key, tt.envVal)
-			got, err := jwtToken(key).getCookieValue()
+			got, err := jwtToken(key).fromEnv()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("jwtToken.getCookieValue() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -83,54 +83,146 @@ func Test_jwtToken_getCookieValue(t *testing.T) {
 	}
 }
 
-var cookiesFixture = map[string]string{
-	"cookie_1": "value_1",
-	"cookie_2": "value_2",
+func prepareIndexHtml(t *testing.T, content string) error {
+	if err := os.Chdir(t.TempDir()); err != nil {
+		return fmt.Errorf("chdir to temporary directory error: %v", err)
+	}
+
+	f, err := os.Create("index.html")
+	if err != nil {
+		return fmt.Errorf("error creating index.html: %v", err)
+	}
+	defer f.Close()
+
+	if _, err = f.WriteString(content); err != nil {
+		return fmt.Errorf("error writing index.html content: %v", err)
+	}
+
+	return nil
 }
 
-type successCookieValueGetter string
+const htmlTemplate = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+  <script type="application/json">
+    {{.}}
+  </script>
+</head>
+<body></body>
+</html>
+`
 
-func (g successCookieValueGetter) getCookieValue() (string, error) {
-	return string(g), nil
+const finalHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+  <script type="application/json">
+    {"key1":"value1","key2":"value2"}
+  </script>
+</head>
+<body></body>
+</html>
+`
+
+type failingEnvGetter struct{}
+
+func (f failingEnvGetter) fromEnv() (string, error) {
+	return "", errors.New("failing env getter")
 }
 
-type errorCookieValueGetter string
+type successEnvGetter string
 
-func (g errorCookieValueGetter) getCookieValue() (string, error) {
-	return "", errors.New("cookie value getter error")
+func (s successEnvGetter) fromEnv() (string, error) {
+	return string(s), nil
 }
 
-func Test_configCookiesMiddleware(t *testing.T) {
-	h := cmp.configCookiesMiddleware(
+func Test_configMiddleware(t *testing.T) {
+	h := mp.middleware(
 		http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}),
 	)
 
 	tests := []struct {
-		name        string
-		method      string
-		path        string
-		cookieError bool
-		expStatus   int
-		expCookies  bool
+		name           string
+		method         string
+		path           string
+		frontendConfig map[string]envGetter
+		htmlContent    string
+		expStatus      int
+		expIndexHtml   bool
 	}{
-		{"Not GET method", http.MethodPost, "/", false, 200, false},
-		{"Not root path", http.MethodGet, "/favicon.ico", false, 200, false},
-		{"Error getting cookie value", http.MethodGet, "/", true, 500, false},
-		{"Success", http.MethodGet, "/", false, 200, true},
+		{
+			"Not GET method",
+			http.MethodPost,
+			"/",
+			map[string]envGetter{},
+			"",
+			200,
+			false,
+		},
+		{
+			"Not root path",
+			http.MethodGet,
+			"/favicon.ico",
+			map[string]envGetter{},
+			"",
+			200,
+			false,
+		},
+		{
+			"Error getting environment value",
+			http.MethodGet,
+			"/",
+			map[string]envGetter{"key1": failingEnvGetter{}},
+			"",
+			500,
+			false,
+		},
+		{
+			"Error parsing index.html",
+			http.MethodGet,
+			"/",
+			map[string]envGetter{
+				"key1": successEnvGetter("value1"),
+				"key2": successEnvGetter("value2"),
+			},
+			"{{define fail}}",
+			500,
+			false,
+		},
+		{
+			"Error executing the template",
+			http.MethodGet,
+			"/",
+			map[string]envGetter{
+				"key1": successEnvGetter("value1"),
+				"key2": successEnvGetter("value2"),
+			},
+			"{{nil}}",
+			500,
+			false,
+		},
+		{
+			"Success",
+			http.MethodGet,
+			"/",
+			map[string]envGetter{
+				"key1": successEnvGetter("value1"),
+				"key2": successEnvGetter("value2"),
+			},
+			htmlTemplate,
+			200,
+			true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.cookieError {
-				environmentCookies = map[string]cookieValueGetter{
-					"cookie_1": successCookieValueGetter("value_1"),
-					"cookie_2": errorCookieValueGetter("value_2"),
-				}
-			} else {
-				environmentCookies = map[string]cookieValueGetter{
-					"cookie_1": successCookieValueGetter("value_1"),
-					"cookie_2": successCookieValueGetter("value_2"),
-				}
+			if err := prepareIndexHtml(t, tt.htmlContent); err != nil {
+				t.Fatal(err)
 			}
+			frontendConfig = tt.frontendConfig
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest(tt.method, tt.path, nil)
 			h.ServeHTTP(w, req)
@@ -141,53 +233,32 @@ func Test_configCookiesMiddleware(t *testing.T) {
 					w.Result().StatusCode,
 				)
 			}
-			exp := len(cookiesFixture)
-			found := 0
-			for k, v := range cookiesFixture {
-				for _, c := range w.Result().Cookies() {
-					if c.Name == k && c.Value == v {
-						found++
-					}
-					if c.SameSite != http.SameSiteStrictMode {
-						t.Fatal("expected cookies to have SameSite=Strict")
-					}
+			if tt.expIndexHtml {
+				b, err := ioutil.ReadAll(w.Body)
+				if err != nil {
+					t.Fatalf("error reading body: %v", err)
 				}
-			}
-			if tt.expCookies {
-				if found != exp {
-					t.Fatalf("expected %v cookies, got %v", exp, found)
-				}
-			} else {
-				if found != 0 {
-					t.Fatalf("expected no cookie, found %v", found)
+				body := string(b)
+				if body != finalHtml {
+					t.Fatalf("expected %v, got %v", finalHtml, body)
 				}
 			}
 		})
 	}
 }
 
-type configMiddlewarewProviderMock struct {
+type middlewarewProviderMock struct {
 	callCount uint
 }
 
-func (mwp *configMiddlewarewProviderMock) configCookiesMiddleware(next http.Handler) http.Handler {
+func (mwp *middlewarewProviderMock) middleware(next http.Handler) http.Handler {
 	mwp.callCount += 1
 	return next
 }
 
 func Test_main(t *testing.T) {
-	if err := os.Chdir(t.TempDir()); err != nil {
-		t.Fatalf("chdir to temporary directory error: %v", err)
-	}
-
-	f, err := os.Create("index.html")
-	if err != nil {
-		t.Fatalf("error creating index.html: %v", err)
-	}
-	defer f.Close()
-
-	if _, err = f.WriteString("html content"); err != nil {
-		t.Fatalf("error writing index.html content: %v", err)
+	if err := prepareIndexHtml(t, "html content"); err != nil {
+		t.Fatal(err)
 	}
 
 	hn, err := os.Hostname()
@@ -200,7 +271,7 @@ func Test_main(t *testing.T) {
 		t.Fatalf("hostname lookup error: %v", err)
 	}
 
-	cmp = &configMiddlewarewProviderMock{}
+	mp = &middlewarewProviderMock{}
 	go main()
 
 	rc := retryablehttp.NewClient()

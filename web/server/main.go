@@ -1,10 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"text/template"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/handlers"
@@ -14,19 +16,27 @@ import (
 
 const bindPort = 8080
 
-type cookieValueGetter interface {
-	getCookieValue() (string, error)
+var frontendConfig = map[string]envGetter{
+	"centrifugoToken": jwtToken("CENTRIFUGO_TOKEN_HMAC_SECRET_KEY"),
+	"influxDbUrl":     nonEmptyEnv("INFLUXDB_URL"),
+	"influxdbOrg":     nonEmptyEnv("INFLUXDB_ORG"),
+	"influxdbBucket":  nonEmptyEnv("INFLUXDB_BUCKET"),
+	"influxdbToken":   nonEmptyEnv("INFLUXDB_READ_TOKEN"),
 }
 
-type envString string
+type envGetter interface {
+	fromEnv() (string, error)
+}
 
-func (es envString) getCookieValue() (string, error) {
-	val, ok := os.LookupEnv(string(es))
+type nonEmptyEnv string
+
+func (n nonEmptyEnv) fromEnv() (string, error) {
+	val, ok := os.LookupEnv(string(n))
 	if !ok {
-		return "", fmt.Errorf("%v: missing environment variable", es)
+		return "", fmt.Errorf("%v: misssing environment variable", n)
 	}
-	if val == "" {
-		return "", fmt.Errorf("%v: environment variable is empty", es)
+	if len(val) == 0 {
+		return "", fmt.Errorf("%v: environment variable is empty", n)
 	}
 
 	return val, nil
@@ -34,19 +44,19 @@ func (es envString) getCookieValue() (string, error) {
 
 type jwtToken string
 
-func (jt jwtToken) getCookieValue() (string, error) {
-	val, err := envString(jt).getCookieValue()
+func (t jwtToken) fromEnv() (string, error) {
+	val, err := nonEmptyEnv(t).fromEnv()
 	if err != nil {
 		return "", err
 	}
 
 	sec, err := uuid.Parse(val)
 	if err != nil {
-		return "", fmt.Errorf("%v: %v", jt, err)
+		return "", fmt.Errorf("%v: %v", t, err)
 	}
 
 	if sec.Version() != uuid.Version(4) {
-		return "", fmt.Errorf("%v: must be a version 4 UUID", jt)
+		return "", fmt.Errorf("%v: must be a version 4 UUID", t)
 	}
 
 	sk := jose.SigningKey{
@@ -56,7 +66,7 @@ func (jt jwtToken) getCookieValue() (string, error) {
 	so := &jose.SignerOptions{}
 	sig, err := jose.NewSigner(sk, so.WithType("JWT"))
 	if err != nil {
-		return "", fmt.Errorf("%v: error creating JWT signer: %v", jt, err)
+		return "", fmt.Errorf("%v: error creating JWT signer: %v", t, err)
 	}
 
 	cl := jwt.Claims{
@@ -64,64 +74,68 @@ func (jt jwtToken) getCookieValue() (string, error) {
 	}
 	signed, err := jwt.Signed(sig).Claims(cl).CompactSerialize()
 	if err != nil {
-		return "", fmt.Errorf("%v: error signing JWT: %v", jt, err)
+		return "", fmt.Errorf("%v: error signing JWT: %v", t, err)
 	}
 
 	return signed, nil
 }
 
-var environmentCookies = map[string]cookieValueGetter{
-	"centrifugo_token": jwtToken("CENTRIFUGO_TOKEN_HMAC_SECRET_KEY"),
-	"influxdb_url":     envString("INFLUXDB_URL"),
-	"influxdb_org":     envString("INFLUXDB_ORG"),
-	"influxdb_bucket":  envString("INFLUXDB_BUCKET"),
-	"influxdb_token":   envString("INFLUXDB_READ_TOKEN"),
+type middlewareProvider interface {
+	middleware(http.Handler) http.Handler
 }
 
-type configMiddlewareProvider interface {
-	configCookiesMiddleware(http.Handler) http.Handler
-}
+type frontendConfigMiddleware struct{}
 
-type defaultConfigMiddlewareProvider struct{}
-
-func (cmp *defaultConfigMiddlewareProvider) configCookiesMiddleware(next http.Handler) http.Handler {
+func (f frontendConfigMiddleware) middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fail := func(err error) {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+
 		if r.URL.Path == "/" && r.Method == http.MethodGet {
 			cm := make(map[string]string)
-
-			for k, v := range environmentCookies {
-				ev, err := v.getCookieValue()
+			for k, v := range frontendConfig {
+				val, err := v.fromEnv()
 				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					fail(err)
 					return
 				}
-				cm[k] = ev
+				cm[k] = val
 			}
 
-			for k, v := range cm {
-				c := &http.Cookie{
-					Name:     k,
-					Value:    v,
-					SameSite: http.SameSiteStrictMode,
-				}
-				http.SetCookie(w, c)
+			j, err := json.Marshal(cm)
+			if err != nil {
+				fail(err)
+				return
 			}
+
+			t, err := template.ParseFiles("index.html")
+			if err != nil {
+				fail(err)
+				return
+			}
+
+			if err := t.Execute(w, string(j)); err != nil {
+				fail(err)
+				return
+			}
+		} else {
+			next.ServeHTTP(w, r)
 		}
-		next.ServeHTTP(w, r)
 	})
 }
 
 var (
-	cmp configMiddlewareProvider
+	mp middlewareProvider
 )
 
 func init() {
-	cmp = &defaultConfigMiddlewareProvider{}
+	mp = frontendConfigMiddleware{}
 }
 
 func main() {
 	fsh := http.FileServer(http.Dir("."))
-	mw := cmp.configCookiesMiddleware(fsh)
+	mw := mp.middleware(fsh)
 	lh := handlers.CombinedLoggingHandler(os.Stdout, mw)
 	addr := fmt.Sprintf(":%v", bindPort)
 	log.Printf("Listening for HTTP requests on %v", addr)

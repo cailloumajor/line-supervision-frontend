@@ -20,15 +20,15 @@ import {
   tap
 } from "rxjs/operators"
 
-import { cookieValue, influxDB } from "@/config"
+import { influxDB } from "@/common"
+import { frontendConfig } from "@/config"
 import useInfluxDBStore from "@/stores/influxdb"
 import { LinkStatus } from "@/stores/types"
 
 type RowObject = ReturnType<FluxTableMetaData["toObject"]>
 
-const influxDBOrg = cookieValue("influxdb_org")
-const influxDBBucket = cookieValue("influxdb_bucket")
-const queryAPI = influxDB.getQueryApi(influxDBOrg)
+const { influxdbOrg, influxdbBucket } = frontendConfig
+const queryAPI = influxDB.getQueryApi(influxdbOrg)
 
 export interface Options<T> {
   queryInterval: number
@@ -49,7 +49,7 @@ export default <T extends Array<unknown>>(opts: Options<T>) => {
 
   const query$ = defer(() => {
     loading.value = true
-    return queryAPI.rows(opts.generateQuery(influxDBBucket))
+    return queryAPI.rows(opts.generateQuery(influxdbBucket))
   }).pipe(
     tap({
       error: (err: Error) => {
