@@ -1,7 +1,7 @@
 import {
   flux,
   fluxDuration,
-  fluxExpression
+  fluxExpression,
 } from "@influxdata/influxdb-client-browser"
 import { computed, defineComponent, reactive } from "@vue/composition-api"
 import { ApexOptions } from "apexcharts"
@@ -19,7 +19,7 @@ interface DataSerie {
 }
 
 const serieName = custom.machineIndexes
-  .map(machIdx => machineNames[parseInt(machIdx)])
+  .map((machIdx) => machineNames[parseInt(machIdx)])
   .join(" + ")
 
 export default defineComponent({
@@ -28,7 +28,7 @@ export default defineComponent({
 
     const timeRange = reactive({
       start: dayjs(),
-      end: dayjs()
+      end: dayjs(),
     })
 
     function updateTimeRange() {
@@ -42,7 +42,7 @@ export default defineComponent({
             .millisecond(0)
             .add(8 * index, "hour")
         )
-        .find(shiftEnd => dayjs().isBefore(shiftEnd)) as Dayjs
+        .find((shiftEnd) => dayjs().isBefore(shiftEnd)) as Dayjs
       timeRange.start = currentShiftEnd.subtract(8, "hour")
       timeRange.end = currentShiftEnd
     }
@@ -50,12 +50,14 @@ export default defineComponent({
     return useInfluxChart<DataSerie[]>({
       queryInterval: 60000,
 
-      generateQuery: dbName => {
+      generateQuery: (dbName) => {
         updateTimeRange()
         const windowOffset = fluxDuration(`${timeRange.start.minute()}m`)
-        const machineColumns = custom.machineIndexes.map(idx => `machine${idx}`)
+        const machineColumns = custom.machineIndexes.map(
+          (idx) => `machine${idx}`
+        )
         const machineSum = fluxExpression(
-          machineColumns.map(mc => `r.${mc}`).join(" + ")
+          machineColumns.map((mc) => `r.${mc}`).join(" + ")
         )
         return flux`\
           from(bucket: "${dbName}")
@@ -84,9 +86,9 @@ export default defineComponent({
             data: [
               ...(currentData as Point[]),
               [value._start, value.total],
-              [value._time, value.total]
-            ]
-          }
+              [value._time, value.total],
+            ],
+          },
         ]
       },
 
@@ -102,59 +104,59 @@ export default defineComponent({
               label: {
                 offsetY: -10,
                 style: {
-                  background: "#FF4560"
+                  background: "#FF4560",
                 },
-                text: "Objectif / heure"
+                text: "Objectif / heure",
               },
               strokeDashArray: 0,
-              y: opcUaStore.lineGlobalParameters.productionObjective
-            }
-          ]
+              y: opcUaStore.lineGlobalParameters.productionObjective,
+            },
+          ],
         },
         colors: ["#008FFB"],
         dataLabels: {
-          enabled: false
+          enabled: false,
         },
         grid: {
           xaxis: {
             lines: {
-              show: true
-            }
-          }
+              show: true,
+            },
+          },
         },
         legend: {
-          showForSingleSeries: true
+          showForSingleSeries: true,
         },
         markers: {
-          showNullDataPoints: false
+          showNullDataPoints: false,
         },
         stroke: {
           curve: "stepline",
-          width: 3
+          width: 3,
         },
         title: {
-          text: "Production"
+          text: "Production",
         },
         xaxis: {
           labels: {
             datetimeUTC: false,
-            formatter: value => dayjs(value).format("HH:mm"),
+            formatter: (value) => dayjs(value).format("HH:mm"),
             minHeight: 45,
             offsetY: 5,
-            rotateAlways: true
+            rotateAlways: true,
           },
           max: timeRange.end.valueOf(),
           min: timeRange.start.valueOf(),
           tickAmount: 8,
-          type: "datetime"
+          type: "datetime",
         },
         yaxis: {
           forceNiceScale: true,
-          max: max =>
+          max: (max) =>
             Math.max(opcUaStore.lineGlobalParameters.productionObjective, max),
-          min: 0
-        }
-      }))
+          min: 0,
+        },
+      })),
     })
-  }
+  },
 })

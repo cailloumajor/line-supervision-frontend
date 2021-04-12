@@ -33,15 +33,15 @@ export default defineComponent({
     CampaignDataTable,
     LineSynoptics,
     MachineStateChart,
-    ProductionChart
+    ProductionChart,
   },
 
   setup() {
     const { isProdLineScreen } = useResponsiveness()
 
     return {
-      isProdLineScreen
+      isProdLineScreen,
     }
-  }
+  },
 })
 </script>

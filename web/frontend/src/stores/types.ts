@@ -1,7 +1,7 @@
 export enum LinkStatus {
   Up = "UP",
   Down = "DOWN",
-  Unknown = "UNKNOWN"
+  Unknown = "UNKNOWN",
 }
 
 export interface MachineState {

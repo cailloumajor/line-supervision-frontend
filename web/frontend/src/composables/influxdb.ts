@@ -1,14 +1,15 @@
 import {
   FluxTableMetaData,
   HttpError,
-  ParameterizedQuery
+  ParameterizedQuery,
 } from "@influxdata/influxdb-client-browser"
 import {
   onMounted,
   onUnmounted,
+  Ref,
   ref,
   toRefs,
-  watch
+  watch,
 } from "@vue/composition-api"
 import { defer, of, Subject, Subscription, timer } from "rxjs"
 import {
@@ -17,7 +18,7 @@ import {
   reduce,
   switchMap,
   switchMapTo,
-  tap
+  tap,
 } from "rxjs/operators"
 
 import { influxDB } from "@/common"
@@ -37,13 +38,19 @@ export interface Options<T> {
   reducer: (acc: T, value: RowObject) => T
 }
 
-export default <T extends Array<unknown>>(opts: Options<T>) => {
+export default function <T extends Array<unknown>>(
+  opts: Options<T>
+): {
+  influxData: Ref<T>
+  loading: Ref<boolean>
+  queryError: Ref<string>
+} {
   let subscription: Subscription
 
   const influxDBStore = useInfluxDBStore()
 
   const { linkStatus } = toRefs(influxDBStore.$state)
-  const influxData = ref(opts.seed)
+  const influxData = ref(opts.seed) as Ref<T>
   const loading = ref(false)
   const queryError = ref("")
 
@@ -66,7 +73,7 @@ export default <T extends Array<unknown>>(opts: Options<T>) => {
       complete: () => {
         loading.value = false
         queryError.value = ""
-      }
+      },
     }),
     map(({ values, tableMeta }) => tableMeta.toObject(values)),
     reduce(opts.reducer, opts.seed),
@@ -75,7 +82,7 @@ export default <T extends Array<unknown>>(opts: Options<T>) => {
 
   const linkStatusSubject = new Subject<LinkStatus>()
   const influxData$ = linkStatusSubject.pipe(
-    switchMap(status =>
+    switchMap((status) =>
       status === LinkStatus.Up
         ? timer(500, opts.queryInterval).pipe(switchMapTo(query$))
         : of(opts.seed).pipe(
@@ -86,15 +93,15 @@ export default <T extends Array<unknown>>(opts: Options<T>) => {
     )
   )
 
-  watch(linkStatus, status => {
+  watch(linkStatus, (status) => {
     linkStatusSubject.next(status)
   })
 
   onMounted(() => {
     subscription = influxData$.subscribe({
-      next: result => {
-        influxData.value = [...result]
-      }
+      next: (result) => {
+        influxData.value = [...result] as T
+      },
     })
   })
 
@@ -105,6 +112,6 @@ export default <T extends Array<unknown>>(opts: Options<T>) => {
   return {
     influxData,
     loading,
-    queryError
+    queryError,
   }
 }

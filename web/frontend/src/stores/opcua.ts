@@ -1,6 +1,6 @@
 import Centrifuge, {
   PublicationContext,
-  SubscribeErrorContext
+  SubscribeErrorContext,
 } from "centrifuge"
 import { defineStore } from "pinia"
 import { concat, fromEvent, merge, of } from "rxjs"
@@ -12,7 +12,7 @@ import {
   first,
   map,
   mapTo,
-  timeout
+  timeout,
 } from "rxjs/operators"
 
 import { frontendConfig } from "@/config"
@@ -23,7 +23,7 @@ import {
   OPCDataChangeMessage,
   OPCStatusMessage,
   isLineParametersMessage,
-  isMachineMetricsMessage
+  isMachineMetricsMessage,
 } from "./types"
 
 type StateType = {
@@ -44,34 +44,36 @@ const freshMachineMetrics = () =>
       alert: false,
       alarm: false,
       missingParts: false,
-      saturation: false
+      saturation: false,
     },
     counters: {
       production: 0,
       toolChangePercent: -1,
       partControlPercent: -1,
       bufferFillPercent: -1,
-      cycleTimePercent: 0
+      cycleTimePercent: 0,
     },
     campaign: {
       partReference: "",
-      materialBatch: ""
-    }
+      materialBatch: "",
+    },
   })
 
 const useStore = defineStore({
   id: "OPC-UA",
 
-  state: (): StateType => ({
-    machinesMetrics: freshMachineMetrics(),
-    lineGlobalParameters: {
-      campaignRemaining: 0,
-      productionObjective: 0
-    },
-    bridgeLinkStatus: LinkStatus.Unknown,
-    centrifugoLinkStatus: LinkStatus.Unknown,
-    opcLinkStatus: LinkStatus.Unknown
-  }),
+  state(): StateType {
+    return {
+      machinesMetrics: freshMachineMetrics(),
+      lineGlobalParameters: {
+        campaignRemaining: 0,
+        productionObjective: 0,
+      },
+      bridgeLinkStatus: LinkStatus.Unknown,
+      centrifugoLinkStatus: LinkStatus.Unknown,
+      opcLinkStatus: LinkStatus.Unknown,
+    }
+  },
 
   getters: {
     opcLinkStatusDisplay(): LinkStatus {
@@ -80,8 +82,8 @@ const useStore = defineStore({
       } else {
         return LinkStatus.Unknown
       }
-    }
-  }
+    },
+  },
 })
 
 const centrifugoURL = `ws://${window.location.host}/centrifugo/connection/websocket`
@@ -89,7 +91,7 @@ const { centrifugoToken } = frontendConfig
 
 let initialized = false
 
-export default () => {
+export default function (): ReturnType<typeof useStore> {
   const store = useStore()
 
   if (!initialized) {
@@ -97,7 +99,7 @@ export default () => {
 
     const centrifuge = new Centrifuge(centrifugoURL, {
       debug: process.env.NODE_ENV === "development",
-      maxRetry: 5000
+      maxRetry: 5000,
     })
     centrifuge.setToken(centrifugoToken)
 
@@ -105,7 +107,7 @@ export default () => {
       fromEvent(centrifuge, "connect").pipe(mapTo(LinkStatus.Up)),
       fromEvent(centrifuge, "disconnect").pipe(mapTo(LinkStatus.Down))
     )
-    centrifugoLinkStatus$.subscribe(status => {
+    centrifugoLinkStatus$.subscribe((status) => {
       store.centrifugoLinkStatus = status
     })
 
@@ -121,11 +123,11 @@ export default () => {
 
     const proxiedChannelsSubscriptions = [
       opcDataChangeSubscription,
-      opcStatusSubscription
+      opcStatusSubscription,
     ]
     const opcBridgeSubscriptions = [
       heartbeatSubscription,
-      ...proxiedChannelsSubscriptions
+      ...proxiedChannelsSubscriptions,
     ]
 
     fromEvent<PublicationContext>(heartbeatSubscription, "publish")
@@ -137,17 +139,17 @@ export default () => {
       })
 
     merge(
-      ...opcBridgeSubscriptions.map(sub =>
+      ...opcBridgeSubscriptions.map((sub) =>
         fromEvent<SubscribeErrorContext>(sub, "error").pipe(mapTo(sub))
       )
     )
       .pipe(delay(subscribeRetryDelay))
-      .subscribe(sub => {
+      .subscribe((sub) => {
         sub.subscribe()
       })
 
     const bridgeLinkStatus$ = merge(
-      ...opcBridgeSubscriptions.map(sub =>
+      ...opcBridgeSubscriptions.map((sub) =>
         fromEvent<PublicationContext>(sub, "publish")
       )
     ).pipe(
@@ -156,18 +158,18 @@ export default () => {
       catchError((err, caught) => concat(of(LinkStatus.Down), caught)),
       distinctUntilChanged()
     )
-    bridgeLinkStatus$.subscribe(status => {
+    bridgeLinkStatus$.subscribe((status) => {
       store.bridgeLinkStatus = status
     })
 
     const opcData$ = fromEvent<PublicationContext>(
       opcDataChangeSubscription,
       "publish"
-    ).pipe(map(publication => publication.data as OPCDataChangeMessage))
-    opcData$.pipe(filter(isMachineMetricsMessage)).subscribe(message => {
+    ).pipe(map((publication) => publication.data as OPCDataChangeMessage))
+    opcData$.pipe(filter(isMachineMetricsMessage)).subscribe((message) => {
       store.machinesMetrics = message.payload
     })
-    opcData$.pipe(filter(isLineParametersMessage)).subscribe(message => {
+    opcData$.pipe(filter(isLineParametersMessage)).subscribe((message) => {
       store.lineGlobalParameters = message.payload
     })
 
@@ -175,15 +177,15 @@ export default () => {
       opcStatusSubscription,
       "publish"
     ).pipe(
-      map(publication => publication.data as OPCStatusMessage),
-      map(message => message.payload)
+      map((publication) => publication.data as OPCStatusMessage),
+      map((message) => message.payload)
     )
-    opcStatus$.subscribe(status => {
+    opcStatus$.subscribe((status) => {
       store.opcLinkStatus = status
     })
 
     merge(bridgeLinkStatus$, centrifugoLinkStatus$, opcStatus$)
-      .pipe(filter(status => status !== LinkStatus.Up))
+      .pipe(filter((status) => status !== LinkStatus.Up))
       .subscribe(() => {
         store.machinesMetrics = freshMachineMetrics()
       })

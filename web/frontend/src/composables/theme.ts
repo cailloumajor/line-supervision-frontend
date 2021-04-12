@@ -3,16 +3,16 @@ import {
   inject,
   provide,
   ComputedRef,
-  InjectionKey
+  InjectionKey,
 } from "@vue/composition-api"
 
 const ThemeSymbol: InjectionKey<ComputedRef<Theme>> = Symbol()
 
-export function provideTheme(theme: ComputedRef<Theme>) {
+export function provideTheme(theme: ComputedRef<Theme>): void {
   provide(ThemeSymbol, theme)
 }
 
-export function useTheme() {
+export function useTheme(): ComputedRef<Theme> {
   const theme = inject(ThemeSymbol)
   if (!theme) {
     throw new Error("Missing theme to inject")

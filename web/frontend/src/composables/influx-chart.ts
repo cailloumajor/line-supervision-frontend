@@ -8,7 +8,7 @@ import ApexChart from "vue-apexcharts"
 import { VAlert, VOverlay, VProgressCircular } from "vuetify/lib"
 
 import useInfluxDB, {
-  Options as InfluxComposableOptions
+  Options as InfluxComposableOptions,
 } from "@/composables/influxdb"
 import useResponsiveness from "@/composables/responsiveness"
 import { useTheme } from "@/composables/theme"
@@ -18,56 +18,58 @@ interface ComponentContext<T> extends InfluxComposableOptions<T> {
   chartOptions: ComputedRef<ApexOptions>
 }
 
-export default <T extends Array<unknown>>(ctx: ComponentContext<T>) => {
+export default function <T extends Array<unknown>>(
+  ctx: ComponentContext<T>
+): () => VNode {
   const theme = useTheme()
   const { influxData, loading, queryError } = useInfluxDB(ctx)
 
   const commonOptions = computed<ApexOptions>(() => ({
     chart: {
       animations: {
-        enabled: false
+        enabled: false,
       },
       background: "transparent",
       fontFamily: "Roboto",
       toolbar: {
-        show: false
+        show: false,
       },
       zoom: {
-        enabled: false
-      }
+        enabled: false,
+      },
     },
     legend: {
       floating: true,
       onItemClick: {
-        toggleDataSeries: false
+        toggleDataSeries: false,
       },
       onItemHover: {
-        highlightDataSeries: false
+        highlightDataSeries: false,
       },
-      position: "top"
+      position: "top",
     },
     theme: {
-      mode: theme.value.dark ? "dark" : "light"
+      mode: theme.value.dark ? "dark" : "light",
     },
     title: {
       margin: 20,
-      floating: true
+      floating: true,
     },
     tooltip: {
-      enabled: false
+      enabled: false,
     },
     states: {
       active: {
         filter: {
-          type: "none"
-        }
+          type: "none",
+        },
       },
       hover: {
         filter: {
-          type: "none"
-        }
-      }
-    }
+          type: "none",
+        },
+      },
+    },
   }))
 
   const chartFinalOptions = computed(() =>
@@ -76,14 +78,14 @@ export default <T extends Array<unknown>>(ctx: ComponentContext<T>) => {
 
   const { isProdLineScreen } = useResponsiveness()
 
-  return () => {
+  return function () {
     const chartEl = h(ApexChart, {
       props: {
         height: isProdLineScreen ? "200%" : "auto",
         options: chartFinalOptions.value,
         series: influxData.value,
-        type: ctx.chartType
-      }
+        type: ctx.chartType,
+      },
     })
 
     let overlayChildEl: VNode | null = null
@@ -91,8 +93,8 @@ export default <T extends Array<unknown>>(ctx: ComponentContext<T>) => {
     if (loading.value) {
       overlayChildEl = h(VProgressCircular, {
         props: {
-          indeterminate: true
-        }
+          indeterminate: true,
+        },
       })
     }
     if (queryError.value) {
@@ -103,9 +105,9 @@ export default <T extends Array<unknown>>(ctx: ComponentContext<T>) => {
             border: "bottom",
             coloredBorder: true,
             elevation: 2,
-            type: "error"
+            type: "error",
           },
-          class: "text-caption"
+          class: "text-caption",
         },
         [
           "Erreur de requête InfluxDB :",
@@ -114,11 +116,11 @@ export default <T extends Array<unknown>>(ctx: ComponentContext<T>) => {
             {
               class: "font-italic",
               style: {
-                whiteSpace: "pre-line"
-              }
+                whiteSpace: "pre-line",
+              },
             },
             queryError.value
-          )
+          ),
         ]
       )
     }
@@ -132,8 +134,8 @@ export default <T extends Array<unknown>>(ctx: ComponentContext<T>) => {
           value: loading.value || queryError.value,
           absolute: true,
           opacity: 0,
-          zIndex: 1
-        }
+          zIndex: 1,
+        },
       },
       [overlayChildEl]
     )

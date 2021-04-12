@@ -18,37 +18,37 @@ export interface MachineStateShape {
   secondaryColor?: ThemeableColor
 }
 
-const themedGrey: ThemeableColor = dark => (dark ? "#999" : "#CCC")
+const themedGrey: ThemeableColor = (dark) => (dark ? "#999" : "#CCC")
 const cycleColor = "#080"
 const alertColor = "#d98d00"
 
 export const statePalette: Record<ShapeID, MachineStateShape> = {
   outOfProduction: {
     description: "Hors production",
-    primaryColor: themedGrey
+    primaryColor: themedGrey,
   },
   cycle: {
     description: "En cycle",
-    primaryColor: () => cycleColor
+    primaryColor: () => cycleColor,
   },
   alert: {
     description: "Arrêt avec avertissement",
-    primaryColor: () => alertColor
+    primaryColor: () => alertColor,
   },
   alarm: {
     description: "Arrêt en défaut",
-    primaryColor: () => "#d00"
+    primaryColor: () => "#d00",
   },
   alertInCycle: {
     description: "En cycle avec avertissement",
     primaryColor: () => cycleColor,
-    secondaryColor: () => alertColor
+    secondaryColor: () => alertColor,
   },
   interruptedFlow: {
     description: "Manque pièces ou saturation",
     primaryColor: () => cycleColor,
-    secondaryColor: themedGrey
-  }
+    secondaryColor: themedGrey,
+  },
 }
 
 const { influxdbUrl: url, influxdbToken: token } = frontendConfig

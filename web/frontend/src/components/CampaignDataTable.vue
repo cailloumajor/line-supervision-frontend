@@ -28,7 +28,7 @@ const differenciatingClasses = [
   "green--text",
   "orange--text text--darken-2",
   "purple--text text--lighten-2",
-  "brown--text text--lighten-2"
+  "brown--text text--lighten-2",
 ]
 
 class DifferenciatingMap {
@@ -49,25 +49,25 @@ export default defineComponent({
     const campaignData = computed(() => {
       const refClasses = new DifferenciatingMap()
       const batchClasses = new DifferenciatingMap()
-      return custom.machineIndexes.map(machineIndex => {
+      return custom.machineIndexes.map((machineIndex) => {
         const {
           partReference: ref,
-          materialBatch: batch
+          materialBatch: batch,
         } = opcUaStore.machinesMetrics[machineIndex].campaign
         return {
           machine: machineNames[machineIndex],
           ref,
           batch,
           refClass: refClasses.take(ref),
-          batchClass: batchClasses.take(batch)
+          batchClass: batchClasses.take(batch),
         }
       })
     })
 
     return {
-      campaignData
+      campaignData,
     }
-  }
+  },
 })
 </script>
 

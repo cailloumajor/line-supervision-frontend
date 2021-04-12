@@ -90,7 +90,7 @@ export default defineComponent({
 
     const routes: { name: string; menu: string; icon: string }[] = [
       { name: "Home", menu: "Vue graphique", icon: "mdi-panorama" },
-      { name: "About", menu: "À propos", icon: "mdi-information" }
+      { name: "About", menu: "À propos", icon: "mdi-information" },
     ]
 
     const drawer = ref(false)
@@ -107,26 +107,26 @@ export default defineComponent({
           color: {
             [LinkStatus.Up]: "green",
             [LinkStatus.Down]: "red",
-            [LinkStatus.Unknown]: "orange"
+            [LinkStatus.Unknown]: "orange",
           }[state],
           icon: {
             [LinkStatus.Up]: "mdi-swap-horizontal",
             [LinkStatus.Down]: "mdi-link-variant-off",
-            [LinkStatus.Unknown]: "mdi-help"
-          }[state]
+            [LinkStatus.Unknown]: "mdi-help",
+          }[state],
         }
       }
       return [
         linkData("Centrifugo", opcUaStore.centrifugoLinkStatus),
         linkData("OPC bridge", opcUaStore.bridgeLinkStatus),
         linkData("OPC", opcUaStore.opcLinkStatusDisplay),
-        linkData("InfluxDB", influxDBStore.linkStatus)
+        linkData("InfluxDB", influxDBStore.linkStatus),
       ]
     })
 
     const logoStyle = computed<CSS.Properties>(() => ({
       filter: $vuetify.theme.dark === true ? "brightness(1.5)" : undefined,
-      height: "80%"
+      height: "80%",
     }))
 
     const plcLinkUp = computed(
@@ -146,12 +146,12 @@ export default defineComponent({
       isProdLineScreen,
       linksData,
       logoStyle,
-      plcLinkUp
+      plcLinkUp,
     }
   },
   metaInfo: {
-    title: htmlTitle
-  }
+    title: htmlTitle,
+  },
 })
 </script>
 

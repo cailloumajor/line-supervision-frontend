@@ -11,7 +11,7 @@ export default new Vuetify({
   theme: {
     dark: true,
     options: {
-      variations: false
-    }
-  }
+      variations: false,
+    },
+  },
 })

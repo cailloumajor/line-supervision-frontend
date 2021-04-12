@@ -20,7 +20,7 @@ const monitoredStates: ShapeID[] = [
   "outOfProduction",
   "alarm",
   "alert",
-  "cycle"
+  "cycle",
 ]
 
 export default defineComponent({
@@ -31,7 +31,7 @@ export default defineComponent({
 
     const timeRange = reactive({
       start: dayjs(),
-      end: dayjs()
+      end: dayjs(),
     })
 
     function updateTimeRange() {
@@ -42,7 +42,7 @@ export default defineComponent({
     return useInfluxChart<DataSerie[]>({
       queryInterval: 60000,
 
-      generateQuery: dbName => {
+      generateQuery: (dbName) => {
         lastStateSentinel.clear()
         updateTimeRange()
         return flux`\
@@ -73,12 +73,12 @@ export default defineComponent({
         `
       },
 
-      seed: monitoredStates.map(state => ({
+      seed: monitoredStates.map((state) => ({
         name: statePalette[state].description,
-        data: custom.machineIndexes.map(machineIndex => ({
+        data: custom.machineIndexes.map((machineIndex) => ({
           x: machineNames[parseInt(machineIndex, 10)],
-          y: [0, 0]
-        }))
+          y: [0, 0],
+        })),
       })),
 
       reducer: (acc, value) => {
@@ -98,7 +98,7 @@ export default defineComponent({
           if (stateIndex !== null) {
             acc[stateIndex].data.push({
               x: machineNames[parseInt(machineIndex, 10)],
-              y: [time, time]
+              y: [time, time],
             })
           }
           lastStateSentinel.set(machineIndex, stateIndex)
@@ -109,50 +109,50 @@ export default defineComponent({
       chartType: "rangeBar",
 
       chartOptions: computed<ApexOptions>(() => ({
-        colors: monitoredStates.map(state =>
+        colors: monitoredStates.map((state) =>
           statePalette[state].primaryColor(theme.value.dark)
         ),
         dataLabels: {
-          enabled: false
+          enabled: false,
         },
         fill: {
-          opacity: 0.8
+          opacity: 0.8,
         },
         grid: {
           xaxis: {
             lines: {
-              show: true
-            }
+              show: true,
+            },
           },
           yaxis: {
             lines: {
-              show: false
-            }
-          }
+              show: false,
+            },
+          },
         },
         legend: {
-          show: false
+          show: false,
         },
         plotOptions: {
           bar: {
             horizontal: true,
-            rangeBarGroupRows: true
-          }
+            rangeBarGroupRows: true,
+          },
         },
         title: {
-          text: "Statuts machines sur 24h"
+          text: "Statuts machines sur 24h",
         },
         xaxis: {
           labels: {
             datetimeUTC: false,
             minHeight: 45,
-            rotateAlways: true
+            rotateAlways: true,
           },
           max: timeRange.end.valueOf(),
           min: timeRange.start.valueOf(),
-          type: "datetime"
-        }
-      }))
+          type: "datetime",
+        },
+      })),
     })
-  }
+  },
 })

@@ -11,7 +11,7 @@ const healthAPI = new HealthAPI(influxDB)
 const linkStatus$ = timer(500, 10000).pipe(
   switchMap(() =>
     from(healthAPI.getHealth()).pipe(
-      map(health =>
+      map((health) =>
         health.status === "pass" ? LinkStatus.Up : LinkStatus.Down
       ),
       timeout(1000),
@@ -26,15 +26,15 @@ const useStore = defineStore({
   id: "InfluxDB",
 
   state: () => ({
-    linkStatus: LinkStatus.Unknown
-  })
+    linkStatus: LinkStatus.Unknown,
+  }),
 })
 
-export default () => {
+export default function (): ReturnType<typeof useStore> {
   const store = useStore()
 
   if (!linkStatusSubscription) {
-    linkStatusSubscription = linkStatus$.subscribe(status => {
+    linkStatusSubscription = linkStatus$.subscribe((status) => {
       store.linkStatus = status
     })
   }
