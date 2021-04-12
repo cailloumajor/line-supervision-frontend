@@ -99,7 +99,8 @@ services:
     labels:
       dozzle.enable: "true"
       traefik.enable: "true"
-      traefik.http.routers.web.rule: "PathPrefix(`/`)"
+      traefik.http.routers.web.rule: "Path(`/`, `/{file:[a-zA-Z0-9_.-]+}`)
+        || PathPrefix(`/fonts/`, `/img/`, `/js/`, `/sockjs-node/`)"
     networks:
       - net-private
 
