@@ -25,7 +25,7 @@
         src="@/assets/company-logo.png"
         :style="logoStyle"
       />
-      <v-toolbar-title>***REMOVED***</v-toolbar-title>
+      <v-toolbar-title>{{ appTitle }}</v-toolbar-title>
       <v-spacer />
       <v-btn @click="$vuetify.theme.dark = !$vuetify.theme.dark" icon>
         <v-icon>mdi-theme-light-dark</v-icon>
@@ -68,6 +68,7 @@ import { useTimestamp } from "@vueuse/core"
 import * as CSS from "csstype"
 import dayjs from "dayjs"
 
+import { appTitle, htmlTitle } from "@/customization"
 import useResponsiveness from "@/composables/responsiveness"
 import { provideTheme } from "@/composables/theme"
 import useInfluxDBStore from "@/stores/influxdb"
@@ -138,6 +139,7 @@ export default defineComponent({
     }
 
     return {
+      appTitle,
       routes,
       drawer,
       clock,
@@ -146,6 +148,9 @@ export default defineComponent({
       logoStyle,
       plcLinkUp
     }
+  },
+  metaInfo: {
+    title: htmlTitle
   }
 })
 </script>

@@ -1,5 +1,8 @@
 // Specific configuration for each application
 
+export const htmlTitle = "***REMOVED***"
+export const appTitle = "***REMOVED***"
+
 export const campaignDataTable = {
   machineIndexes: [0, 2, 3, 5, 7, 11, 12]
 }
