@@ -18,7 +18,7 @@ const bindPort = 8080
 
 var frontendConfig = map[string]envGetter{
 	"centrifugoToken": jwtToken("CENTRIFUGO_TOKEN_HMAC_SECRET_KEY"),
-	"influxDbUrl":     nonEmptyEnv("INFLUXDB_URL"),
+	"influxdbUrl":     nonEmptyEnv("INFLUXDB_URL"),
 	"influxdbOrg":     nonEmptyEnv("INFLUXDB_ORG"),
 	"influxdbBucket":  nonEmptyEnv("INFLUXDB_BUCKET"),
 	"influxdbToken":   nonEmptyEnv("INFLUXDB_READ_TOKEN"),
