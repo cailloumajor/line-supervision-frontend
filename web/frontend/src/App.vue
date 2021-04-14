@@ -27,7 +27,11 @@
       />
       <v-toolbar-title>{{ appTitle }}</v-toolbar-title>
       <v-spacer />
-      <v-btn @click="$vuetify.theme.dark = !$vuetify.theme.dark" icon>
+      <v-btn
+        v-if="!isProdLineScreen"
+        @click="$vuetify.theme.dark = !$vuetify.theme.dark"
+        icon
+      >
         <v-icon>mdi-theme-light-dark</v-icon>
       </v-btn>
     </v-app-bar>
