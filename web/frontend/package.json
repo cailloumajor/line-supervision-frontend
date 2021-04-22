@@ -15,7 +15,7 @@
     "@mdi/font": "5.9.55",
     "@vue/composition-api": "1.0.0-rc.6",
     "@vueuse/core": "4.8.1",
-    "apexcharts": "3.26.0",
+    "apexcharts": "3.26.1",
     "centrifuge": "2.7.5",
     "core-js": "3.10.1",
     "dayjs": "1.10.4",
