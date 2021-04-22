@@ -44,7 +44,7 @@
     "@vue/test-utils": "~1.1.4",
     "csstype": "~3.0.5",
     "eslint": "~7.24.0",
-    "eslint-plugin-prettier": "~3.3.1",
+    "eslint-plugin-prettier": "~3.4.0",
     "eslint-plugin-vue": "~7.9.0",
     "prettier": "~2.2.1",
     "sass": "~1.32.0",
