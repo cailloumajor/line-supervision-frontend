@@ -24,6 +24,7 @@ FROM node:14.15.5-buster as frontend-builder
 WORKDIR /app
 
 COPY frontend/package.json frontend/yarn.lock ./
+# hadolint ignore=DL3060
 RUN yarn install
 
 COPY frontend/public ./public
