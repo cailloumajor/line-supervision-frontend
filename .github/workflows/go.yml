@@ -6,11 +6,15 @@ on:
       - master
     paths:
       - "web/server/**"
+      - "web/Dockerfile"
+      - ".github/workflows/go.yml"
   pull_request:
     branches:
       - master
     paths:
       - "web/server/**"
+      - "web/Dockerfile"
+      - ".github/workflows/go.yml"
 
 env:
   SUBDIR: web/server
