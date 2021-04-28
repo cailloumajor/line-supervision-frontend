@@ -23,7 +23,6 @@ jobs:
       - uses: actions/checkout@v2
       - uses: golangci/golangci-lint-action@v2
         with:
-          version: v1.33
           working-directory: ${{ env.SUBDIR }}
   test:
     name: Test and code coverage
