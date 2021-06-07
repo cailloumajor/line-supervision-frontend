@@ -12,8 +12,11 @@ module.exports = {
   ],
   parserOptions: {
     ecmaVersion: 2020,
+    project: "./tsconfig.json",
   },
+  plugins: ["deprecation"],
   rules: {
+    "deprecation/deprecation": "warn",
     "no-console": process.env.NODE_ENV === "production" ? "warn" : "off",
     "no-debugger": process.env.NODE_ENV === "production" ? "warn" : "off",
   },
