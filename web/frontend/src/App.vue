@@ -86,6 +86,7 @@ interface LinkData {
 }
 
 export default defineComponent({
+  // eslint-disable-next-line
   setup(_, { root: { $vuetify } }) {
     provideTheme(computed(() => $vuetify.theme))
 
