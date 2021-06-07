@@ -100,7 +100,7 @@ export default defineComponent({
 
     const drawer = ref(false)
 
-    const { timestamp } = useTimestamp({ interval: 1000 })
+    const timestamp = useTimestamp({ interval: 1000 })
     const clock = computed(() =>
       dayjs(timestamp.value).format("DD/MM/YYYY HH:mm:ss")
     )
