@@ -8,5 +8,5 @@ require (
 	github.com/gorilla/handlers v1.5.1
 	github.com/hashicorp/go-retryablehttp v0.7.0
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2 // indirect
-	gopkg.in/square/go-jose.v2 v2.5.1
+	gopkg.in/square/go-jose.v2 v2.6.0
 )
