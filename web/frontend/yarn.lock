@@ -3167,10 +3167,10 @@ caseless@~0.12.0:
   resolved "https://registry.yarnpkg.com/caseless/-/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
   integrity sha1-G2gcIf+EAzyCZUMJBolCDRhxUdw=
 
-centrifuge@2.7.5:
-  version "2.7.5"
-  resolved "https://registry.yarnpkg.com/centrifuge/-/centrifuge-2.7.5.tgz#f5c32bbbb50b79af40df2807012c8c8c57559a0a"
-  integrity sha512-GLphYNOIS/wgCg9PpirrcTKE79FOt0G1xXn0ON79OOeC4dt+SH6nQ3tZ5CvUxMhAomBriUjFYwynB9BQrs6nDg==
+centrifuge@2.7.6:
+  version "2.7.6"
+  resolved "https://registry.yarnpkg.com/centrifuge/-/centrifuge-2.7.6.tgz#d38a112327f41e9fb221c75351675ffc90028045"
+  integrity sha512-nYbqrcsuPquLydR1OXhplufkwDGUcOwMtpiHSzm6dUvr/IEmtWq4yJzqGwUVlvfXQD/8LNy2G3bjexDKnvUaNQ==
   dependencies:
     protobufjs "^6.10.2"
 
