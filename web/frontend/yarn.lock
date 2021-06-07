@@ -953,15 +953,15 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@influxdata/influxdb-client-apis@1.12.0":
-  version "1.12.0"
-  resolved "https://registry.yarnpkg.com/@influxdata/influxdb-client-apis/-/influxdb-client-apis-1.12.0.tgz#621f680a5f07f6669640378e9fc95baccd8542e9"
-  integrity sha512-na1F/BYjHVNlfFlnc/FtMvw8TfebZIF63TfWH5MfYCWrWENydPa8cXHYQ4G5gIO/4+6QFjmkYbwRArqIXOa1yA==
+"@influxdata/influxdb-client-apis@1.14.0":
+  version "1.14.0"
+  resolved "https://registry.yarnpkg.com/@influxdata/influxdb-client-apis/-/influxdb-client-apis-1.14.0.tgz#9d29c7ee3a6eee67cf5bfd7eb8222838581b2839"
+  integrity sha512-kkatuAEP211oGWZoFvxhTYsFj3+wYFHOIp/clFeKZxTBrjsUo0iikYqxfs86CgKCXwxjT1cwD52M/nKbm+qDXg==
 
-"@influxdata/influxdb-client-browser@1.12.0":
-  version "1.12.0"
-  resolved "https://registry.yarnpkg.com/@influxdata/influxdb-client-browser/-/influxdb-client-browser-1.12.0.tgz#3d722925ca7dfe8ec7b0026b93fe4b5b7bc5f331"
-  integrity sha512-7qYEsW+NLj+ueGqQcSlGuboovM9tYil8RezDrNkuXsfCwrg5Hlr3KARDGWpG39oFfes1zMNjTIlL52RnISxwXg==
+"@influxdata/influxdb-client-browser@1.14.0":
+  version "1.14.0"
+  resolved "https://registry.yarnpkg.com/@influxdata/influxdb-client-browser/-/influxdb-client-browser-1.14.0.tgz#ed6d559c43c844002185e27be733541b28c941fc"
+  integrity sha512-O2h9AVRerbDAwOeZVXcYO6oaoiBKU0hhcSX48k90KoozubFKEeibIR4k9g+G/W3m4AMvKe7B5OOU6qQxJdb36Q==
 
 "@intervolga/optimize-cssnano-plugin@^1.0.5":
   version "1.0.6"
