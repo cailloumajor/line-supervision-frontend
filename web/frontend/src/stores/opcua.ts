@@ -59,23 +59,21 @@ const freshMachineMetrics = () =>
 const useStore = defineStore({
   id: "OPC-UA",
 
-  state(): StateType {
-    return {
-      machinesMetrics: freshMachineMetrics(),
-      lineGlobalParameters: {
-        campaignRemaining: 0,
-        productionObjective: 0,
-      },
-      bridgeLinkStatus: LinkStatus.Unknown,
-      centrifugoLinkStatus: LinkStatus.Unknown,
-      opcLinkStatus: LinkStatus.Unknown,
-    }
-  },
+  state: (): StateType => ({
+    machinesMetrics: freshMachineMetrics(),
+    lineGlobalParameters: {
+      campaignRemaining: 0,
+      productionObjective: 0,
+    },
+    bridgeLinkStatus: LinkStatus.Unknown,
+    centrifugoLinkStatus: LinkStatus.Unknown,
+    opcLinkStatus: LinkStatus.Unknown,
+  }),
 
   getters: {
-    opcLinkStatusDisplay(): LinkStatus {
-      if (this.bridgeLinkStatus === LinkStatus.Up) {
-        return this.opcLinkStatus
+    opcLinkStatusDisplay: (state): LinkStatus => {
+      if (state.bridgeLinkStatus === LinkStatus.Up) {
+        return state.opcLinkStatus
       } else {
         return LinkStatus.Unknown
       }
