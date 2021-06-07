@@ -2,6 +2,7 @@ import {
   FluxTableMetaData,
   HttpError,
   ParameterizedQuery,
+  Row,
 } from "@influxdata/influxdb-client-browser"
 import {
   onMounted,
@@ -11,7 +12,7 @@ import {
   toRefs,
   watch,
 } from "@vue/composition-api"
-import { defer, of, Subject, Subscription, timer } from "rxjs"
+import { defer, Observable, of, Subject, Subscription, timer } from "rxjs"
 import {
   catchError,
   map,
@@ -56,7 +57,8 @@ export default function <T extends Array<unknown>>(
 
   const query$ = defer(() => {
     loading.value = true
-    return queryAPI.rows(opts.generateQuery(influxdbBucket))
+    const rowsObservable = queryAPI.rows(opts.generateQuery(influxdbBucket))
+    return rowsObservable as Observable<Row>
   }).pipe(
     tap({
       error: (err: Error) => {

@@ -1,7 +1,4 @@
-import Centrifuge, {
-  PublicationContext,
-  SubscribeErrorContext,
-} from "centrifuge"
+import Centrifuge, { PublicationContext } from "centrifuge"
 import { defineStore } from "pinia"
 import { concat, fromEvent, merge, of } from "rxjs"
 import {
@@ -130,7 +127,7 @@ export default function (): ReturnType<typeof useStore> {
       ...proxiedChannelsSubscriptions,
     ]
 
-    fromEvent<PublicationContext>(heartbeatSubscription, "publish")
+    fromEvent(heartbeatSubscription, "publish")
       .pipe(first())
       .subscribe(() => {
         for (const proxied of proxiedChannelsSubscriptions) {
@@ -140,7 +137,7 @@ export default function (): ReturnType<typeof useStore> {
 
     merge(
       ...opcBridgeSubscriptions.map((sub) =>
-        fromEvent<SubscribeErrorContext>(sub, "error").pipe(mapTo(sub))
+        fromEvent(sub, "error").pipe(mapTo(sub))
       )
     )
       .pipe(delay(subscribeRetryDelay))
@@ -149,9 +146,7 @@ export default function (): ReturnType<typeof useStore> {
       })
 
     const bridgeLinkStatus$ = merge(
-      ...opcBridgeSubscriptions.map((sub) =>
-        fromEvent<PublicationContext>(sub, "publish")
-      )
+      ...opcBridgeSubscriptions.map((sub) => fromEvent(sub, "publish"))
     ).pipe(
       mapTo(LinkStatus.Up),
       timeout(heartbeatTimeout),
@@ -162,10 +157,9 @@ export default function (): ReturnType<typeof useStore> {
       store.bridgeLinkStatus = status
     })
 
-    const opcData$ = fromEvent<PublicationContext>(
-      opcDataChangeSubscription,
-      "publish"
-    ).pipe(map((publication) => publication.data as OPCDataChangeMessage))
+    const opcData$ = fromEvent(opcDataChangeSubscription, "publish").pipe(
+      map((pub) => (pub as PublicationContext).data as OPCDataChangeMessage)
+    )
     opcData$.pipe(filter(isMachineMetricsMessage)).subscribe((message) => {
       store.machinesMetrics = message.payload
     })
@@ -173,11 +167,8 @@ export default function (): ReturnType<typeof useStore> {
       store.lineGlobalParameters = message.payload
     })
 
-    const opcStatus$ = fromEvent<PublicationContext>(
-      opcStatusSubscription,
-      "publish"
-    ).pipe(
-      map((publication) => publication.data as OPCStatusMessage),
+    const opcStatus$ = fromEvent(opcStatusSubscription, "publish").pipe(
+      map((pub) => (pub as PublicationContext).data as OPCStatusMessage),
       map((message) => message.payload)
     )
     opcStatus$.subscribe((status) => {
