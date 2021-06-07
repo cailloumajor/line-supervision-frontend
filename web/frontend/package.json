@@ -9,7 +9,7 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "@fontsource/roboto": "4.2.3",
+    "@fontsource/roboto": "4.4.5",
     "@influxdata/influxdb-client-apis": "1.12.0",
     "@influxdata/influxdb-client-browser": "1.12.0",
     "@mdi/font": "5.9.55",
