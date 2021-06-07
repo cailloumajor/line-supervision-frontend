@@ -16,7 +16,7 @@
     "@vue/composition-api": "1.0.0-rc.11",
     "@vueuse/core": "4.11.2",
     "apexcharts": "3.27.1",
-    "centrifuge": "2.7.5",
+    "centrifuge": "2.7.6",
     "core-js": "3.14.0",
     "dayjs": "1.10.5",
     "lodash": "4.17.21",
