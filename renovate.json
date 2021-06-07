@@ -5,6 +5,13 @@
     "config:base",
     ":preserveSemverRanges"
   ],
+  "packageRules": [
+    {
+      "matchSourceUrlPrefixes": [
+        "https://github.com/influxdata/influxdb-client-js"
+      ]
+    }
+  ],
   "regexManagers": [
     {
       "fileMatch": [
