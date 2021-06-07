@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "@fontsource/roboto": "4.4.5",
-    "@influxdata/influxdb-client-apis": "1.12.0",
-    "@influxdata/influxdb-client-browser": "1.12.0",
+    "@influxdata/influxdb-client-apis": "1.14.0",
+    "@influxdata/influxdb-client-browser": "1.14.0",
     "@mdi/font": "5.9.55",
     "@vue/composition-api": "1.0.0-rc.11",
     "@vueuse/core": "4.11.2",
