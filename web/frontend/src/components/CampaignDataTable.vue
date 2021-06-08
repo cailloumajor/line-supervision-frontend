@@ -50,10 +50,8 @@ export default defineComponent({
       const refClasses = new DifferenciatingMap()
       const batchClasses = new DifferenciatingMap()
       return custom.machineIndexes.map((machineIndex) => {
-        const {
-          partReference: ref,
-          materialBatch: batch,
-        } = opcUaStore.machinesMetrics[machineIndex].campaign
+        const { partReference: ref, materialBatch: batch } =
+          opcUaStore.machinesMetrics[machineIndex].campaign
         return {
           machine: machineNames[machineIndex],
           ref,
