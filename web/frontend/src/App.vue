@@ -25,7 +25,7 @@
         src="@/assets/company-logo.png"
         :style="logoStyle"
       />
-      <v-toolbar-title>{{ appTitle }}</v-toolbar-title>
+      <v-app-bar-title>{{ appTitle }}</v-app-bar-title>
       <v-spacer />
       <v-btn
         v-if="!isProdLineScreen"
