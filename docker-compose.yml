@@ -83,8 +83,16 @@ services:
     networks:
       - net-private
     volumes:
-      - ./certificates/cert.der:/tmp/certs/cert.der:ro
-      - ./certificates/key.pem:/tmp/certs/key.pem:ro
+      # Use long syntax, issuing an error if source files don't exist,
+      # instead of creating directories on the host. See https://github.com/moby/moby/issues/13121
+      - type: bind
+        source: ./certificates/cert.der
+        target: /tmp/certs/cert.der
+        read_only: true
+      - type: bind
+        source: ./certificates/key.pem
+        target: /tmp/certs/key.pem
+        read_only: true
 
   web:
     build:
