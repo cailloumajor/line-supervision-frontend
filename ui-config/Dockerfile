@@ -32,7 +32,7 @@ RUN set -eux; \
     rm src/lib.rs
 
 COPY src ./src
-RUN cargo install --path .
+RUN cargo build --release
 
 
 FROM debian:buster-slim AS final
@@ -46,7 +46,7 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends curl; \
     rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /usr/local/cargo/bin/ui_config /usr/local/bin/
+COPY --from=builder /usr/src/app/target/release/ui_config /usr/local/bin/
 
 COPY docker-healthcheck.sh /usr/local/bin/
 HEALTHCHECK CMD ["docker-healthcheck.sh"]
