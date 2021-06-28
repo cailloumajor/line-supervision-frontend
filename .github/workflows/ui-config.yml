@@ -86,6 +86,6 @@ jobs:
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: lcov.info
+          path-to-lcov: ${{ github.workspace }}/ui-config/lcov.info
           flag-name: ui-config-tests
           base-path: ui-config
