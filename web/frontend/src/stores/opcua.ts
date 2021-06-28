@@ -12,7 +12,6 @@ import {
   timeout,
 } from "rxjs/operators"
 
-import { frontendConfig } from "@/config"
 import {
   LineGlobalParameters,
   LinkStatus,
@@ -82,7 +81,6 @@ const useStore = defineStore({
 })
 
 const centrifugoURL = `ws://${window.location.host}/centrifugo/connection/websocket`
-const { centrifugoToken } = frontendConfig
 
 let initialized = false
 
@@ -96,7 +94,6 @@ export default function (): ReturnType<typeof useStore> {
       debug: process.env.NODE_ENV === "development",
       maxRetry: 5000,
     })
-    centrifuge.setToken(centrifugoToken)
 
     const centrifugoLinkStatus$ = merge(
       fromEvent(centrifuge, "connect").pipe(mapTo(LinkStatus.Up)),

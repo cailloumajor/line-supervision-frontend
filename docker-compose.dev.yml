@@ -12,8 +12,6 @@ services:
       - "8080"
     volumes:
       - .:/workspace:cached
-    environment:
-      - CENTRIFUGO_TOKEN
 
   reverse-proxy:
     labels:

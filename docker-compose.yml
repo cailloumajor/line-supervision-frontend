@@ -10,7 +10,6 @@ services:
       - CENTRIFUGO_PROXY_SUBSCRIBE_ENDPOINT=http://opcua-bridge:8008/centrifugo/subscribe
       # Following environment variables will be obtained from `.env` file
       - CENTRIFUGO_API_KEY
-      - CENTRIFUGO_TOKEN_HMAC_SECRET_KEY
     labels:
       dozzle.enable: "true"
       traefik.enable: "true"
@@ -111,7 +110,6 @@ services:
       - INFLUXDB_ORG
       - INFLUXDB_BUCKET
       - INFLUXDB_READ_TOKEN
-      - CENTRIFUGO_TOKEN_HMAC_SECRET_KEY
     labels:
       dozzle.enable: "true"
       traefik.enable: "true"

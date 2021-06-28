@@ -1,5 +1,6 @@
 v3_use_offset = true
 anonymous = true
+client_anonymous = true
 
 [[namespaces]]
 name = "proxied"
