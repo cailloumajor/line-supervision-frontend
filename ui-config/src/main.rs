@@ -20,6 +20,11 @@ struct AppState {
     config_json: String,
 }
 
+#[get("/health")]
+async fn health() -> impl Responder {
+    HttpResponse::Ok().finish()
+}
+
 #[get("/config")]
 async fn config(data: web::Data<AppState>) -> impl Responder {
     HttpResponse::Ok()
@@ -53,6 +58,7 @@ async fn main() -> Result<()> {
         App::new()
             .app_data(state.clone())
             .wrap(logger)
+            .service(health)
             .service(config)
             .service(logo)
     })
