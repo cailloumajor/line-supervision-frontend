@@ -20,11 +20,7 @@
 
     <v-app-bar app dense>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
-      <img
-        class="ml-1 mr-5 py-1"
-        src="@/assets/company-logo.png"
-        :style="logoStyle"
-      />
+      <img class="ml-1 mr-5 py-1" src="/ui-config/logo" :style="logoStyle" />
       <v-app-bar-title>{{ appTitle }}</v-app-bar-title>
       <v-spacer />
       <v-btn
