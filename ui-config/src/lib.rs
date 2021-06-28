@@ -29,7 +29,7 @@ pub fn replace_env_vars(source: &str) -> Result<String> {
         let full_match = caps.get(0).unwrap();
         let env_key = caps
             .name("env_key")
-            .ok_or(anyhow!("missing environment variable key"))?
+            .ok_or_else(|| anyhow!("missing environment variable key"))?
             .as_str();
         let replacement = env::var(env_key)
             .with_context(|| format!("failed to get value of {} environment variable", env_key))?;
