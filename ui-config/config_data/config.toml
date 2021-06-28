@@ -8,10 +8,9 @@ app_title = "Production line"
 
 # A Table for InfluxDB related configuration.
 [influxdb]
-url = "${INFLUXDB_URL}"
 org = "${INFLUXDB_ORG}"
 bucket = "${INFLUXDB_BUCKET}"
-token = "${INFLUXDB_TOKEN}"
+token = "${INFLUXDB_READ_TOKEN}"
 
 # A Table of configuration for the synoptics representation.
 [synoptics]

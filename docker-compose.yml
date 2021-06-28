@@ -94,6 +94,35 @@ services:
         target: /tmp/certs/key.pem
         read_only: true
 
+  ui-config:
+    build:
+      context: ./ui-config
+    environment:
+      # Following environment variables will be obtained from `.env` file
+      - INFLUXDB_ORG
+      - INFLUXDB_BUCKET
+      - INFLUXDB_READ_TOKEN
+    labels:
+      dozzle.enable: "true"
+      traefik.enable: "true"
+      traefik.http.middlewares.ui-config-stripprefix.stripprefix.prefixes: "/ui-config"
+      traefik.http.middlewares.ui-config-stripprefix.stripprefix.forceslash: "false"
+      traefik.http.routers.ui-config.middlewares: "ui-config-stripprefix@docker"
+      traefik.http.routers.ui-config.rule: "PathPrefix(`/ui-config/`)"
+    networks:
+      - net-private
+    volumes:
+      # Use long syntax, issuing an error if source files don't exist,
+      # instead of creating directories on the host. See https://github.com/moby/moby/issues/13121
+      - type: bind
+        source: ./ui-config.toml
+        target: /app/config_data/config.toml
+        read_only: true
+      - type: bind
+        source: ./logo.png
+        target: /app/config_data/logo.png
+        read_only: true
+
   web:
     build:
       context: ./web
