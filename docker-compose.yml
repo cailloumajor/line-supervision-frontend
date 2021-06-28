@@ -78,16 +78,8 @@ services:
     networks:
       - net-private
     volumes:
-      # Use long syntax, issuing an error if source files don't exist,
-      # instead of creating directories on the host. See https://github.com/moby/moby/issues/13121
-      - type: bind
-        source: ./certificates/cert.der
-        target: /tmp/certs/cert.der
-        read_only: true
-      - type: bind
-        source: ./certificates/key.pem
-        target: /tmp/certs/key.pem
-        read_only: true
+      - ./certificates/cert.der:/tmp/certs/cert.der
+      - ./certificates/key.pem:/tmp/certs/key.pem
 
   ui-config:
     build:
@@ -107,16 +99,8 @@ services:
     networks:
       - net-private
     volumes:
-      # Use long syntax, issuing an error if source files don't exist,
-      # instead of creating directories on the host. See https://github.com/moby/moby/issues/13121
-      - type: bind
-        source: ./ui-config.toml
-        target: /app/config_data/config.toml
-        read_only: true
-      - type: bind
-        source: ./logo.png
-        target: /app/config_data/logo.png
-        read_only: true
+      - ./ui-config.toml:/app/config_data/config.toml
+      - ./logo.png:/app/config_data/logo.png
 
   web:
     build:
