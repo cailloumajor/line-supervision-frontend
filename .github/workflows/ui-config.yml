@@ -18,12 +18,9 @@ on:
       - "ui-config/Dockerfile"
       - ".github/workflows/ui-config.yml"
 
-env:
-  SUBDIR: ui-config
-
 defaults:
   run:
-    working-directory: ${{ env.SUBDIR }}
+    working-directory: ui-config
 
 jobs:
   quality:
@@ -72,4 +69,4 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           flag-name: ui-config-tests
-          base-path: ${{ env.SUBDIR }}
+          base-path: ui-config
