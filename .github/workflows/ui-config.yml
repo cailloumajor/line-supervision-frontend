@@ -48,7 +48,7 @@ jobs:
           override: true
           components: rustfmt, clippy
       - name: Check code formatting
-        run: cargo fmt --check --verbose
+        run: cargo fmt --all -- --check
       - name: Check and lint
         run: cargo clippy -- -D warnings
   tests:
