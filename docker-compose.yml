@@ -95,7 +95,7 @@ services:
       traefik.http.middlewares.ui-config-stripprefix.stripprefix.prefixes: "/ui-config"
       traefik.http.middlewares.ui-config-stripprefix.stripprefix.forceslash: "false"
       traefik.http.routers.ui-config.middlewares: "ui-config-stripprefix@docker"
-      traefik.http.routers.ui-config.rule: "PathPrefix(`/ui-config/`)"
+      traefik.http.routers.ui-config.rule: "PathPrefix(`/ui-config/`) || Path(`/ui-config`)"
     networks:
       - net-private
     volumes:
