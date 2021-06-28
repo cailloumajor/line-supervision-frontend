@@ -39,7 +39,7 @@ jobs:
           key: ${{ runner.os }}-${{ github.job }}-cargo-${{ hashFiles('ui-config/Cargo.lock') }}
       - name: Get Rust version from Dockerfile
         id: get-rust-version
-        run: echo "::set-output name=RUST_VERSION::$(grep -oP 'FROM rust:\K[\d.]+' ui-config/Dockerfile)"
+        run: echo "::set-output name=RUST_VERSION::$(grep -oP 'FROM rust:\K[\d.]+' Dockerfile)"
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
