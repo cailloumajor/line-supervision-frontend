@@ -28,6 +28,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Setup Cargo cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-${{ github.job }}-cargo-${{ hashFiles('ui-config/Cargo.lock') }}
       - name: Get Rust version from Dockerfile
         id: get-rust-version
         run: echo "::set-output name=RUST_VERSION::$(grep -oP 'FROM rust:\K[\d.]+' ui-config/Dockerfile)"
@@ -49,6 +58,15 @@ jobs:
       RUSTFLAGS: -Zinstrument-coverage
     steps:
       - uses: actions/checkout@v2
+      - name: Setup Cargo cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-${{ github.job }}-cargo-${{ hashFiles('ui-config/Cargo.lock') }}
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
