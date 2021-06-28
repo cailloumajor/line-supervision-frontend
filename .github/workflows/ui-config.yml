@@ -3,7 +3,7 @@ name: UI configuration service CI
 on:
   push:
     branches:
-      - master
+      - main
     paths:
       - "ui-config/src/**"
       - "ui-config/Cargo.*"
@@ -11,7 +11,7 @@ on:
       - ".github/workflows/ui-config.yml"
   pull_request:
     branches:
-      - master
+      - main
     paths:
       - "ui-config/src/**"
       - "ui-config/Cargo.*"
