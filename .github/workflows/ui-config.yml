@@ -39,6 +39,8 @@ jobs:
           override: true
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v1
+        with:
+          working-directory: ui-config
       - name: Check code formatting
         run: cargo fmt --all -- --check
       - name: Check and lint
@@ -58,6 +60,8 @@ jobs:
           override: true
           components: llvm-tools-preview
       - uses: Swatinem/rust-cache@v1
+        with:
+          working-directory: ui-config
       - name: Install grcov
         run: cargo install grcov
       - name: Build the package
