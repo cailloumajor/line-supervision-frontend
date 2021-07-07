@@ -4,9 +4,10 @@ import { ApexOptions } from "apexcharts"
 import dayjs from "dayjs"
 
 import { statePalette, ShapeID } from "@/common"
+import useInfluxDB from "@/composables/influxdb"
 import useInfluxChart from "@/composables/influx-chart"
 import { useTheme } from "@/composables/theme"
-import { machineNames, machineStateChart as custom } from "@/customization"
+import useUiConfigStore from "@/stores/ui-config"
 
 interface DataSerie {
   name: string // Machine state
@@ -27,7 +28,15 @@ export default defineComponent({
   setup() {
     const lastStateSentinel = new Map<string, number | null>()
 
+    const { influxDB } = useInfluxDB()
     const theme = useTheme()
+    const uiConfig = useUiConfigStore()
+
+    const machines = uiConfig.machines.filter((machine) => machine.stateChart)
+    const machineSet = machines.map((machine) => machine.index.toString())
+
+    const machineName = (index: string) =>
+      uiConfig.machines[parseInt(index, 10)].name
 
     const timeRange = reactive({
       start: dayjs(),
@@ -40,6 +49,8 @@ export default defineComponent({
     }
 
     return useInfluxChart<DataSerie[]>({
+      influxDB,
+
       queryInterval: 60000,
 
       generateQuery: (dbName) => {
@@ -51,7 +62,7 @@ export default defineComponent({
             |> filter(fn: (r) =>
               r._measurement == "dbLineSupervision.machine" and
               r._field =~ /^machineState\./ and
-              contains(value: r.machine_index, set: ${custom.machineIndexes})
+              contains(value: r.machine_index, set: ${machineSet})
           	)
             |> group(columns: ["machine_index"])
             |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
@@ -75,8 +86,8 @@ export default defineComponent({
 
       seed: monitoredStates.map((state) => ({
         name: statePalette[state].description,
-        data: custom.machineIndexes.map((machineIndex) => ({
-          x: machineNames[parseInt(machineIndex, 10)],
+        data: machines.map((machine) => ({
+          x: machine.name,
           y: [0, 0],
         })),
       })),
@@ -97,7 +108,7 @@ export default defineComponent({
         if (lastStateIndex !== stateIndex) {
           if (stateIndex !== null) {
             acc[stateIndex].data.push({
-              x: machineNames[parseInt(machineIndex, 10)],
+              x: machineName(machineIndex),
               y: [time, time],
             })
           }

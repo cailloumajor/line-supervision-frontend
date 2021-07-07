@@ -7,8 +7,9 @@ import { computed, defineComponent, reactive } from "@vue/composition-api"
 import { ApexOptions } from "apexcharts"
 import dayjs, { Dayjs } from "dayjs"
 
-import { machineNames, productionChart as custom } from "@/customization"
+import useInfluxDB from "@/composables/influxdb"
 import useInfluxChart from "@/composables/influx-chart"
+import useUiConfigStore from "@/stores/ui-config"
 import useOpcUaStore from "@/stores/opcua"
 
 type Point = [string, number | null]
@@ -18,13 +19,15 @@ interface DataSerie {
   data: Point[]
 }
 
-const serieName = custom.machineIndexes
-  .map((machIdx) => machineNames[parseInt(machIdx)])
-  .join(" + ")
-
 export default defineComponent({
   setup() {
+    const { influxDB } = useInfluxDB()
+    const uiConfig = useUiConfigStore()
     const opcUaStore = useOpcUaStore()
+
+    const machines = uiConfig.machines.filter((machine) => machine.production)
+    const machineSet = machines.map((machine) => machine.index.toString())
+    const serieName = machines.map((machine) => machine.name).join(" + ")
 
     const timeRange = reactive({
       start: dayjs(),
@@ -48,13 +51,15 @@ export default defineComponent({
     }
 
     return useInfluxChart<DataSerie[]>({
+      influxDB,
+
       queryInterval: 60000,
 
       generateQuery: (dbName) => {
         updateTimeRange()
         const windowOffset = fluxDuration(`${timeRange.start.minute()}m`)
-        const machineColumns = custom.machineIndexes.map(
-          (idx) => `machine${idx}`
+        const machineColumns = machines.map(
+          (machine) => `machine${machine.index}`
         )
         const machineSum = fluxExpression(
           machineColumns.map((mc) => `r.${mc}`).join(" + ")
@@ -65,7 +70,7 @@ export default defineComponent({
             |> filter(fn: (r) =>
               r._measurement == "dbLineSupervision.machine" and
               r._field == "counters.production" and
-              contains(value: r.machine_index, set: ${custom.machineIndexes})
+              contains(value: r.machine_index, set: ${machineSet})
             )
             |> map(fn: (r) => ({ r with machine_index: "machine" + r.machine_index }))
             |> pivot(columnKey: ["machine_index"], rowKey: ["_time"], valueColumn: "_value")

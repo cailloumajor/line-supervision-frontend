@@ -7,9 +7,9 @@ import { VNode } from "vue"
 import ApexChart from "vue-apexcharts"
 import { VAlert, VOverlay, VProgressCircular } from "vuetify/lib"
 
-import useInfluxDB, {
+import useInfluxQuery, {
   Options as InfluxComposableOptions,
-} from "@/composables/influxdb"
+} from "@/composables/influx-query"
 import useResponsiveness from "@/composables/responsiveness"
 import { useTheme } from "@/composables/theme"
 
@@ -22,7 +22,7 @@ export default function <T extends Array<unknown>>(
   ctx: ComponentContext<T>
 ): () => VNode {
   const theme = useTheme()
-  const { influxData, loading, queryError } = useInfluxDB(ctx)
+  const { influxData, loading, queryError } = useInfluxQuery(ctx)
 
   const commonOptions = computed<ApexOptions>(() => ({
     chart: {

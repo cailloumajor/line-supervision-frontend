@@ -9,7 +9,7 @@
     </thead>
     <tbody>
       <tr v-for="(row, rowIndex) in campaignData" :key="`row-${rowIndex}`">
-        <td>{{ row.machine }}</td>
+        <td>{{ row.name }}</td>
         <td :class="row.refClass">{{ row.ref }}</td>
         <td :class="row.batchClass">{{ row.batch }}</td>
       </tr>
@@ -20,8 +20,8 @@
 <script lang="ts">
 import { computed, defineComponent } from "@vue/composition-api"
 
-import { campaignDataTable as custom, machineNames } from "@/customization"
 import useOpcUaStore from "@/stores/opcua"
+import useUiConfigStore from "@/stores/ui-config"
 
 const differenciatingClasses = [
   "blue--text text--lighten-1",
@@ -45,15 +45,18 @@ class DifferenciatingMap {
 export default defineComponent({
   setup() {
     const opcUaStore = useOpcUaStore()
+    const uiConfig = useUiConfigStore()
 
     const campaignData = computed(() => {
       const refClasses = new DifferenciatingMap()
       const batchClasses = new DifferenciatingMap()
-      return custom.machineIndexes.map((machineIndex) => {
+      const machines = uiConfig.machines.filter((machine) => machine.campaign)
+      return machines.map((machine) => {
+        const { index, name } = machine
         const { partReference: ref, materialBatch: batch } =
-          opcUaStore.machinesMetrics[machineIndex].campaign
+          opcUaStore.machinesMetrics[index].campaign
         return {
-          machine: machineNames[machineIndex],
+          name,
           ref,
           batch,
           refClass: refClasses.take(ref),

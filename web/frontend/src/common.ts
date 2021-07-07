@@ -1,7 +1,3 @@
-import { InfluxDB } from "@influxdata/influxdb-client-browser"
-
-import { frontendConfig } from "@/config"
-
 type ThemeableColor = (darkMode: boolean) => string
 
 export type ShapeID =
@@ -50,6 +46,3 @@ export const statePalette: Record<ShapeID, MachineStateShape> = {
     secondaryColor: themedGrey,
   },
 }
-
-const { influxdbUrl: url, influxdbToken: token } = frontendConfig
-export const influxDB = new InfluxDB({ url, token })

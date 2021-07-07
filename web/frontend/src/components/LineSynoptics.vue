@@ -29,7 +29,7 @@
         {{ icon.description }}
       </v-col>
     </v-row>
-    <svg ref="layoutSvg" viewBox="0 0 4720 1396.333">
+    <svg ref="layoutSvg" :viewBox="svgViewBox">
       <defs>
         <pattern
           v-for="pat in hatches"
@@ -43,73 +43,21 @@
           <rect :fill="pat.secondary" width="100%" height="100%" />
           <line :stroke="pat.primary" x2="0" y2="100%" stroke-width="50" />
         </pattern>
-        <path
-          id="machine-0-path"
-          d="***REMOVED***"
-        />
-        <path
-          id="machine-1-path"
-          d="***REMOVED***"
-        />
-        <path
-          id="machine-2-path"
-          d="***REMOVED***"
-        />
-        <path
-          id="machine-3-path"
-          d="***REMOVED***"
-        />
-        <path
-          id="machine-4-path"
-          d="***REMOVED***"
-        />
-        <path
-          id="machine-5-path"
-          d="***REMOVED***"
-        />
-        <path
-          id="machine-6-path"
-          d="***REMOVED***"
-        />
-        <path
-          id="machine-7-path"
-          d="***REMOVED***"
-        />
-        <path
-          id="machine-8-path"
-          d="***REMOVED***"
-        />
-        <path
-          id="machine-9-path"
-          d="***REMOVED***"
-        />
-        <path
-          id="machine-10-path"
-          d="***REMOVED***"
-        />
-        <path
-          id="machine-11-path"
-          d="***REMOVED***"
-        />
-        <path
-          id="machine-12-path"
-          d="***REMOVED***"
-        />
       </defs>
-      <g v-for="(data, index) in layoutData" :key="`machine-${index}`">
-        <title>{{ `Machine ${index}` }}</title>
-        <use
-          :class="{ blink: data.thumbBlink }"
-          :fill="data.thumbFill"
-          :href="`#machine-${index}-path`"
+      <g v-for="machine in layoutData" :key="`machine-${machine.index}`">
+        <title>{{ `Machine ${machine.index}` }}</title>
+        <path
+          :class="{ blink: machine.thumbBlink }"
+          :d="machine.path"
+          :fill="machine.thumbFill"
           class="machine-path"
         />
-        <text :x="data.tagX" :y="data.tagY" class="machine-name">
-          {{ data.tagText }}
+        <text :x="machine.tagPos.x" :y="machine.tagPos.y" class="machine-name">
+          {{ machine.name }}
         </text>
         <circle
-          :cx="data.cardX"
-          :cy="data.cardY"
+          :cx="machine.cardPos.x"
+          :cy="machine.cardPos.y"
           r="10"
           ref="cardAnchor"
           visibility="hidden"
@@ -187,8 +135,8 @@ import Vue from "vue"
 import { statePalette, MachineStateShape, ShapeID } from "@/common"
 import useResponsiveness from "@/composables/responsiveness"
 import { useTheme } from "@/composables/theme"
-import { machineNames } from "@/customization"
 import useOpcUaStore from "@/stores/opcua"
+import useUiConfigStore from "@/stores/ui-config"
 import { MachineCounters, MachineState } from "@/stores/types"
 
 interface CardIcon {
@@ -197,23 +145,6 @@ interface CardIcon {
   description: string
   value?: number
   show?: boolean
-}
-
-interface CardData {
-  index: number
-  x: number
-  y: number
-  icons: CardIcon[]
-}
-
-interface LayoutMachineData {
-  tagText: string
-  thumbFill: string
-  thumbBlink: boolean
-  cardX: number
-  cardY: number
-  tagX: number
-  tagY: number
 }
 
 const cardIcons = (counters?: MachineCounters): CardIcon[] => [
@@ -251,22 +182,6 @@ const cardIcons = (counters?: MachineCounters): CardIcon[] => [
   },
 ]
 
-const LayoutData = [
-  { cardX: 434, cardY: 441, tagX: 434, tagY: 411 },
-  { cardX: 530, cardY: 1000, tagX: 999, tagY: 1254 },
-  { cardX: 1181, cardY: 677, tagX: 1181, tagY: 647 },
-  { cardX: 1793, cardY: 676, tagX: 1793, tagY: 646 },
-  { cardX: 2660, cardY: 130, tagX: 2045, tagY: 263 },
-  { cardX: 2566, cardY: 524, tagX: 2566, tagY: 494 },
-  { cardX: 3110, cardY: 763, tagX: 3110, tagY: 733 },
-  { cardX: 3651, cardY: 780, tagX: 3651, tagY: 750 },
-  { cardX: 3854, cardY: 312, tagX: 3854, tagY: 282 },
-  { cardX: 3281, cardY: 304, tagX: 3281, tagY: 274 },
-  { cardX: 4279, cardY: 551, tagX: 4279, tagY: 521 },
-  { cardX: 4353, cardY: 338, tagX: 4353, tagY: 308 },
-  { cardX: 4550, cardY: 830, tagX: 4550, tagY: 800 },
-]
-
 function hatchID(key: string): string {
   return `hatch-${kebabCase(key)}`
 }
@@ -285,7 +200,13 @@ function fillShape(state: MachineState): ShapeID {
 export default defineComponent({
   setup() {
     const opcUaStore = useOpcUaStore()
+    const uiConfig = useUiConfigStore()
     const theme = useTheme()
+
+    const svgViewBox = (() => {
+      const { height, width } = uiConfig.config.synoptics.viewbox
+      return `0 0 ${width} ${height}`
+    })()
 
     const cardAnchor = ref<SVGCircleElement[] | null>(null)
     const layoutContainer = ref<HTMLDivElement | null>(null)
@@ -293,7 +214,7 @@ export default defineComponent({
     const machineCard = ref<Vue[] | null>(null)
 
     const cardDOMPositions = ref(
-      [...Array(LayoutData.length)].map(() => ({ x: 0, y: 0 }))
+      [...Array(uiConfig.machines.length)].map(() => ({ x: 0, y: 0 }))
     )
 
     const responsiveDimensions = reactive({
@@ -334,8 +255,8 @@ export default defineComponent({
         }))
     )
 
-    const cardsData = computed<CardData[]>(() => {
-      return opcUaStore.machinesMetrics
+    const cardsData = computed(() => {
+      return opcUaStore.machinesWithUiConfig
         .map(({ counters }, index) => {
           return {
             index,
@@ -348,16 +269,13 @@ export default defineComponent({
         .filter(({ icons }) => icons.length)
     })
 
-    const layoutData = computed<LayoutMachineData[]>(() => {
-      return opcUaStore.machinesMetrics.map(({ machineState }, index) => {
-        return {
-          ...LayoutData[index],
-          tagText: machineNames[index],
-          thumbFill: thumbFillPalette.value[fillShape(machineState)].fill,
-          thumbBlink: machineState.alarm,
-        }
-      })
-    })
+    const layoutData = computed(() =>
+      opcUaStore.machinesWithUiConfig.map(({ machineState }, index) => ({
+        ...uiConfig.machines[index],
+        thumbFill: thumbFillPalette.value[fillShape(machineState)].fill,
+        thumbBlink: machineState.alarm,
+      }))
+    )
 
     function placeMachineCards() {
       if (!cardAnchor.value) return
@@ -432,6 +350,7 @@ export default defineComponent({
       layoutSvg,
       machineCard,
       opcUaState: opcUaStore.$state,
+      svgViewBox,
       thumbFillPalette,
     }
   },

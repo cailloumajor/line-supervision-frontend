@@ -1,6 +1,12 @@
 <template>
   <v-app>
-    <v-navigation-drawer v-model="drawer" app temporary>
+    <v-overlay v-if="!!(loadingAlert.type && loadingAlert.message)">
+      <v-alert class="loading-alert text-center" :type="loadingAlert.type">
+        {{ loadingAlert.message }}
+      </v-alert>
+    </v-overlay>
+
+    <v-navigation-drawer v-if="uiConfig.loaded" v-model="drawer" app temporary>
       <v-list>
         <v-list-item
           v-for="(route, index) in routes"
@@ -18,10 +24,10 @@
       </v-list>
     </v-navigation-drawer>
 
-    <v-app-bar app dense>
+    <v-app-bar v-if="uiConfig.loaded" app dense>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
       <img class="ml-1 mr-5 py-1" src="/ui-config/logo" :style="logoStyle" />
-      <v-app-bar-title>{{ appTitle }}</v-app-bar-title>
+      <v-app-bar-title>{{ uiConfig.config.appTitle }}</v-app-bar-title>
       <v-spacer />
       <v-btn
         v-if="!isProdLineScreen"
@@ -34,60 +40,31 @@
 
     <v-main>
       <v-container fluid>
-        <router-view />
+        <router-view v-if="uiConfig.loaded" />
       </v-container>
-      <v-overlay :value="!plcLinkUp" absolute opacity="0.8" z-index="2">
-        <v-alert type="error">Pas de connection à l'automate</v-alert>
-      </v-overlay>
+      <plc-link-down v-if="uiConfig.loaded" />
     </v-main>
 
-    <v-footer fixed>
-      <span class="text-body-2">{{ clock }}</span>
-      <v-spacer />
-      <v-chip
-        v-for="state of linksData"
-        :key="`state-${state.text}`"
-        class="mx-1"
-        small
-      >
-        <v-icon :color="state.color" class="mr-1" left small>
-          {{ state.icon }}
-        </v-icon>
-        {{ state.text }}
-      </v-chip>
-      <v-btn v-if="!isProdLineScreen" href="/logs" x-small target="_blank">
-        Logs
-      </v-btn>
-    </v-footer>
+    <app-footer v-if="uiConfig.loaded" />
   </v-app>
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, ref } from "@vue/composition-api"
-import { useTimestamp } from "@vueuse/core"
-import * as CSS from "csstype"
-import dayjs from "dayjs"
+import type CSS from "csstype"
 
-import { appTitle, htmlTitle } from "@/customization"
+import { computed, defineComponent, ref, watch } from "@vue/composition-api"
+
+import useUiConfigStore from "@/stores/ui-config"
 import useResponsiveness from "@/composables/responsiveness"
 import { provideTheme } from "@/composables/theme"
-import useInfluxDBStore from "@/stores/influxdb"
-import useOpcUaStore from "@/stores/opcua"
-import { LinkStatus } from "@/stores/types"
-
-interface LinkData {
-  text: string
-  color: string
-  icon: string
-}
 
 export default defineComponent({
   // eslint-disable-next-line
   setup(_, { root: { $vuetify } }) {
     provideTheme(computed(() => $vuetify.theme))
 
-    const influxDBStore = useInfluxDBStore()
-    const opcUaStore = useOpcUaStore()
+    const uiConfig = useUiConfigStore()
+    uiConfig.init()
 
     const routes: { name: string; menu: string; icon: string }[] = [
       { name: "Home", menu: "Vue graphique", icon: "mdi-panorama" },
@@ -96,62 +73,61 @@ export default defineComponent({
 
     const drawer = ref(false)
 
-    const timestamp = useTimestamp({ interval: 1000 })
-    const clock = computed(() =>
-      dayjs(timestamp.value).format("DD/MM/YYYY HH:mm:ss")
-    )
-
-    const linksData = computed<LinkData[]>(() => {
-      function linkData(text: string, state: LinkStatus): LinkData {
+    const loadingAlert = computed((): { type?: string; message?: string } => {
+      if (uiConfig.loading) {
         return {
-          text,
-          color: {
-            [LinkStatus.Up]: "green",
-            [LinkStatus.Down]: "red",
-            [LinkStatus.Unknown]: "orange",
-          }[state],
-          icon: {
-            [LinkStatus.Up]: "mdi-swap-horizontal",
-            [LinkStatus.Down]: "mdi-link-variant-off",
-            [LinkStatus.Unknown]: "mdi-help",
-          }[state],
+          type: "info",
+          message: "Chargement de la configuration...",
         }
+      } else if (uiConfig.initError) {
+        return {
+          type: "error",
+          message: `Erreur de chargement de la configuration :\n${uiConfig.initError}`,
+        }
+      } else {
+        return {}
       }
-      return [
-        linkData("Centrifugo", opcUaStore.centrifugoLinkStatus),
-        linkData("OPC bridge", opcUaStore.bridgeLinkStatus),
-        linkData("OPC", opcUaStore.opcLinkStatusDisplay),
-        linkData("InfluxDB", influxDBStore.linkStatus),
-      ]
     })
 
     const logoStyle = computed<CSS.Properties>(() => ({
       filter: $vuetify.theme.dark === true ? "brightness(1.5)" : undefined,
-      height: "80%",
+      height: "100%",
     }))
-
-    const plcLinkUp = computed(
-      () => opcUaStore.opcLinkStatusDisplay == LinkStatus.Up
-    )
 
     const { isProdLineScreen } = useResponsiveness()
     if (isProdLineScreen) {
       document.documentElement.classList.add("prod-line-client")
     }
 
+    watch(
+      () => uiConfig.config,
+      ({ htmlTitle }) => {
+        document.title = htmlTitle
+      },
+      { deep: true }
+    )
+
     return {
-      appTitle,
       routes,
       drawer,
-      clock,
       isProdLineScreen,
-      linksData,
+      loadingAlert,
       logoStyle,
-      plcLinkUp,
+      uiConfig,
     }
   },
-  metaInfo: {
-    title: htmlTitle,
+
+  components: {
+    AppFooter: () =>
+      import(
+        /* webpackChunkName: "app-footer" */
+        "@/components/AppFooter.vue"
+      ),
+    PlcLinkDown: () =>
+      import(
+        /* webpackChunkName: "plc-link-down" */
+        "@/components/PlcLinkDown.vue"
+      ),
   },
 })
 </script>
@@ -167,5 +143,9 @@ html.prod-line-client {
   .v-alert__icon {
     font-size: 1.5rem;
   }
+}
+
+.loading-alert {
+  white-space: pre-line;
 }
 </style>

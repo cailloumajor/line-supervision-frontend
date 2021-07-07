@@ -3,22 +3,8 @@ import { defineStore } from "pinia"
 import { from, of, Subscription, timer } from "rxjs"
 import { catchError, map, timeout, switchMap } from "rxjs/operators"
 
-import { influxDB } from "@/common"
+import useInfluxDB from "@/composables/influxdb"
 import { LinkStatus } from "./types"
-
-const healthAPI = new HealthAPI(influxDB)
-
-const linkStatus$ = timer(500, 10000).pipe(
-  switchMap(() =>
-    from(healthAPI.getHealth()).pipe(
-      map((health) =>
-        health.status === "pass" ? LinkStatus.Up : LinkStatus.Down
-      ),
-      timeout(1000),
-      catchError(() => of(LinkStatus.Down))
-    )
-  )
-)
 
 let linkStatusSubscription: Subscription
 
@@ -34,6 +20,21 @@ export default function (): ReturnType<typeof useStore> {
   const store = useStore()
 
   if (!linkStatusSubscription) {
+    const { influxDB } = useInfluxDB()
+    const healthAPI = new HealthAPI(influxDB)
+
+    const linkStatus$ = timer(500, 10000).pipe(
+      switchMap(() =>
+        from(healthAPI.getHealth()).pipe(
+          map((health) =>
+            health.status === "pass" ? LinkStatus.Up : LinkStatus.Down
+          ),
+          timeout(1000),
+          catchError(() => of(LinkStatus.Down))
+        )
+      )
+    )
+
     linkStatusSubscription = linkStatus$.subscribe((status) => {
       store.linkStatus = status
     })

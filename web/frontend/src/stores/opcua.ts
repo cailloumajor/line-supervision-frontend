@@ -21,6 +21,7 @@ import {
   isLineParametersMessage,
   isMachineMetricsMessage,
 } from "./types"
+import useUiConfigStore from "./ui-config"
 
 type StateType = {
   machinesMetrics: MachineMetrics[]
@@ -70,12 +71,21 @@ const useStore = defineStore({
   }),
 
   getters: {
-    opcLinkStatusDisplay: (state): LinkStatus => {
+    machinesWithUiConfig: (state) => {
+      const uiConfig = useUiConfigStore()
+      return state.machinesMetrics.filter(
+        (_, index) => uiConfig.config.machines[index] !== undefined
+      )
+    },
+    opcLinkStatusDisplay: (state) => {
       if (state.bridgeLinkStatus === LinkStatus.Up) {
         return state.opcLinkStatus
       } else {
         return LinkStatus.Unknown
       }
+    },
+    plcLinkUp(): boolean {
+      return this.opcLinkStatusDisplay === LinkStatus.Up
     },
   },
 })
