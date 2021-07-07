@@ -1,6 +1,8 @@
+import type { Subscription } from "rxjs"
+
 import { HealthAPI } from "@influxdata/influxdb-client-apis"
 import { defineStore } from "pinia"
-import { from, of, Subscription, timer } from "rxjs"
+import { from, of, timer } from "rxjs"
 import { catchError, map, timeout, switchMap } from "rxjs/operators"
 
 import useInfluxDB from "@/composables/influxdb"

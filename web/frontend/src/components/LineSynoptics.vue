@@ -119,6 +119,11 @@
 </template>
 
 <script lang="ts">
+import type Vue from "vue"
+
+import type { MachineStateShape, ShapeID } from "@/common"
+import type { MachineCounters, MachineState } from "@/stores/types"
+
 import {
   computed,
   defineComponent,
@@ -130,14 +135,12 @@ import {
 import { useResizeObserver } from "@vueuse/core"
 import kebabCase from "lodash/kebabCase"
 import mapValues from "lodash/mapValues"
-import Vue from "vue"
 
-import { statePalette, MachineStateShape, ShapeID } from "@/common"
+import { statePalette } from "@/common"
 import useResponsiveness from "@/composables/responsiveness"
 import { useTheme } from "@/composables/theme"
 import useOpcUaStore from "@/stores/opcua"
 import useUiConfigStore from "@/stores/ui-config"
-import { MachineCounters, MachineState } from "@/stores/types"
 
 interface CardIcon {
   icon: string

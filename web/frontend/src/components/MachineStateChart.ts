@@ -1,9 +1,11 @@
+import type { ApexOptions } from "apexcharts"
+import type { ShapeID } from "@/common"
+
 import { flux } from "@influxdata/influxdb-client-browser"
 import { computed, defineComponent, reactive } from "@vue/composition-api"
-import { ApexOptions } from "apexcharts"
 import dayjs from "dayjs"
 
-import { statePalette, ShapeID } from "@/common"
+import { statePalette } from "@/common"
 import useInfluxDB from "@/composables/influxdb"
 import useInfluxChart from "@/composables/influx-chart"
 import { useTheme } from "@/composables/theme"

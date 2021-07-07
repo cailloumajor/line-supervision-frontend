@@ -1,15 +1,16 @@
 import "./influx-charts.scss"
 
-import { computed, h, ComputedRef } from "@vue/composition-api"
-import { ApexOptions } from "apexcharts"
+import type { ComputedRef } from "@vue/composition-api"
+import type { ApexOptions } from "apexcharts"
+import type { VNode } from "vue"
+import type { Options as InfluxComposableOptions } from "@/composables/influx-query"
+
+import { computed, h } from "@vue/composition-api"
 import merge from "lodash/merge"
-import { VNode } from "vue"
 import ApexChart from "vue-apexcharts"
 import { VAlert, VOverlay, VProgressCircular } from "vuetify/lib"
 
-import useInfluxQuery, {
-  Options as InfluxComposableOptions,
-} from "@/composables/influx-query"
+import useInfluxQuery from "@/composables/influx-query"
 import useResponsiveness from "@/composables/responsiveness"
 import { useTheme } from "@/composables/theme"
 

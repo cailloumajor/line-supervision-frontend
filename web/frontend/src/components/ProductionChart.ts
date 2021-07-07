@@ -1,11 +1,13 @@
+import type { ApexOptions } from "apexcharts"
+import type { Dayjs } from "dayjs"
+
 import {
   flux,
   fluxDuration,
   fluxExpression,
 } from "@influxdata/influxdb-client-browser"
 import { computed, defineComponent, reactive } from "@vue/composition-api"
-import { ApexOptions } from "apexcharts"
-import dayjs, { Dayjs } from "dayjs"
+import dayjs from "dayjs"
 
 import useInfluxDB from "@/composables/influxdb"
 import useInfluxChart from "@/composables/influx-chart"

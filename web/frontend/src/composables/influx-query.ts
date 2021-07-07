@@ -1,20 +1,22 @@
-import type { InfluxDB, QueryApi } from "@influxdata/influxdb-client-browser"
-
-import {
+import type {
+  InfluxDB,
+  QueryApi,
   FluxTableMetaData,
-  HttpError,
   ParameterizedQuery,
   Row,
 } from "@influxdata/influxdb-client-browser"
+import type { Ref } from "@vue/composition-api"
+import type { Observable, Subscription } from "rxjs"
+
+import { HttpError } from "@influxdata/influxdb-client-browser"
 import {
   onMounted,
   onUnmounted,
-  Ref,
   ref,
   toRefs,
   watch,
 } from "@vue/composition-api"
-import { defer, Observable, of, Subject, Subscription, timer } from "rxjs"
+import { defer, of, Subject, timer } from "rxjs"
 import {
   catchError,
   map,

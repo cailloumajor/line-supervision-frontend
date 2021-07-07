@@ -19,6 +19,7 @@ module.exports = {
     "deprecation/deprecation": "warn",
     "no-console": process.env.NODE_ENV === "production" ? "warn" : "off",
     "no-debugger": process.env.NODE_ENV === "production" ? "warn" : "off",
+    "@typescript-eslint/consistent-type-imports": "warn",
   },
   overrides: [
     {

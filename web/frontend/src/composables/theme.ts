@@ -1,10 +1,7 @@
-import { Theme } from "vuetify/types/services/theme"
-import {
-  inject,
-  provide,
-  ComputedRef,
-  InjectionKey,
-} from "@vue/composition-api"
+import type { ComputedRef, InjectionKey } from "@vue/composition-api"
+import type { Theme } from "vuetify/types/services/theme"
+
+import { inject, provide } from "@vue/composition-api"
 
 const ThemeSymbol: InjectionKey<ComputedRef<Theme>> = Symbol()
 

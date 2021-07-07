@@ -1,4 +1,12 @@
-import Centrifuge, { PublicationContext } from "centrifuge"
+import type { PublicationContext } from "centrifuge"
+import type {
+  LineGlobalParameters,
+  MachineMetrics,
+  OPCDataChangeMessage,
+  OPCStatusMessage,
+} from "./types"
+
+import Centrifuge from "centrifuge"
 import { defineStore } from "pinia"
 import { concat, fromEvent, merge, of } from "rxjs"
 import {
@@ -13,11 +21,7 @@ import {
 } from "rxjs/operators"
 
 import {
-  LineGlobalParameters,
   LinkStatus,
-  MachineMetrics,
-  OPCDataChangeMessage,
-  OPCStatusMessage,
   isLineParametersMessage,
   isMachineMetricsMessage,
 } from "./types"
