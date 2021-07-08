@@ -104,17 +104,12 @@ services:
   web:
     build:
       context: ./web
-    environment:
-      - INFLUXDB_URL=/influxdb
-      # Following environment variables will be obtained from `.env` file
-      - INFLUXDB_ORG
-      - INFLUXDB_BUCKET
-      - INFLUXDB_READ_TOKEN
     labels:
       dozzle.enable: "true"
       traefik.enable: "true"
       traefik.http.routers.web.rule: "Path(`/`, `/{file:[a-zA-Z0-9_.-]+}`)
         || PathPrefix(`/css/`, `/fonts/`, `/img/`, `/js/`, `/sockjs-node/`)"
+      traefik.http.services.web.loadbalancer.server.port: 8080
     networks:
       - net-private
 

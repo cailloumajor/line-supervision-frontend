@@ -1,0 +1,27 @@
+# Production specific configuration
+version: "2.1"
+
+services:
+  centrifugo:
+    restart: unless-stopped
+  influxdb:
+    restart: unless-stopped
+  log-viewer:
+    restart: unless-stopped
+  opcua-bridge:
+    restart: unless-stopped
+  ui-config:
+    restart: unless-stopped
+  web:
+    restart: unless-stopped
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+  docker-socket-proxy:
+    restart: unless-stopped
+  reverse-proxy:
+    restart: unless-stopped
+
+volumes:
+  caddy_config:
+  caddy_data:
