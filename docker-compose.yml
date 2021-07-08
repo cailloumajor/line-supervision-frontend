@@ -109,6 +109,7 @@ services:
       traefik.enable: "true"
       traefik.http.routers.web.rule: "Path(`/`, `/{file:[a-zA-Z0-9_.-]+}`)
         || PathPrefix(`/css/`, `/fonts/`, `/img/`, `/js/`, `/sockjs-node/`)"
+      traefik.http.routers.web.priority: 1
       traefik.http.services.web.loadbalancer.server.port: 8080
     networks:
       - net-private
