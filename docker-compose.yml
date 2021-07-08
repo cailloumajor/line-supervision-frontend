@@ -98,8 +98,8 @@ services:
     networks:
       - net-private
     volumes:
-      - ./ui-config.toml:/app/config_data/config.toml
-      - ./logo.png:/app/config_data/logo.png
+      - ./ui-config.toml:/app/config_data/config.toml:ro
+      - ./logo.png:/app/config_data/logo.png:ro
 
   web:
     build:
