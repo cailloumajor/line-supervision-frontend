@@ -25,14 +25,8 @@ FROM rust:1.53.0 AS builder
 WORKDIR /usr/src/app
 
 COPY Cargo.lock Cargo.toml ./
-RUN set -eux; \
-    mkdir src; \
-    touch src/lib.rs; \
-    cargo build --release; \
-    rm src/lib.rs
-
 COPY src ./src
-RUN cargo build --release
+RUN cargo install --path .
 
 
 FROM debian:buster-slim AS final
@@ -46,7 +40,7 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends curl; \
     rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /usr/src/app/target/release/ui_config /usr/local/bin/
+COPY --from=builder /usr/local/cargo/bin/ui_config /usr/local/bin/
 
 COPY docker-healthcheck.sh /usr/local/bin/
 HEALTHCHECK CMD ["docker-healthcheck.sh"]
