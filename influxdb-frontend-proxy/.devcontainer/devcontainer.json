@@ -19,7 +19,11 @@
     "go.toolsManagement.checkForUpdates": "local",
     "go.useLanguageServer": true,
     "go.gopath": "/go",
-    "go.goroot": "/usr/local/go"
+    "go.goroot": "/usr/local/go",
+    "go.lintTool": "golangci-lint",
+    "go.lintFlags": [
+      "--fast"
+    ]
   },
 
   // Add the IDs of extensions you want installed when the container is created.
