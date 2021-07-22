@@ -7,7 +7,7 @@ use anyhow::{Context, Result};
 use env_logger::Builder;
 use log::LevelFilter;
 
-use ui_config::{replace_env_vars, toml_to_json};
+use api_service::ui_config::{replace_env_vars, toml_to_json};
 
 const DATA_DIR: &str = "config_data";
 const CONFIG_FILE: &str = "config.toml";

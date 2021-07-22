@@ -40,7 +40,7 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends curl; \
     rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /usr/local/cargo/bin/ui_config /usr/local/bin/
+COPY --from=builder /usr/local/cargo/bin/api_service /usr/local/bin/
 
 COPY docker-healthcheck.sh /usr/local/bin/
 HEALTHCHECK CMD ["docker-healthcheck.sh"]
@@ -50,4 +50,4 @@ COPY docker-entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 EXPOSE 8080
-CMD ["ui_config"]
+CMD ["api_service"]
