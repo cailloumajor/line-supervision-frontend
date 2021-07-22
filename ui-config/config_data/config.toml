@@ -6,17 +6,11 @@ html_title = "Line supervision"
 # A String of application title (appears in application bar).
 app_title = "Production line"
 
-# A Table for InfluxDB related configuration.
-[influxdb]
-org = "${INFLUXDB_ORG}"
-bucket = "${INFLUXDB_BUCKET}"
-token = "${INFLUXDB_READ_TOKEN}"
-
 # A Table of configuration for the synoptics representation.
 [synoptics]
 # A Table with `width` and `height` keys, which values are Integers or Floats
 # of the dimensions of the SVG viewbox.
-viewbox = { width=3000, height=1000 }
+viewbox = { width = 3000, height = 1000 }
 
 # Array of tables representing machines to display.
 # Allowed keys are:
@@ -38,8 +32,8 @@ viewbox = { width=3000, height=1000 }
 [[machines]]
 name = "Machine 1"
 path = "M 100 100 h 800 v 800 h -800 Z"
-tag_pos = { x=500, y=200 }
-card_pos = { x=500, y=500 }
+tag_pos = { x = 500, y = 200 }
+card_pos = { x = 500, y = 500 }
 campaign = true
 production = true
 state_chart = true
@@ -47,8 +41,8 @@ state_chart = true
 [[machines]]
 name = "Machine 2"
 path = "M 1100 100 h 800 v 800 h -800 Z"
-tag_pos = { x=1500, y=200 }
-card_pos = { x=1500, y=500 }
+tag_pos = { x = 1500, y = 200 }
+card_pos = { x = 1500, y = 500 }
 campaign = true
 production = true
 state_chart = true
@@ -56,8 +50,8 @@ state_chart = true
 [[machines]]
 name = "Machine 3"
 path = "M 2100 100 h 800 v 800 h -800 Z"
-tag_pos = { x=2500, y=200 }
-card_pos = { x=2500, y=500 }
+tag_pos = { x = 2500, y = 200 }
+card_pos = { x = 2500, y = 500 }
 campaign = true
 production = true
 state_chart = true

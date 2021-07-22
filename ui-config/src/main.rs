@@ -7,7 +7,7 @@ use anyhow::{Context, Result};
 use env_logger::Builder;
 use log::LevelFilter;
 
-use api_service::ui_config::{replace_env_vars, toml_to_json};
+use api_service::ui_config::toml_to_json;
 
 const DATA_DIR: &str = "config_data";
 const CONFIG_FILE: &str = "config.toml";
@@ -43,14 +43,8 @@ async fn main() -> Result<()> {
     let template_path = &file_path(CONFIG_FILE);
     let raw_toml = fs::read_to_string(template_path)
         .with_context(|| format!("Failed reading {}", template_path.display()))?;
-    let raw_json = toml_to_json(&raw_toml)
+    let config_json = toml_to_json(&raw_toml)
         .with_context(|| format!("failed to convert {} to JSON", template_path.display()))?;
-    let config_json = replace_env_vars(&raw_json).with_context(|| {
-        format!(
-            "failed to expand environment variables after converting {} to JSON",
-            template_path.display()
-        )
-    })?;
     let state = web::Data::new(AppState { config_json });
 
     HttpServer::new(move || {

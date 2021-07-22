@@ -1,7 +1,4 @@
-use std::env;
-
-use anyhow::{anyhow, Context, Result};
-use regex::Regex;
+use anyhow::{Context, Result};
 use serde_json::Value as JsonValue;
 use toml::Value as TomlValue;
 
@@ -19,26 +16,6 @@ fn camel_case(source: &str) -> String {
         }
     }
     dest[..1].to_ascii_lowercase() + &dest[1..]
-}
-
-pub fn replace_env_vars(source: &str) -> Result<String> {
-    let re = Regex::new(r"\$\{(?P<env_key>.*?)\}").unwrap();
-    let mut out = String::with_capacity(source.len());
-    let mut last_match = 0;
-    for caps in re.captures_iter(source) {
-        let full_match = caps.get(0).unwrap();
-        let env_key = caps
-            .name("env_key")
-            .ok_or_else(|| anyhow!("missing environment variable key"))?
-            .as_str();
-        let replacement = env::var(env_key)
-            .with_context(|| format!("failed to get value of {} environment variable", env_key))?;
-        out.push_str(&source[last_match..full_match.start()]);
-        out.push_str(&replacement);
-        last_match = full_match.end();
-    }
-    out.push_str(&source[last_match..]);
-    Ok(out)
 }
 
 fn convert(toml_value: TomlValue) -> JsonValue {
@@ -85,30 +62,6 @@ mod tests {
         t("underscore_separated", "underscoreSeparated");
         t("multiple   spaces", "multipleSpaces");
         t("   spaces_underscores_mixed", "spacesUnderscoresMixed");
-    }
-
-    #[test]
-    fn replace_env_vars() {
-        fn t(src: &str, exp: Option<&str>) {
-            env::set_var("TEST_ENV_VAR", "test_env_var");
-            assert_eq!(super::replace_env_vars(src).ok(), exp.map(String::from));
-        }
-
-        t("No placeholder", Some("No placeholder"));
-        t(
-            "One ${TEST_ENV_VAR} single line",
-            Some("One test_env_var single line"),
-        );
-        t(
-            "Multiple ${TEST_ENV_VAR},
-        ${TEST_ENV_VAR} multiline",
-            Some(
-                "Multiple test_env_var,
-        test_env_var multiline",
-            ),
-        );
-        t("Fail with missing ${} env var key", None);
-        t("Fail with ${UNSET_ENV_VAR}", None);
     }
 
     #[test]
