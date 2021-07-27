@@ -27,6 +27,7 @@
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": [
 		"editorconfig.editorconfig",
+		"influxdata.flux",
 		"mutantdino.resourcemonitor",
 		"rust-lang.rust",
 		"tamasfe.even-better-toml",
