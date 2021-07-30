@@ -35,7 +35,7 @@ WORKDIR /app
 
 # hadolint ignore=DL3008
 RUN set -eux; \
-    useradd --user-group --system --no-log-init ui-config; \
+    useradd --user-group --system --no-log-init api-service; \
     apt-get update; \
     apt-get install -y --no-install-recommends curl; \
     rm -rf /var/lib/apt/lists/*
