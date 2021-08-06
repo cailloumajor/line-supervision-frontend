@@ -9,6 +9,9 @@
 
 	// Set *default* container specific settings.json values on container create.
 	"settings": {
+		"[flux]": {
+			"editor.formatOnSave": true
+		},
 		"[toml]": {
 			"editor.formatOnSave": true
 		},
