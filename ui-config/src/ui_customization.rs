@@ -1,6 +1,9 @@
 use anyhow::{Context, Result};
 use serde_json::Value as JsonValue;
+use std::fs;
 use toml::Value as TomlValue;
+
+use crate::config::Config;
 
 fn camel_case(source: &str) -> String {
     let mut dest = String::with_capacity(source.len());
@@ -38,10 +41,19 @@ fn convert(toml_value: TomlValue) -> JsonValue {
     }
 }
 
-pub fn toml_to_json(source: &str) -> Result<String> {
+fn toml_to_json(source: &str) -> Result<String> {
     let toml = source.parse().context("failed to parse TOML")?;
     let json = serde_json::to_string(&convert(toml)).context("failed serializing JSON")?;
     Ok(json)
+}
+
+pub fn get_ui_customization(config: &Config) -> Result<String> {
+    let toml_file = &config.ui_customization_file;
+    let raw_toml = fs::read_to_string(toml_file)
+        .with_context(|| format!("failed reading {}", toml_file.display()))?;
+    let ui_config = toml_to_json(&raw_toml)
+        .with_context(|| format!("failed to convert {} to JSON", toml_file.display()))?;
+    Ok(ui_config)
 }
 
 #[cfg(test)]

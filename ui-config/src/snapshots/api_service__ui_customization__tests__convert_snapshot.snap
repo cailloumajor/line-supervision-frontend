@@ -1,5 +1,5 @@
 ---
-source: src/ui_config.rs
+source: src/ui_customization.rs
 expression: "super::convert(toml_data.parse().unwrap())"
 
 ---

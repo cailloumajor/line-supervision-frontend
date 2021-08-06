@@ -1,64 +1,51 @@
-use std::fs;
-use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
-use actix_files::NamedFile;
-use actix_web::{get, middleware::Logger, web, App, HttpResponse, HttpServer, Responder};
-use anyhow::{Context, Result};
-use env_logger::Builder;
-use log::LevelFilter;
+use anyhow::Context;
+use surf::Client;
 
-use api_service::ui_config::toml_to_json;
+mod chart_data;
+mod config;
+mod handlers;
+mod ui_customization;
 
-const DATA_DIR: &str = "config_data";
-const CONFIG_FILE: &str = "config.toml";
-const LOGO_FILE: &str = "logo.png";
+use chart_data::flux_query::QueryBuilder;
+use config::Config;
+use ui_customization::get_ui_customization;
 
-fn file_path(file: &str) -> PathBuf {
-    Path::new(DATA_DIR).join(file)
-}
-struct AppState {
-    config_json: String,
-}
-
-#[get("/health")]
-async fn health() -> impl Responder {
-    HttpResponse::Ok().finish()
+#[derive(Clone)]
+pub struct AppState {
+    client: Client,
+    config: Arc<Config>,
+    query_builder: Arc<QueryBuilder>,
+    ui_customization_json: Arc<String>,
 }
 
-#[get("/config")]
-async fn config(data: web::Data<AppState>) -> impl Responder {
-    HttpResponse::Ok()
-        .content_type("application/json")
-        .body(&data.config_json)
-}
+#[async_std::main]
+async fn main() -> tide::Result<()> {
+    tide::log::start();
 
-#[get("/logo")]
-async fn logo() -> actix_web::Result<NamedFile> {
-    Ok(NamedFile::open(file_path(LOGO_FILE))?)
-}
+    let client = Client::new();
+    let config = Config::get()?;
+    let logo_file = config.logo_file.clone();
+    let ui_customization_json = get_ui_customization(&config)?;
+    let query_builder = QueryBuilder::new();
+    let state = AppState {
+        client,
+        config: Arc::new(config),
+        query_builder: Arc::new(query_builder),
+        ui_customization_json: Arc::new(ui_customization_json),
+    };
 
-#[actix_web::main]
-async fn main() -> Result<()> {
-    Builder::new().filter_level(LevelFilter::Info).init();
-    let template_path = &file_path(CONFIG_FILE);
-    let raw_toml = fs::read_to_string(template_path)
-        .with_context(|| format!("Failed reading {}", template_path.display()))?;
-    let config_json = toml_to_json(&raw_toml)
-        .with_context(|| format!("failed to convert {} to JSON", template_path.display()))?;
-    let state = web::Data::new(AppState { config_json });
+    let mut app = tide::with_state(state);
+    app.at("/health").get(handlers::health);
+    app.at("/logo")
+        .serve_file(&logo_file)
+        .with_context(|| format!("failed to serve {}", logo_file.display()))?;
+    app.at("/ui-customization").get(handlers::ui_customization);
+    app.at("/influxdb-ready").get(handlers::influxdb_ready);
+    app.at("/machines_state")
+        .post(chart_data::machine_state::handler);
 
-    HttpServer::new(move || {
-        let logger = Logger::default();
-        App::new()
-            .app_data(state.clone())
-            .wrap(logger)
-            .service(health)
-            .service(config)
-            .service(logo)
-    })
-    .bind("0.0.0.0:8080")?
-    .run()
-    .await?;
-
+    app.listen("0.0.0.0:8080").await?;
     Ok(())
 }
