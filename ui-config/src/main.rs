@@ -43,7 +43,7 @@ async fn main() -> tide::Result<()> {
         .with_context(|| format!("failed to serve {}", logo_file.display()))?;
     app.at("/ui-customization").get(handlers::ui_customization);
     app.at("/influxdb-ready").get(handlers::influxdb_ready);
-    app.at("/machines_state")
+    app.at("/machines-state")
         .post(chart_data::machine_state::handler);
 
     app.listen("0.0.0.0:8080").await?;
