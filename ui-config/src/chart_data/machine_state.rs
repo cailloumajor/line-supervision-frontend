@@ -85,7 +85,7 @@ pub async fn handler(mut req: Request<AppState>) -> tide::Result {
         .query_builder
         .generate_query(template, &params)
         .unwrap();
-    let url = state.config.influxdb_urls.query_api.to_owned();
+    let url = state.config.influxdb_base_url.to_owned() / "api/v2/query";
     let influxdb_req = ClientRequest::builder(Method::Post, url)
         .query(&InfluxdbQueryParams {
             org: state.config.influxdb_org.to_owned(),

@@ -18,7 +18,7 @@ pub async fn ui_customization(req: Request<AppState>) -> tide::Result {
 }
 
 pub async fn influxdb_ready(req: Request<AppState>) -> tide::Result {
-    let url = req.state().config.influxdb_urls.ready.clone();
+    let url = req.state().config.influxdb_base_url.to_owned() / "ready";
     let influxdb_req = ClientRequest::new(Method::Get, url);
     let influxdb_res = req.state().client.send(influxdb_req).await?;
     Ok(Response::from_res(influxdb_res))

@@ -29,3 +29,4 @@ features = [ "std", "serde" ]
 [dev-dependencies]
 indoc = "1.0.3"
 insta = "1.7.1"
+test-case = "1.2.0"
