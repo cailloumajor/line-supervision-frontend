@@ -16,7 +16,7 @@ impl FromStr for InfluxdbUrls {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut base_path = s.to_string();
-        if base_path.chars().last() != Some('/') {
+        if !base_path.ends_with('/') {
             base_path.push('/');
         }
         let base_url: Url = base_path.parse()?;

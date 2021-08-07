@@ -15,7 +15,7 @@ impl FluxValue {
             Self::String(s) => format!("\"{}\"", s),
             Self::Array(arr) => format!(
                 "[{}]",
-                arr.into_iter()
+                arr.iter()
                     .map(|e| e.to_flux_repr())
                     .collect::<Vec<_>>()
                     .join(", ")

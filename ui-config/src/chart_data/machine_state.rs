@@ -53,10 +53,9 @@ struct ResultRow {
 }
 
 async fn accumulate(mut acc: ChartData, row: ResultRow) -> tide::Result<ChartData> {
-    let state = acc.get_mut(row.state_index).ok_or(anyhow!(
-        "seed is missing state with index {}",
-        row.state_index
-    ))?;
+    let state = acc
+        .get_mut(row.state_index)
+        .ok_or_else(|| anyhow!("seed is missing state with index {}", row.state_index))?;
     let start_time = row.time.timestamp_millis();
     let end_time = start_time + row.duration * 1000;
     state.data.push(DataPoint {
@@ -100,8 +99,7 @@ pub async fn handler(mut req: Request<AppState>) -> tide::Result {
         .body(flux_query);
     let mut influxdb_res = state.client.send(influxdb_req).await?;
     if !influxdb_res.status().is_success() {
-        let InfluxdbErrorResponse { message } =
-            influxdb_res.body_json().await.unwrap_or(Default::default());
+        let InfluxdbErrorResponse { message } = influxdb_res.body_json().await.unwrap_or_default();
         return Err(tide::Error::from_str(
             StatusCode::InternalServerError,
             format!("error response from InfluxDB: {}", message),
