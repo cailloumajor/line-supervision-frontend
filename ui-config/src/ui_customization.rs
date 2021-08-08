@@ -62,18 +62,18 @@ mod tests {
     use std::fs;
     use std::path::Path;
 
-    #[test]
-    fn camel_case() {
-        fn t(src: &str, exp: &str) {
-            assert_eq!(super::camel_case(src), exp.to_string());
-        }
+    use test_case::test_case;
 
-        t("oneword", "oneword");
-        t("camelCase", "camelCase");
-        t("space separated", "spaceSeparated");
-        t("underscore_separated", "underscoreSeparated");
-        t("multiple   spaces", "multipleSpaces");
-        t("   spaces_underscores_mixed", "spacesUnderscoresMixed");
+    use super::*;
+
+    #[test_case("oneword" => "oneword")]
+    #[test_case("camelCase" => "camelCase")]
+    #[test_case("space separated" => "spaceSeparated")]
+    #[test_case("underscore_separated" => "underscoreSeparated")]
+    #[test_case("multiple   spaces" => "multipleSpaces")]
+    #[test_case("   spaces_underscores_mixed" => "spacesUnderscoresMixed")]
+    fn camel_case(src: &str) -> String {
+        super::camel_case(src)
     }
 
     #[test]
