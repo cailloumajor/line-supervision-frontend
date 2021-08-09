@@ -1,8 +1,9 @@
+import "dict"
 import "contrib/tomhollingworth/events"
 
 __bucket__ = "testbucket"
 __machine_set__ = ["1", "2"]
-__machines__ = {"1": "machine1", "2": "machine2"}
+__machines__ = ["1": "machine1", "2": "machine2"]
 machines = __machines__
 
 from(bucket: __bucket__)
@@ -40,4 +41,12 @@ from(bucket: __bucket__)
         columnName: "duration",
     )
     |> filter(fn: (r) => r.state_index != -1)
-    |> map(fn: (r) => ({r with machine_name: machines[r.machine_index]}))
+    |> map(
+        fn: (r) => ({r with
+            machine_name: dict.get(
+                default: "not found",
+                dict: machines,
+                key: r.machine_index,
+            ),
+        }),
+    )

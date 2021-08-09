@@ -1,9 +1,10 @@
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 
 use anyhow::anyhow;
 use chrono::{DateTime, FixedOffset};
 use csv_async::AsyncDeserializer;
 use futures::{StreamExt, TryStreamExt};
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use surf::http::Method;
 use surf::Request as ClientRequest;
@@ -29,7 +30,8 @@ struct DataPoint {
 #[derive(Deserialize)]
 struct QueryData {
     // Map of machines indexes to their name
-    machines: BTreeMap<String, String>,
+    #[serde(with = "indexmap::serde_seq")]
+    machines: IndexMap<String, String>,
     seed: ChartData,
 }
 
