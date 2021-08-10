@@ -71,7 +71,7 @@ pub async fn handler(mut req: Request<AppState>) -> tide::Result {
     let query_data: QueryData = req.body_json().await?;
     let state = req.state();
     let mut params = HashMap::new();
-    params.insert("bucket", state.config.influxdb_bucket.to_owned().into());
+    params.insert("bucket", state.config.influxdb_bucket.clone().into());
     params.insert(
         "machine_set",
         query_data
@@ -87,10 +87,10 @@ pub async fn handler(mut req: Request<AppState>) -> tide::Result {
         .query_builder
         .generate_query(template, &params)
         .unwrap();
-    let url = state.config.influxdb_base_url.to_owned() / "api/v2/query";
+    let url = state.config.influxdb_base_url.clone() / "api/v2/query";
     let influxdb_req = ClientRequest::builder(Method::Post, url)
         .query(&InfluxdbQueryParams {
-            org: state.config.influxdb_org.to_owned(),
+            org: state.config.influxdb_org.clone(),
         })?
         .content_type("application/vnd.flux")
         .header("Accept", "application/csv")
