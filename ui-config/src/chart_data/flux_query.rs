@@ -41,6 +41,7 @@ pub enum FluxValue {
     Comparable(Comparable),
     Array(Vec<FluxValue>),
     Dictionary(IndexMap<Comparable, FluxValue>),
+    RawExpression(String),
 }
 
 impl FluxValue {
@@ -64,6 +65,7 @@ impl FluxValue {
                         .join(", ")
                 )
             }
+            Self::RawExpression(s) => s.to_owned(),
         }
     }
 }
@@ -260,6 +262,13 @@ mod tests {
             value.to_flux_repr(),
             r#"["key1": "value1", "key2": ["value2.1", "value2.2"]]"#
         )
+    }
+
+    #[test]
+    fn flux_value_raw_expression_to_flux_repr() {
+        const EXPRESSION: &str = r#"raw "quoted" expression"#;
+        let value = FluxValue::RawExpression(EXPRESSION.to_string());
+        assert_eq!(value.to_flux_repr(), EXPRESSION)
     }
 
     const TEMPLATE: &str = indoc! {r#"
