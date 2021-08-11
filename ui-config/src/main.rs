@@ -45,6 +45,7 @@ async fn main() -> tide::Result<()> {
     app.at("/influxdb-ready").get(handlers::influxdb_ready);
     app.at("/machines-state")
         .post(chart_data::machine_state::handler);
+    app.at("/production").post(chart_data::production::handler);
 
     app.listen("0.0.0.0:8080").await?;
     Ok(())
