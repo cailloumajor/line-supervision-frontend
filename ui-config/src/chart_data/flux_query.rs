@@ -1,44 +1,38 @@
 use std::collections::HashMap;
-use std::hash::{Hash, Hasher};
 
 use anyhow::{Context, Result};
+use chrono::{DateTime, SecondsFormat, TimeZone, Utc};
 use indexmap::IndexMap;
 use regex::Regex;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Comparable {
     String(String),
+    Time(DateTime<Utc>),
 }
 
 impl Comparable {
     fn to_flux_repr(&self) -> String {
         match self {
             Self::String(s) => format!("\"{}\"", s),
+            Self::Time(t) => t.to_rfc3339_opts(SecondsFormat::AutoSi, true),
         }
     }
 }
-
-impl Hash for Comparable {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        match self {
-            Self::String(s) => s.hash(state),
-        }
-    }
-}
-
-impl PartialEq for Comparable {
-    fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Self::String(s), Self::String(other_s)) => s == other_s,
-        }
-    }
-}
-
-impl Eq for Comparable {}
 
 impl From<String> for Comparable {
     fn from(value: String) -> Self {
         Self::String(value)
+    }
+}
+
+impl<Tz> From<DateTime<Tz>> for Comparable
+where
+    Tz: TimeZone,
+    DateTime<Tz>: Into<DateTime<Utc>>,
+{
+    fn from(value: DateTime<Tz>) -> Self {
+        Self::Time(value.into())
     }
 }
 
@@ -74,8 +68,11 @@ impl FluxValue {
     }
 }
 
-impl From<String> for FluxValue {
-    fn from(value: String) -> Self {
+impl<V> From<V> for FluxValue
+where
+    V: Into<Comparable>,
+{
+    fn from(value: V) -> Self {
         Self::Comparable(value.into())
     }
 }
@@ -147,17 +144,18 @@ mod tests {
     use std::collections::HashMap;
 
     use assert_matches::assert_matches;
+    use chrono::Local;
     use indoc::indoc;
     use test_case::test_case;
 
     use super::*;
 
-    #[test_case("string".to_string() => Comparable::String("string".to_string()) ; "string")]
-    fn comparable_from(from: impl Into<Comparable>) -> Comparable {
-        from.into()
-    }
-
     #[test_case(Comparable::String("string".to_string()) => r#""string""# ; "string")]
+    #[test_case(
+        Comparable::Time(Utc.ymd(2014, 7, 8).and_hms(9, 10, 11))
+        => "2014-07-08T09:10:11Z"
+        ; "time"
+    )]
     fn comparable_to_flux_repr(comparable: Comparable) -> String {
         comparable.to_flux_repr()
     }
@@ -167,6 +165,15 @@ mod tests {
         let flux_value: FluxValue = "string".to_string().into();
         assert_matches!(flux_value, FluxValue::Comparable(Comparable::String(s)) => {
             assert_eq!(s, "string")
+        })
+    }
+
+    #[test]
+    fn flux_value_from_local_time() {
+        let local_time = Local.ymd(2020, 5, 14).and_hms(17, 23, 18);
+        let flux_value: FluxValue = local_time.into();
+        assert_matches!(flux_value, FluxValue::Comparable(Comparable::Time(t)) => {
+            assert_eq!(t, local_time.with_timezone(&Utc))
         })
     }
 
@@ -218,7 +225,7 @@ mod tests {
     }
 
     #[test]
-    fn flux_value_string_to_flux_repr() {
+    fn flux_value_comparable_to_flux_repr() {
         let comparable = Comparable::String("string".to_string());
         let comp_repr = comparable.to_flux_repr();
         let value = FluxValue::Comparable(comparable);
