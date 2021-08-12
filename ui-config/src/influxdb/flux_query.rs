@@ -102,20 +102,20 @@ where
     }
 }
 
-pub struct QueryBuilder {
+pub(crate) struct QueryBuilder {
     re: Regex,
 }
 
 impl QueryBuilder {
-    pub fn new() -> Self {
+    pub(super) fn new() -> Self {
         let re = Regex::new(r"__(\w+)__").unwrap();
         QueryBuilder { re }
     }
 
-    pub fn generate_query(
+    pub(super) fn generate_query(
         &self,
         template: &str,
-        params: &HashMap<&str, FluxValue>,
+        params: HashMap<&str, FluxValue>,
     ) -> Result<String> {
         // filter out lines defining placeholders variables
         let source = template
@@ -281,7 +281,7 @@ mod tests {
         let builder = QueryBuilder::new();
         let mut params = HashMap::new();
         params.insert("unknown_var", "Value_1".to_string().into());
-        assert!(builder.generate_query(TEMPLATE, &params).is_err());
+        assert!(builder.generate_query(TEMPLATE, params).is_err());
     }
 
     #[test]
@@ -292,6 +292,6 @@ mod tests {
         "#});
         let mut params = HashMap::new();
         params.insert("var", "string_value".to_string().into());
-        assert_eq!(builder.generate_query(TEMPLATE, &params).unwrap(), expected);
+        assert_eq!(builder.generate_query(TEMPLATE, params).unwrap(), expected);
     }
 }

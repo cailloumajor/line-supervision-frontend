@@ -1,4 +1,3 @@
-use std::ops::Div;
 use std::path::PathBuf;
 use std::str::FromStr;
 
@@ -24,11 +23,9 @@ impl FromStr for BaseUrl {
     }
 }
 
-impl Div<&str> for BaseUrl {
-    type Output = Url;
-
-    fn div(self, rhs: &str) -> Self::Output {
-        self.0.join(rhs).unwrap()
+impl From<BaseUrl> for Url {
+    fn from(base: BaseUrl) -> Self {
+        base.0
     }
 }
 
@@ -37,8 +34,7 @@ pub struct Config {
     pub ui_customization_file: PathBuf,
     pub logo_file: PathBuf,
     pub influxdb_base_url: BaseUrl,
-    #[envconfig(from = "INFLUXDB_READ_TOKEN")]
-    pub influxdb_token: String,
+    pub influxdb_read_token: String,
     pub influxdb_org: String,
     pub influxdb_bucket: String,
 }
@@ -69,13 +65,11 @@ mod tests {
         base_url.0.into()
     }
 
-    #[test_case("subpath" => "http://host/path/subpath" ; "bare subpath")]
-    #[test_case("/newpath" => "http://host/newpath" ; "leading slash")]
-    #[test_case("subpath/" => "http://host/path/subpath/" ; "trailing slash")]
-    fn base_url_div(subpath: &str) -> String {
-        const BASE: &str = "http://host/path/";
-        let base_url = BaseUrl(Url::parse(BASE).unwrap());
-
-        (base_url / subpath).into()
+    #[test]
+    fn url_from_base_url() {
+        let url = Url::parse("http://host:80").unwrap();
+        let base_url = BaseUrl(url.clone());
+        let into_url: Url = base_url.into();
+        assert_eq!(into_url, url)
     }
 }

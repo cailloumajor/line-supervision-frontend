@@ -5,12 +5,10 @@ use chrono::{DateTime, Duration, FixedOffset, Local, NaiveTime};
 use csv_async::AsyncDeserializer;
 use futures::{StreamExt, TryStreamExt};
 use serde::{Deserialize, Serialize};
-use surf::http::Method;
-use surf::Request as ClientRequest;
 use tide::http::Body;
-use tide::{Request, StatusCode};
+use tide::Request;
 
-use super::flux_query::FluxValue;
+use crate::influxdb::FluxValue;
 use crate::AppState;
 
 type ChartData = Vec<DataSerie>;
@@ -26,16 +24,6 @@ struct QueryData {
     // Array of machines indexes strings
     machines: Vec<String>,
     seed: ChartData,
-}
-
-#[derive(Serialize)]
-struct InfluxdbQueryParams {
-    org: String,
-}
-
-#[derive(Default, Deserialize)]
-struct InfluxdbErrorResponse {
-    message: String,
 }
 
 #[derive(Deserialize)]
@@ -60,9 +48,8 @@ async fn accumulate(mut acc: ChartData, row: ResultRow) -> tide::Result<ChartDat
 
 pub async fn handler(mut req: Request<AppState>) -> tide::Result {
     let query_data: QueryData = req.body_json().await?;
-    let state = req.state().clone();
+    let state = req.state();
     let mut params = HashMap::new();
-    params.insert("bucket", state.config.influxdb_bucket.clone().into());
     let start = {
         let now = Local::now();
         let first_shift_end = now.date().and_time(NaiveTime::from_hms(5, 30, 0)).unwrap();
@@ -73,7 +60,6 @@ pub async fn handler(mut req: Request<AppState>) -> tide::Result {
             .unwrap();
         start - shift_duration
     };
-    params.insert("start", start.into());
     let total_function = query_data
         .machines
         .iter()
@@ -81,33 +67,15 @@ pub async fn handler(mut req: Request<AppState>) -> tide::Result {
         .collect::<Vec<_>>()
         .join(" + ");
     let total_function = format!("(r) => {}", total_function);
-    params.insert("total_function", FluxValue::RawExpression(total_function));
-    params.insert("machine_set", query_data.machines.into());
-    let template = include_str!("production.flux");
-    let flux_query = state
-        .query_builder
-        .generate_query(template, &params)
-        .unwrap();
-    let url = state.config.influxdb_base_url.to_owned() / "api/v2/query";
-    let influxdb_req = ClientRequest::builder(Method::Post, url)
-        .query(&InfluxdbQueryParams {
-            org: state.config.influxdb_org.to_owned(),
-        })?
-        .content_type("application/vnd.flux")
-        .header("Accept", "application/csv")
-        .header(
-            "Authorization",
-            format!("Token {}", &state.config.influxdb_token),
-        )
-        .body(flux_query);
-    let mut influxdb_res = state.client.send(influxdb_req).await?;
-    if !influxdb_res.status().is_success() {
-        let InfluxdbErrorResponse { message } = influxdb_res.body_json().await.unwrap_or_default();
-        return Err(tide::Error::from_str(
-            StatusCode::InternalServerError,
-            format!("error response from InfluxDB: {}", message),
-        ));
-    }
+    params.extend([
+        ("machine_set", query_data.machines.to_owned().into()),
+        ("start", start.into()),
+        ("total_function", FluxValue::RawExpression(total_function)),
+    ]);
+    let influxdb_res = state
+        .influxdb_client
+        .flux_query(include_str!("production.flux"), params)
+        .await?;
     let mut deserializer = AsyncDeserializer::from_reader(influxdb_res);
     let records = deserializer.deserialize::<ResultRow>();
     let chart_data = records

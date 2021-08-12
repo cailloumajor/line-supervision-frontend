@@ -1,22 +1,19 @@
 use std::sync::Arc;
 
 use anyhow::Context;
-use surf::Client;
 
 mod chart_data;
 mod config;
 mod handlers;
+mod influxdb;
 mod ui_customization;
 
-use chart_data::flux_query::QueryBuilder;
 use config::Config;
 use ui_customization::get_ui_customization;
 
 #[derive(Clone)]
 pub struct AppState {
-    client: Client,
-    config: Arc<Config>,
-    query_builder: Arc<QueryBuilder>,
+    influxdb_client: influxdb::Client,
     ui_customization_json: Arc<String>,
 }
 
@@ -24,15 +21,11 @@ pub struct AppState {
 async fn main() -> tide::Result<()> {
     tide::log::start();
 
-    let client = Client::new();
     let config = Config::get()?;
     let logo_file = config.logo_file.clone();
     let ui_customization_json = get_ui_customization(&config)?;
-    let query_builder = QueryBuilder::new();
     let state = AppState {
-        client,
-        config: Arc::new(config),
-        query_builder: Arc::new(query_builder),
+        influxdb_client: influxdb::Client::new(&config),
         ui_customization_json: Arc::new(ui_customization_json),
     };
 

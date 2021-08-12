@@ -6,10 +6,8 @@ use csv_async::AsyncDeserializer;
 use futures::{StreamExt, TryStreamExt};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
-use surf::http::Method;
-use surf::Request as ClientRequest;
 use tide::http::Body;
-use tide::{Request, StatusCode};
+use tide::Request;
 
 use crate::AppState;
 
@@ -33,16 +31,6 @@ struct QueryData {
     #[serde(with = "indexmap::serde_seq")]
     machines: IndexMap<String, String>,
     seed: ChartData,
-}
-
-#[derive(Serialize)]
-struct InfluxdbQueryParams {
-    org: String,
-}
-
-#[derive(Default, Deserialize)]
-struct InfluxdbErrorResponse {
-    message: String,
 }
 
 #[derive(Deserialize)]
@@ -71,42 +59,15 @@ pub async fn handler(mut req: Request<AppState>) -> tide::Result {
     let query_data: QueryData = req.body_json().await?;
     let state = req.state();
     let mut params = HashMap::new();
-    params.insert("bucket", state.config.influxdb_bucket.clone().into());
-    params.insert(
-        "machine_set",
-        query_data
-            .machines
-            .keys()
-            .map(|index| index.to_owned())
-            .collect::<Vec<_>>()
-            .into(),
-    );
-    params.insert("machines", query_data.machines.into());
-    let template = include_str!("machines_state.flux");
-    let flux_query = state
-        .query_builder
-        .generate_query(template, &params)
-        .unwrap();
-    let url = state.config.influxdb_base_url.clone() / "api/v2/query";
-    let influxdb_req = ClientRequest::builder(Method::Post, url)
-        .query(&InfluxdbQueryParams {
-            org: state.config.influxdb_org.clone(),
-        })?
-        .content_type("application/vnd.flux")
-        .header("Accept", "application/csv")
-        .header(
-            "Authorization",
-            format!("Token {}", &state.config.influxdb_token),
-        )
-        .body(flux_query);
-    let mut influxdb_res = state.client.send(influxdb_req).await?;
-    if !influxdb_res.status().is_success() {
-        let InfluxdbErrorResponse { message } = influxdb_res.body_json().await.unwrap_or_default();
-        return Err(tide::Error::from_str(
-            StatusCode::InternalServerError,
-            format!("error response from InfluxDB: {}", message),
-        ));
-    }
+    let machine_set = query_data.machines.keys().cloned().collect::<Vec<_>>();
+    params.extend([
+        ("machine_set", machine_set.into()),
+        ("machines", query_data.machines.to_owned().into()),
+    ]);
+    let influxdb_res = state
+        .influxdb_client
+        .flux_query(include_str!("machines_state.flux"), params)
+        .await?;
     let mut deserializer = AsyncDeserializer::from_reader(influxdb_res);
     let records = deserializer.deserialize::<ResultRow>();
     let chart_data = records
