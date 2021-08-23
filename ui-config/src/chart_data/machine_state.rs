@@ -1,25 +1,22 @@
-use std::collections::HashMap;
-
 use anyhow::anyhow;
+use async_trait::async_trait;
 use chrono::{DateTime, FixedOffset};
-use csv_async::AsyncDeserializer;
-use futures::{StreamExt, TryStreamExt};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
-use tide::http::Body;
-use tide::Request;
 
-use crate::AppState;
+use super::{
+    chart_data_body, BodyResult, ChartHandler, ClientRequest, CsvDeserializer, FluxParams,
+};
 
 type ChartData = Vec<DataSerie>;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 struct DataSerie {
     name: String,
     data: Vec<DataPoint>,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 struct DataPoint {
     x: String,
     y: (i64, i64),
@@ -42,6 +39,32 @@ struct ResultRow {
     state_index: usize,
 }
 
+pub struct Handler {
+    query_data: QueryData,
+}
+
+impl Handler {
+    pub async fn from_request(request: &mut ClientRequest) -> tide::Result<Self> {
+        let query_data = request.body_json().await?;
+        Ok(Self { query_data })
+    }
+}
+
+#[async_trait]
+impl ChartHandler for Handler {
+    fn set_params(&self, flux_params: &mut FluxParams) {
+        let machine_set = self.query_data.machines.keys().cloned().collect::<Vec<_>>();
+        flux_params.extend([
+            ("machine_set", machine_set.into()),
+            ("machines", self.query_data.machines.to_owned().into()),
+        ]);
+    }
+
+    async fn body(&self, deserializer: CsvDeserializer) -> BodyResult {
+        chart_data_body(deserializer, self.query_data.seed.clone(), accumulate).await
+    }
+}
+
 async fn accumulate(mut acc: ChartData, row: ResultRow) -> tide::Result<ChartData> {
     let state = acc
         .get_mut(row.state_index)
@@ -53,26 +76,4 @@ async fn accumulate(mut acc: ChartData, row: ResultRow) -> tide::Result<ChartDat
         y: (start_time, end_time),
     });
     Ok(acc)
-}
-
-pub async fn handler(mut req: Request<AppState>) -> tide::Result {
-    let query_data: QueryData = req.body_json().await?;
-    let state = req.state();
-    let mut params = HashMap::new();
-    let machine_set = query_data.machines.keys().cloned().collect::<Vec<_>>();
-    params.extend([
-        ("machine_set", machine_set.into()),
-        ("machines", query_data.machines.to_owned().into()),
-    ]);
-    let influxdb_res = state
-        .influxdb_client
-        .flux_query(include_str!("machines_state.flux"), params)
-        .await?;
-    let mut deserializer = AsyncDeserializer::from_reader(influxdb_res);
-    let records = deserializer.deserialize::<ResultRow>();
-    let chart_data = records
-        .map(|r| r.map_err(tide::Error::from))
-        .try_fold(query_data.seed, accumulate)
-        .await?;
-    Ok(Body::from_json(&chart_data)?.into())
 }
