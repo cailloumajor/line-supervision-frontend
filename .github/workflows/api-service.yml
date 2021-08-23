@@ -1,4 +1,4 @@
-name: UI configuration service CI
+name: API service CI
 
 on:
   push:
