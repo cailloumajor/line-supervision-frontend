@@ -140,7 +140,7 @@ import { statePalette } from "@/common"
 import useResponsiveness from "@/composables/responsiveness"
 import { useTheme } from "@/composables/theme"
 import useOpcUaStore from "@/stores/opcua"
-import useUiConfigStore from "@/stores/ui-config"
+import useUiCustomizationStore from "@/stores/ui-customization"
 
 interface CardIcon {
   icon: string
@@ -203,11 +203,11 @@ function fillShape(state: MachineState): ShapeID {
 export default defineComponent({
   setup() {
     const opcUaStore = useOpcUaStore()
-    const uiConfig = useUiConfigStore()
+    const uiCustomization = useUiCustomizationStore()
     const theme = useTheme()
 
     const svgViewBox = (() => {
-      const { height, width } = uiConfig.config.synoptics.viewbox
+      const { height, width } = uiCustomization.config.synoptics.viewbox
       return `0 0 ${width} ${height}`
     })()
 
@@ -217,7 +217,7 @@ export default defineComponent({
     const machineCard = ref<Vue[] | null>(null)
 
     const cardDOMPositions = ref(
-      [...Array(uiConfig.machines.length)].map(() => ({ x: 0, y: 0 }))
+      [...Array(uiCustomization.machines.length)].map(() => ({ x: 0, y: 0 }))
     )
 
     const responsiveDimensions = reactive({
@@ -259,7 +259,7 @@ export default defineComponent({
     )
 
     const cardsData = computed(() => {
-      return opcUaStore.machinesWithUiConfig
+      return opcUaStore.machinesWithUiCustomization
         .map(({ counters }, index) => {
           return {
             index,
@@ -273,8 +273,8 @@ export default defineComponent({
     })
 
     const layoutData = computed(() =>
-      opcUaStore.machinesWithUiConfig.map(({ machineState }, index) => ({
-        ...uiConfig.machines[index],
+      opcUaStore.machinesWithUiCustomization.map(({ machineState }, index) => ({
+        ...uiCustomization.machines[index],
         thumbFill: thumbFillPalette.value[fillShape(machineState)].fill,
         thumbBlink: machineState.alarm,
       }))

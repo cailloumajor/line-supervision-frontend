@@ -9,7 +9,7 @@ import { statePalette } from "@/common"
 import useInfluxDB from "@/composables/influxdb"
 import useInfluxChart from "@/composables/influx-chart"
 import { useTheme } from "@/composables/theme"
-import useUiConfigStore from "@/stores/ui-config"
+import useUiCustomizationStore from "@/stores/ui-customization"
 
 interface DataSerie {
   name: string // Machine state
@@ -32,13 +32,15 @@ export default defineComponent({
 
     const { influxDB } = useInfluxDB()
     const theme = useTheme()
-    const uiConfig = useUiConfigStore()
+    const uiCustomization = useUiCustomizationStore()
 
-    const machines = uiConfig.machines.filter((machine) => machine.stateChart)
+    const machines = uiCustomization.machines.filter(
+      (machine) => machine.stateChart
+    )
     const machineSet = machines.map((machine) => machine.index.toString())
 
     const machineName = (index: string) =>
-      uiConfig.machines[parseInt(index, 10)].name
+      uiCustomization.machines[parseInt(index, 10)].name
 
     const timeRange = reactive({
       start: dayjs(),

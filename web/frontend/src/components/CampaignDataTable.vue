@@ -21,7 +21,7 @@
 import { computed, defineComponent } from "@vue/composition-api"
 
 import useOpcUaStore from "@/stores/opcua"
-import useUiConfigStore from "@/stores/ui-config"
+import useUiCustomizationStore from "@/stores/ui-customization"
 
 const differenciatingClasses = [
   "blue--text text--lighten-1",
@@ -45,12 +45,14 @@ class DifferenciatingMap {
 export default defineComponent({
   setup() {
     const opcUaStore = useOpcUaStore()
-    const uiConfig = useUiConfigStore()
+    const uiCustomization = useUiCustomizationStore()
 
     const campaignData = computed(() => {
       const refClasses = new DifferenciatingMap()
       const batchClasses = new DifferenciatingMap()
-      const machines = uiConfig.machines.filter((machine) => machine.campaign)
+      const machines = uiCustomization.machines.filter(
+        (machine) => machine.campaign
+      )
       return machines.map((machine) => {
         const { index, name } = machine
         const { partReference: ref, materialBatch: batch } =

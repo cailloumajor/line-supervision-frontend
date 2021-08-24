@@ -1,17 +1,17 @@
 import { InfluxDB } from "@influxdata/influxdb-client-browser"
 
-import useUiConfigStore from "@/stores/ui-config"
+import useUiCustomizationStore from "@/stores/ui-customization"
 
 let cachedInfluxDB: InfluxDB | undefined
 
 export default function (): {
   influxDB: InfluxDB
 } {
-  const uiConfig = useUiConfigStore()
+  const uiCustomization = useUiCustomizationStore()
 
   const getInfluxDB = () => {
     if (cachedInfluxDB === undefined) {
-      const { token } = uiConfig.config.influxdb
+      const { token } = uiCustomization.config.influxdb
       cachedInfluxDB = new InfluxDB({ url: "/influxdb", token })
     }
     return cachedInfluxDB

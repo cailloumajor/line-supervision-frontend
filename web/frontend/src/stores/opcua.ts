@@ -25,7 +25,7 @@ import {
   isLineParametersMessage,
   isMachineMetricsMessage,
 } from "./types"
-import useUiConfigStore from "./ui-config"
+import useUiCustomizationStore from "./ui-customization"
 
 type StateType = {
   machinesMetrics: MachineMetrics[]
@@ -75,10 +75,10 @@ const useStore = defineStore({
   }),
 
   getters: {
-    machinesWithUiConfig: (state) => {
-      const uiConfig = useUiConfigStore()
+    machinesWithUiCustomization: (state) => {
+      const uiCustomization = useUiCustomizationStore()
       return state.machinesMetrics.filter(
-        (_, index) => uiConfig.config.machines[index] !== undefined
+        (_, index) => uiCustomization.config.machines[index] !== undefined
       )
     },
     opcLinkStatusDisplay: (state) => {

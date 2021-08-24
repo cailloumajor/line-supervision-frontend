@@ -8,7 +8,7 @@ export enum InitStatus {
   Error,
 }
 
-const uiConfigSchema = z.object({
+const uiCustomizationSchema = z.object({
   htmlTitle: z.string(),
   appTitle: z.string(),
   influxdb: z.object({
@@ -43,16 +43,16 @@ const uiConfigSchema = z.object({
     .nonempty(),
 })
 
-type UIConfig = z.infer<typeof uiConfigSchema>
+type UICustomization = z.infer<typeof uiCustomizationSchema>
 
 interface StateType {
   initStatus: InitStatus
   initError: string
-  config: UIConfig
+  config: UICustomization
 }
 
 export default defineStore({
-  id: "uiConfigStore",
+  id: "uiCustomizationStore",
 
   state: (): StateType => ({
     initStatus: InitStatus.Initial,
@@ -87,11 +87,11 @@ export default defineStore({
     async init() {
       this.initStatus = InitStatus.Loading
       try {
-        const response = await fetch("/ui-config/config")
+        const response = await fetch("/api/ui-customization")
         if (!response.ok) {
           throw new Error(`fetch: ${response.status} ${response.statusText}`)
         }
-        this.config = uiConfigSchema.parse(await response.json())
+        this.config = uiCustomizationSchema.parse(await response.json())
         this.initStatus = InitStatus.Loaded
       } catch (error) {
         if (error instanceof z.ZodError) {

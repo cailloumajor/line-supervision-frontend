@@ -11,7 +11,7 @@ import dayjs from "dayjs"
 
 import useInfluxDB from "@/composables/influxdb"
 import useInfluxChart from "@/composables/influx-chart"
-import useUiConfigStore from "@/stores/ui-config"
+import useUiCustomizationStore from "@/stores/ui-customization"
 import useOpcUaStore from "@/stores/opcua"
 
 type Point = [string, number | null]
@@ -24,10 +24,12 @@ interface DataSerie {
 export default defineComponent({
   setup() {
     const { influxDB } = useInfluxDB()
-    const uiConfig = useUiConfigStore()
+    const uiCustomization = useUiCustomizationStore()
     const opcUaStore = useOpcUaStore()
 
-    const machines = uiConfig.machines.filter((machine) => machine.production)
+    const machines = uiCustomization.machines.filter(
+      (machine) => machine.production
+    )
     const machineSet = machines.map((machine) => machine.index.toString())
     const serieName = machines.map((machine) => machine.name).join(" + ")
 

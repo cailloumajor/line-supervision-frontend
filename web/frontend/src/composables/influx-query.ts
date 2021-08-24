@@ -29,7 +29,7 @@ import {
 import useInfluxDB from "@/composables/influxdb"
 import useInfluxDBStore from "@/stores/influxdb"
 import { LinkStatus } from "@/stores/types"
-import useUiConfigStore from "@/stores/ui-config"
+import useUiCustomizationStore from "@/stores/ui-customization"
 
 type RowObject = ReturnType<FluxTableMetaData["toObject"]>
 
@@ -54,8 +54,8 @@ export default function <T extends Array<unknown>>(
 
   const { influxDB } = useInfluxDB()
   const influxDBStore = useInfluxDBStore()
-  const uiConfig = useUiConfigStore()
-  const { org, bucket } = uiConfig.config.influxdb
+  const uiCustomization = useUiCustomizationStore()
+  const { org, bucket } = uiCustomization.config.influxdb
 
   const { linkStatus } = toRefs(influxDBStore.$state)
   const influxData = ref(opts.seed) as Ref<T>
