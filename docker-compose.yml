@@ -84,7 +84,7 @@ services:
     build:
       context: ./api-service
     environment:
-      - UI_CUSTOMIZATION_FILE=/app/config_data/config.toml
+      - UI_CUSTOMIZATION_FILE=/app/config_data/customization.toml
       - LOGO_FILE=/app/config_data/logo.png
       - INFLUXDB_BASE_URL=http://influxdb:8086
       # Following environment variables will be obtained from `.env` file
@@ -101,7 +101,7 @@ services:
     networks:
       - net-private
     volumes:
-      - ./ui-config.toml:/app/config_data/config.toml:ro
+      - ./ui-customization.toml:/app/config_data/customization.toml:ro
       - ./logo.png:/app/config_data/logo.png:ro
 
   web:

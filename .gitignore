@@ -1,6 +1,6 @@
 # Environment variables definitions file
 .env
 
-# UI configuration
-/ui-config.toml
+# UI customization
+/ui-customization.toml
 /logo.png
