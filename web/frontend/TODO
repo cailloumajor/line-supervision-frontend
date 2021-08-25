@@ -1,3 +1,0 @@
-TODO:
-☐ |> range(start: -8h) // TODO: set the start time according to needs @file:///workspace/web/src/components/MachineStateChart.vue#44
-☐ // TODO: remove when included in TypeScript @file:///workspace/web/tsconfig.json#19
