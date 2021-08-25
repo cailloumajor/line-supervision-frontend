@@ -27,7 +27,7 @@ import {
 } from "./types"
 import useUiCustomizationStore from "./ui-customization"
 
-type StateType = {
+interface StateType {
   machinesMetrics: MachineMetrics[]
   lineGlobalParameters: LineGlobalParameters
   bridgeLinkStatus: LinkStatus
