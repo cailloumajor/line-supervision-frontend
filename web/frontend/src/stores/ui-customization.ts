@@ -1,6 +1,8 @@
 import { defineStore } from "pinia"
 import { z } from "zod"
 
+import { apiUrl } from "@/common"
+
 export enum InitStatus {
   Initial,
   Loading,
@@ -87,7 +89,7 @@ export default defineStore({
     async init() {
       this.initStatus = InitStatus.Loading
       try {
-        const response = await fetch("/api/ui-customization")
+        const response = await fetch(apiUrl + "/ui-customization")
         if (!response.ok) {
           throw new Error(`fetch: ${response.status} ${response.statusText}`)
         }

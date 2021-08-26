@@ -46,3 +46,5 @@ export const statePalette: Record<ShapeID, MachineStateShape> = {
     secondaryColor: themedGrey,
   },
 }
+
+export const apiUrl = "/api"

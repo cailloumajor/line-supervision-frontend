@@ -31,7 +31,7 @@
 
     <v-app-bar v-if="uiCustomization.loaded" app dense>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
-      <img class="ml-1 mr-5 py-1" src="/api/logo" :style="logoStyle" />
+      <img class="ml-1 mr-5 py-1" :src="apiUrl + '/logo'" :style="logoStyle" />
       <v-app-bar-title>{{ uiCustomization.config.appTitle }}</v-app-bar-title>
       <v-spacer />
       <v-btn
@@ -59,9 +59,10 @@ import type CSS from "csstype"
 
 import { computed, defineComponent, ref, watch } from "@vue/composition-api"
 
-import useUiCustomizationStore from "@/stores/ui-customization"
+import { apiUrl } from "@/common"
 import useResponsiveness from "@/composables/responsiveness"
 import { provideTheme } from "@/composables/theme"
+import useUiCustomizationStore from "@/stores/ui-customization"
 
 export default defineComponent({
   // eslint-disable-next-line
@@ -113,6 +114,7 @@ export default defineComponent({
     )
 
     return {
+      apiUrl,
       routes,
       drawer,
       isProdLineScreen,
