@@ -84,6 +84,7 @@ services:
     build:
       context: ./api-service
     environment:
+      - TZ=Europe/Paris
       - UI_CUSTOMIZATION_FILE=/app/config_data/customization.toml
       - LOGO_FILE=/app/config_data/logo.png
       - INFLUXDB_BASE_URL=http://influxdb:8086
