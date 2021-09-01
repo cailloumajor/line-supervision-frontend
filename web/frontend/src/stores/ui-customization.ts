@@ -13,11 +13,6 @@ export enum InitStatus {
 const uiCustomizationSchema = z.object({
   htmlTitle: z.string(),
   appTitle: z.string(),
-  influxdb: z.object({
-    org: z.string(),
-    bucket: z.string(),
-    token: z.string(),
-  }),
   synoptics: z.object({
     viewbox: z.object({
       height: z.number(),
@@ -62,7 +57,6 @@ export default defineStore({
     config: {
       htmlTitle: "",
       appTitle: "",
-      influxdb: { org: "", bucket: "", token: "" },
       synoptics: { viewbox: { height: 0, width: 0 } },
       machines: [
         {
