@@ -1,43 +1,43 @@
-import type { Subscription } from "rxjs"
-
-import { HealthAPI } from "@influxdata/influxdb-client-apis"
 import { defineStore } from "pinia"
-import { from, of, timer } from "rxjs"
+import { of, timer } from "rxjs"
+import { fromFetch } from "rxjs/fetch"
 import { catchError, map, timeout, switchMap } from "rxjs/operators"
 
-import useInfluxDB from "@/composables/influxdb"
+import { apiUrl } from "@/common"
+
 import { LinkStatus } from "./types"
 
-let linkStatusSubscription: Subscription
+interface StateType {
+  linkStatus: LinkStatus
+}
 
 const useStore = defineStore({
-  id: "InfluxDB",
+  id: "chartData",
 
-  state: () => ({
+  state: (): StateType => ({
     linkStatus: LinkStatus.Unknown,
   }),
 })
 
+let initialized = false
+
 export default function (): ReturnType<typeof useStore> {
   const store = useStore()
 
-  if (!linkStatusSubscription) {
-    const { influxDB } = useInfluxDB()
-    const healthAPI = new HealthAPI(influxDB)
+  if (!initialized) {
+    initialized = true
 
-    const linkStatus$ = timer(500, 10000).pipe(
+    const influxdbStatus$ = timer(2000, 10000).pipe(
       switchMap(() =>
-        from(healthAPI.getHealth()).pipe(
-          map((health) =>
-            health.status === "pass" ? LinkStatus.Up : LinkStatus.Down
-          ),
+        fromFetch(apiUrl + "/influxdb-ready").pipe(
+          map((response) => (response.ok ? LinkStatus.Up : LinkStatus.Down)),
           timeout(1000),
           catchError(() => of(LinkStatus.Down))
         )
       )
     )
 
-    linkStatusSubscription = linkStatus$.subscribe((status) => {
+    influxdbStatus$.subscribe((status) => {
       store.linkStatus = status
     })
   }

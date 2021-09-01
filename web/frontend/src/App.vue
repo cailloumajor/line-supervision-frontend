@@ -6,7 +6,12 @@
       </v-alert>
     </v-overlay>
 
-    <v-navigation-drawer v-if="uiConfig.loaded" v-model="drawer" app temporary>
+    <v-navigation-drawer
+      v-if="uiCustomization.loaded"
+      v-model="drawer"
+      app
+      temporary
+    >
       <v-list>
         <v-list-item
           v-for="(route, index) in routes"
@@ -24,10 +29,10 @@
       </v-list>
     </v-navigation-drawer>
 
-    <v-app-bar v-if="uiConfig.loaded" app dense>
+    <v-app-bar v-if="uiCustomization.loaded" app dense>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
-      <img class="ml-1 mr-5 py-1" src="/ui-config/logo" :style="logoStyle" />
-      <v-app-bar-title>{{ uiConfig.config.appTitle }}</v-app-bar-title>
+      <img class="ml-1 mr-5 py-1" :src="apiUrl + '/logo'" :style="logoStyle" />
+      <v-app-bar-title>{{ uiCustomization.config.appTitle }}</v-app-bar-title>
       <v-spacer />
       <v-btn
         v-if="!isProdLineScreen"
@@ -40,12 +45,12 @@
 
     <v-main>
       <v-container fluid>
-        <router-view v-if="uiConfig.loaded" />
+        <router-view v-if="uiCustomization.loaded" />
       </v-container>
-      <plc-link-down v-if="uiConfig.loaded" />
+      <plc-link-down v-if="uiCustomization.loaded" />
     </v-main>
 
-    <app-footer v-if="uiConfig.loaded" />
+    <app-footer v-if="uiCustomization.loaded" />
   </v-app>
 </template>
 
@@ -54,17 +59,18 @@ import type CSS from "csstype"
 
 import { computed, defineComponent, ref, watch } from "@vue/composition-api"
 
-import useUiConfigStore from "@/stores/ui-config"
+import { apiUrl } from "@/common"
 import useResponsiveness from "@/composables/responsiveness"
 import { provideTheme } from "@/composables/theme"
+import useUiCustomizationStore from "@/stores/ui-customization"
 
 export default defineComponent({
   // eslint-disable-next-line
   setup(_, { root: { $vuetify } }) {
     provideTheme(computed(() => $vuetify.theme))
 
-    const uiConfig = useUiConfigStore()
-    uiConfig.init()
+    const uiCustomization = useUiCustomizationStore()
+    uiCustomization.init()
 
     const routes: { name: string; menu: string; icon: string }[] = [
       { name: "Home", menu: "Vue graphique", icon: "mdi-panorama" },
@@ -74,15 +80,15 @@ export default defineComponent({
     const drawer = ref(false)
 
     const loadingAlert = computed((): { type?: string; message?: string } => {
-      if (uiConfig.loading) {
+      if (uiCustomization.loading) {
         return {
           type: "info",
           message: "Chargement de la configuration...",
         }
-      } else if (uiConfig.initError) {
+      } else if (uiCustomization.initError) {
         return {
           type: "error",
-          message: `Erreur de chargement de la configuration :\n${uiConfig.initError}`,
+          message: `Erreur de chargement de la configuration :\n${uiCustomization.initError}`,
         }
       } else {
         return {}
@@ -100,7 +106,7 @@ export default defineComponent({
     }
 
     watch(
-      () => uiConfig.config,
+      () => uiCustomization.config,
       ({ htmlTitle }) => {
         document.title = htmlTitle
       },
@@ -108,12 +114,13 @@ export default defineComponent({
     )
 
     return {
+      apiUrl,
       routes,
       drawer,
       isProdLineScreen,
       loadingAlert,
       logoStyle,
-      uiConfig,
+      uiCustomization,
     }
   },
 

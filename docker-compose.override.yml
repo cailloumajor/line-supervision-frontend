@@ -10,7 +10,7 @@ services:
     restart: unless-stopped
   opcua-bridge:
     restart: unless-stopped
-  ui-config:
+  api-service:
     restart: unless-stopped
   web:
     restart: unless-stopped

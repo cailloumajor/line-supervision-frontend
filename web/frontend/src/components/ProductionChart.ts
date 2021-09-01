@@ -1,17 +1,10 @@
 import type { ApexOptions } from "apexcharts"
-import type { Dayjs } from "dayjs"
 
-import {
-  flux,
-  fluxDuration,
-  fluxExpression,
-} from "@influxdata/influxdb-client-browser"
-import { computed, defineComponent, reactive } from "@vue/composition-api"
-import dayjs from "dayjs"
+import { flux, fluxExpression } from "@influxdata/influxdb-client-browser"
+import { computed, defineComponent } from "@vue/composition-api"
 
-import useInfluxDB from "@/composables/influxdb"
 import useInfluxChart from "@/composables/influx-chart"
-import useUiConfigStore from "@/stores/ui-config"
+import useUiCustomizationStore from "@/stores/ui-customization"
 import useOpcUaStore from "@/stores/opcua"
 
 type Point = [string, number | null]
@@ -21,83 +14,55 @@ interface DataSerie {
   data: Point[]
 }
 
+const dateTimeFormat = new Intl.DateTimeFormat([], { timeStyle: "short" })
+const timeFormatter = (value: string, timestamp: number | undefined) => {
+  if (timestamp === undefined) {
+    return "undefined"
+  }
+  return dateTimeFormat.format(new Date(timestamp))
+}
+
 export default defineComponent({
   setup() {
-    const { influxDB } = useInfluxDB()
-    const uiConfig = useUiConfigStore()
+    const uiCustomization = useUiCustomizationStore()
     const opcUaStore = useOpcUaStore()
 
-    const machines = uiConfig.machines.filter((machine) => machine.production)
-    const machineSet = machines.map((machine) => machine.index.toString())
+    const machines = uiCustomization.machines.filter(
+      (machine) => machine.production
+    )
     const serieName = machines.map((machine) => machine.name).join(" + ")
 
-    const timeRange = reactive({
-      start: dayjs(),
-      end: dayjs(),
-    })
+    const machineSet = machines.map((machine) => machine.index.toString())
+    const machineSum = fluxExpression(
+      machines.map(({ index }) => flux`r[${index.toString()}]`).join("+")
+    )
+    const fluxQuery = flux`\
+      import "date"
 
-    function updateTimeRange() {
-      const shiftsEnds = Array<Dayjs>(4).fill(dayjs())
-      const currentShiftEnd = shiftsEnds
-        .map((shiftEnd, index) =>
-          shiftEnd
-            .hour(5)
-            .minute(30)
-            .second(0)
-            .millisecond(0)
-            .add(8 * index, "hour")
-        )
-        .find((shiftEnd) => dayjs().isBefore(shiftEnd)) as Dayjs
-      timeRange.start = currentShiftEnd.subtract(8, "hour")
-      timeRange.end = currentShiftEnd
-    }
+      offset = duration(v: "\${date.minute(t: __start__)}m")
 
-    return useInfluxChart<DataSerie[]>({
-      influxDB,
+      from(bucket: __bucket__)
+          |> range(start: __start__)
+          |> filter(fn: (r) => r._measurement == "dbLineSupervision.machine")
+          |> filter(fn: (r) => r._field == "counters.production")
+          |> filter(fn: (r) => contains(value: r.machine_index, set: ${machineSet}))
+          |> pivot(columnKey: ["machine_index"], rowKey: ["_time"], valueColumn: "_value")
+          |> window(every: 1h, offset: offset)
+          |> increase(columns: ${machineSet})
+          |> top(n: 1, columns: ["_time"])
+          |> map(fn: (r) => ({r with total: ${machineSum}}))
+    `
+
+    const seed: DataSerie[] = [{ name: serieName, data: [] }]
+
+    return useInfluxChart({
+      apiEndpoint: "production",
+
+      fluxQuery,
+
+      seed,
 
       queryInterval: 60000,
-
-      generateQuery: (dbName) => {
-        updateTimeRange()
-        const windowOffset = fluxDuration(`${timeRange.start.minute()}m`)
-        const machineColumns = machines.map(
-          (machine) => `machine${machine.index}`
-        )
-        const machineSum = fluxExpression(
-          machineColumns.map((mc) => `r.${mc}`).join(" + ")
-        )
-        return flux`\
-          from(bucket: "${dbName}")
-            |> range(start: ${timeRange.start.toDate()})
-            |> filter(fn: (r) =>
-              r._measurement == "dbLineSupervision.machine" and
-              r._field == "counters.production" and
-              contains(value: r.machine_index, set: ${machineSet})
-            )
-            |> map(fn: (r) => ({ r with machine_index: "machine" + r.machine_index }))
-            |> pivot(columnKey: ["machine_index"], rowKey: ["_time"], valueColumn: "_value")
-            |> window(every: 1h, offset: ${windowOffset})
-            |> increase(columns: ${machineColumns})
-            |> top(n: 1, columns: ["_time"])
-            |> map(fn: (r) => ({ r with total: ${machineSum} }))
-        `
-      },
-
-      seed: [{ name: serieName, data: [] }],
-
-      reducer: (acc, value) => {
-        const currentData = acc.find(({ name }) => name === serieName)?.data
-        return [
-          {
-            name: serieName,
-            data: [
-              ...(currentData as Point[]),
-              [value._start, value.total],
-              [value._time, value.total],
-            ],
-          },
-        ]
-      },
 
       chartType: "line",
 
@@ -147,13 +112,11 @@ export default defineComponent({
         xaxis: {
           labels: {
             datetimeUTC: false,
-            formatter: (value) => dayjs(value).format("HH:mm"),
+            formatter: timeFormatter,
             minHeight: 45,
             offsetY: 5,
             rotateAlways: true,
           },
-          max: timeRange.end.valueOf(),
-          min: timeRange.start.valueOf(),
           tickAmount: 8,
           type: "datetime",
         },

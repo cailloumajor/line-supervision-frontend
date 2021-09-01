@@ -80,10 +80,14 @@ services:
       - ./certificates/cert.der:/tmp/certs/cert.der
       - ./certificates/key.pem:/tmp/certs/key.pem
 
-  ui-config:
+  api-service:
     build:
-      context: ./ui-config
+      context: ./api-service
     environment:
+      - TZ=Europe/Paris
+      - UI_CUSTOMIZATION_FILE=/app/config_data/customization.toml
+      - LOGO_FILE=/app/config_data/logo.png
+      - INFLUXDB_BASE_URL=http://influxdb:8086
       # Following environment variables will be obtained from `.env` file
       - INFLUXDB_ORG
       - INFLUXDB_BUCKET
@@ -91,14 +95,14 @@ services:
     labels:
       dozzle.enable: "true"
       traefik.enable: "true"
-      traefik.http.middlewares.ui-config-stripprefix.stripprefix.prefixes: "/ui-config"
-      traefik.http.middlewares.ui-config-stripprefix.stripprefix.forceslash: "false"
-      traefik.http.routers.ui-config.middlewares: "ui-config-stripprefix@docker"
-      traefik.http.routers.ui-config.rule: "PathPrefix(`/ui-config/`) || Path(`/ui-config`)"
+      traefik.http.middlewares.api-service-stripprefix.stripprefix.prefixes: "/api"
+      traefik.http.middlewares.api-service-stripprefix.stripprefix.forceslash: "false"
+      traefik.http.routers.api-service.middlewares: "api-service-stripprefix@docker"
+      traefik.http.routers.api-service.rule: "PathPrefix(`/api/`) || Path(`/api`)"
     networks:
       - net-private
     volumes:
-      - ./ui-config.toml:/app/config_data/config.toml:ro
+      - ./ui-customization.toml:/app/config_data/customization.toml:ro
       - ./logo.png:/app/config_data/logo.png:ro
 
   web:

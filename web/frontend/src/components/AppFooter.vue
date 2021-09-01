@@ -1,6 +1,5 @@
 <template>
   <v-footer fixed>
-    <span class="text-body-2">{{ clock }}</span>
     <v-spacer />
     <v-chip
       v-for="state of linksData"
@@ -21,8 +20,6 @@
 
 <script lang="ts">
 import { computed, defineComponent } from "@vue/composition-api"
-import { useTimestamp } from "@vueuse/core"
-import dayjs from "dayjs"
 
 import useResponsiveness from "@/composables/responsiveness"
 import useInfluxDBStore from "@/stores/influxdb"
@@ -41,11 +38,6 @@ export default defineComponent({
     const opcUaStore = useOpcUaStore()
 
     const { isProdLineScreen } = useResponsiveness()
-
-    const timestamp = useTimestamp({ interval: 1000 })
-    const clock = computed(() =>
-      dayjs(timestamp.value).format("DD/MM/YYYY HH:mm:ss")
-    )
 
     const linksData = computed<LinkData[]>(() => {
       function linkData(text: string, state: LinkStatus): LinkData {
@@ -72,7 +64,6 @@ export default defineComponent({
     })
 
     return {
-      clock,
       isProdLineScreen,
       linksData,
     }

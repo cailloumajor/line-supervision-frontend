@@ -1,26 +1,26 @@
-name: UI configuration service CI
+name: API service CI
 
 on:
   push:
     branches:
       - main
     paths:
-      - "ui-config/src/**"
-      - "ui-config/Cargo.*"
-      - "ui-config/Dockerfile"
-      - ".github/workflows/ui-config.yml"
+      - "api-service/src/**"
+      - "api-service/Cargo.*"
+      - "api-service/Dockerfile"
+      - ".github/workflows/api-service.yml"
   pull_request:
     branches:
       - main
     paths:
-      - "ui-config/src/**"
-      - "ui-config/Cargo.*"
-      - "ui-config/Dockerfile"
-      - ".github/workflows/ui-config.yml"
+      - "api-service/src/**"
+      - "api-service/Cargo.*"
+      - "api-service/Dockerfile"
+      - ".github/workflows/api-service.yml"
 
 defaults:
   run:
-    working-directory: ui-config
+    working-directory: api-service
 
 jobs:
   quality:
@@ -40,7 +40,7 @@ jobs:
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v1
         with:
-          working-directory: ui-config
+          working-directory: api-service
       - name: Check code formatting
         run: cargo fmt --all -- --check
       - name: Check and lint
@@ -61,7 +61,7 @@ jobs:
           components: llvm-tools-preview
       - uses: Swatinem/rust-cache@v1
         with:
-          working-directory: ui-config
+          working-directory: api-service
       - name: Install grcov
         run: cargo install grcov
       - name: Build the package
@@ -74,6 +74,6 @@ jobs:
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: ${{ github.workspace }}/ui-config/lcov.info
-          flag-name: ui-config-tests
-          base-path: ui-config
+          path-to-lcov: ${{ github.workspace }}/api-service/lcov.info
+          flag-name: api-service-tests
+          base-path: api-service
