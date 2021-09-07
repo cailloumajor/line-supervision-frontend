@@ -1,6 +1,5 @@
 import "./influx-charts.scss"
 
-import type { ParameterizedQuery } from "@influxdata/influxdb-client-browser"
 import type { ComputedRef } from "@vue/composition-api"
 import type { ApexOptions } from "apexcharts"
 import type { Observable } from "rxjs"
@@ -15,6 +14,7 @@ import { catchError, map, switchMap } from "rxjs/operators"
 import ApexChart from "vue-apexcharts"
 import { VAlert, VOverlay, VProgressCircular } from "vuetify/lib"
 
+import { apiUrl } from "@/common"
 import useResponsiveness from "@/composables/responsiveness"
 import { useTheme } from "@/composables/theme"
 import useInfluxdbStore from "@/stores/influxdb"
@@ -24,7 +24,6 @@ type DataSeries = unknown[]
 
 interface ComponentContext {
   apiEndpoint: string
-  fluxQuery: ParameterizedQuery
   seed: DataSeries
   queryInterval: number
   chartType: NonNullable<ApexChart["type"]>
@@ -57,12 +56,11 @@ export default function (ctx: ComponentContext): () => VNode {
   })
 
   const body = JSON.stringify({
-    fluxTemplate: ctx.fluxQuery.toString(),
     seed: ctx.seed,
   })
 
   const query$: Observable<ChartDisplay> = fromFetch(
-    `/api/chart-data/${ctx.apiEndpoint}`,
+    `${apiUrl}/chart-data/${ctx.apiEndpoint}`,
     {
       method: "POST",
       headers: {

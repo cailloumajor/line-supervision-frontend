@@ -1,6 +1,5 @@
 import type { ApexOptions } from "apexcharts"
 
-import { flux, fluxExpression } from "@influxdata/influxdb-client-browser"
 import { computed, defineComponent } from "@vue/composition-api"
 
 import useInfluxChart from "@/composables/influx-chart"
@@ -32,33 +31,10 @@ export default defineComponent({
     )
     const serieName = machines.map((machine) => machine.name).join(" + ")
 
-    const machineSet = machines.map((machine) => machine.index.toString())
-    const machineSum = fluxExpression(
-      machines.map(({ index }) => flux`r[${index.toString()}]`).join("+")
-    )
-    const fluxQuery = flux`\
-      import "date"
-
-      offset = duration(v: "\${date.minute(t: __start__)}m")
-
-      from(bucket: __bucket__)
-          |> range(start: __start__)
-          |> filter(fn: (r) => r._measurement == "dbLineSupervision.machine")
-          |> filter(fn: (r) => r._field == "counters.production")
-          |> filter(fn: (r) => contains(value: r.machine_index, set: ${machineSet}))
-          |> pivot(columnKey: ["machine_index"], rowKey: ["_time"], valueColumn: "_value")
-          |> window(every: 1h, offset: offset)
-          |> increase(columns: ${machineSet})
-          |> top(n: 1, columns: ["_time"])
-          |> map(fn: (r) => ({r with total: ${machineSum}}))
-    `
-
     const seed: DataSerie[] = [{ name: serieName, data: [] }]
 
     return useInfluxChart({
       apiEndpoint: "production",
-
-      fluxQuery,
 
       seed,
 
