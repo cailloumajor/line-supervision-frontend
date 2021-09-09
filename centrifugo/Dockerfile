@@ -19,7 +19,7 @@ RUN set -eux ; \
     gosu --version; \
     gosu nobody true
 
-FROM golang:1.15.7-buster AS builder
+FROM golang:1.17.1-buster AS builder
 
 WORKDIR /usr/src/centrifugo
 
