@@ -2,7 +2,7 @@ FROM debian:buster AS gosu
 
 # grab gosu for easy step-down from root
 # https://github.com/tianon/gosu/releases
-# renovate: datasource=github-release depName=tianon/gosu
+# renovate: datasource=github-releases depName=tianon/gosu
 ENV GOSU_VERSION=1.12
 # hadolint ignore=DL3008,DL4006,SC2015,SC2086,SC2155
 RUN set -eux ; \
@@ -23,7 +23,7 @@ FROM golang:1.15.7-buster AS builder
 
 WORKDIR /usr/src/centrifugo
 
-# renovate: datasource=github-release depName=centrifugal/centrifugo
+# renovate: datasource=github-releases depName=centrifugal/centrifugo
 ENV CENTRIFUGO_VERSION=v2.8.2
 ENV CENTRIFUGO_REPO=https://github.com/centrifugal/centrifugo.git
 RUN set -eux; \
