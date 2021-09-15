@@ -24,7 +24,7 @@ FROM golang:1.15.7-buster AS builder
 WORKDIR /usr/src/centrifugo
 
 # renovate: datasource=github-releases depName=centrifugal/centrifugo
-ENV CENTRIFUGO_VERSION=v2.8.2
+ENV CENTRIFUGO_VERSION=v2.8.6
 ENV CENTRIFUGO_REPO=https://github.com/centrifugal/centrifugo.git
 RUN set -eux; \
     git clone --depth 1 --branch "$CENTRIFUGO_VERSION" "$CENTRIFUGO_REPO" "$PWD"; \
