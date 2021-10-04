@@ -12,7 +12,7 @@
     "@fontsource/roboto": "4.5.1",
     "@mdi/font": "5.9.55",
     "@vue/composition-api": "1.2.2",
-    "@vueuse/core": "6.0.0",
+    "@vueuse/core": "6.5.3",
     "@vueuse/rxjs": "6.0.0",
     "apexcharts": "3.27.1",
     "centrifuge": "2.7.6",
