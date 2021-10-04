@@ -1994,18 +1994,25 @@
     "@vueuse/shared" "6.0.0"
     vue-demi "*"
 
-"@vueuse/rxjs@6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@vueuse/rxjs/-/rxjs-6.0.0.tgz#442f17bcbafc05808a3b83757e1fdae33af2e8ef"
-  integrity sha512-4AUR94BewmicOX4o3e//pPqPHp9pT0yT7OaXj22MeT13hS4JW5IwwJl85WO+2tV1FPS8BkpZD8j4bzWqw/5D8w==
+"@vueuse/rxjs@6.5.3":
+  version "6.5.3"
+  resolved "https://registry.yarnpkg.com/@vueuse/rxjs/-/rxjs-6.5.3.tgz#633c02673d71bf252932347e519ad1fa9a04ebb7"
+  integrity sha512-SRxIZ+n85lzV5WgkBslMqdWJLGp2UDWqe7sW2EeJUN5XT9HbkofY22n5UQCzdJ3MA8MZCBGDn/YT3SJFnAatKQ==
   dependencies:
-    "@vueuse/shared" "6.0.0"
+    "@vueuse/shared" "6.5.3"
     vue-demi "*"
 
 "@vueuse/shared@6.0.0":
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/@vueuse/shared/-/shared-6.0.0.tgz#e6b8804541a1853615db3dd869d07653b244451f"
   integrity sha512-PLjjqL8bxI5q86qk/ifXy572nfQE3rJc1RMem+dKcGayaagMnC4kXHEt64V98DVielSwr2FuYaeFodi4KJrvdg==
+  dependencies:
+    vue-demi "*"
+
+"@vueuse/shared@6.5.3":
+  version "6.5.3"
+  resolved "https://registry.yarnpkg.com/@vueuse/shared/-/shared-6.5.3.tgz#6503fa4bfbf45d0616bacedb8a4bd003f01da73b"
+  integrity sha512-ChOKu3mECyZeqGJ/gHVm0CaHoZK5/TwNZr1ZM/aqH+RaRNQvC1qkLf1/8PBugzN3yRgC3BtZ/M1kLpGe/BFylw==
   dependencies:
     vue-demi "*"
 

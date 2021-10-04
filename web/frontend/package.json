@@ -13,7 +13,7 @@
     "@mdi/font": "5.9.55",
     "@vue/composition-api": "1.2.2",
     "@vueuse/core": "6.0.0",
-    "@vueuse/rxjs": "6.0.0",
+    "@vueuse/rxjs": "6.5.3",
     "apexcharts": "3.27.1",
     "centrifuge": "2.7.6",
     "core-js": "3.14.0",
