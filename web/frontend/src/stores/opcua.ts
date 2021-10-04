@@ -119,9 +119,7 @@ export default function (): ReturnType<typeof useStore> {
 
     const heartbeatSubscription = centrifuge.subscribe("heartbeat")
 
-    const opcDataChangeSubscription = centrifuge.subscribe(
-      "proxied:opc_data_change"
-    )
+    const opcDataChangeSubscription = centrifuge.subscribe("proxied:opc_data")
     opcDataChangeSubscription.unsubscribe()
 
     const opcStatusSubscription = centrifuge.subscribe("proxied:opc_status")
