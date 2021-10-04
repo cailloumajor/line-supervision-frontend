@@ -5,7 +5,7 @@ services:
   centrifugo:
     build:
       context: ./centrifugo
-    command: --config /usr/local/etc/centrifugo.toml
+    command: centrifugo --config /usr/local/etc/centrifugo.toml
     environment:
       - CENTRIFUGO_PROXY_SUBSCRIBE_ENDPOINT=http://opcua-bridge:8008/centrifugo/subscribe
       # Following environment variables will be obtained from `.env` file
