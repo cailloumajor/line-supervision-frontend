@@ -1,7 +1,6 @@
 import { defineStore } from "pinia"
-import { of, timer } from "rxjs"
+import { catchError, map, of, timer, timeout, switchMap } from "rxjs"
 import { fromFetch } from "rxjs/fetch"
-import { catchError, map, timeout, switchMap } from "rxjs/operators"
 
 import { apiUrl } from "@/common"
 

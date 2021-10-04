@@ -8,17 +8,20 @@ import type {
 
 import Centrifuge from "centrifuge"
 import { defineStore } from "pinia"
-import { concat, fromEvent, merge, of } from "rxjs"
 import {
   catchError,
+  concat,
   delay,
   distinctUntilChanged,
   filter,
   first,
+  fromEvent,
   map,
   mapTo,
+  merge,
+  of,
   timeout,
-} from "rxjs/operators"
+} from "rxjs"
 
 import {
   LinkStatus,
