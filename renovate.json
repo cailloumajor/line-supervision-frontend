@@ -7,10 +7,8 @@
   ],
   "packageRules": [
     {
-      "groupName": "influxdb-client-js monorepo",
-      "matchSourceUrlPrefixes": [
-        "https://github.com/influxdata/influxdb-client-js"
-      ]
+      "matchPackagePrefixes": ["@vueuse/"],
+      "groupName": "VueUse"
     }
   ],
   "regexManagers": [
