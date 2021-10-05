@@ -24,7 +24,7 @@ services:
       - ./centrifugo/config.toml:/usr/local/etc/centrifugo.toml:ro
 
   influxdb:
-    image: influxdb:2.0.8
+    image: influxdb:2.0.9
     environment:
       - INFLUXD_REPORTING_DISABLED=true
     healthcheck:
