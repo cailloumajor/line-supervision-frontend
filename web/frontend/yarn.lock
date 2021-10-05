@@ -10724,10 +10724,10 @@ vue-apexcharts@1.6.2:
   resolved "https://registry.yarnpkg.com/vue-apexcharts/-/vue-apexcharts-1.6.2.tgz#0547826067f97e8ea67ca9423e524eb6669746ad"
   integrity sha512-9HS3scJwWgKjmkcWIf+ndNDR0WytUJD8Ju0V2ZYcjYtlTLwJAf2SKUlBZaQTkDmwje/zMgulvZRi+MXmi+WkKw==
 
-vue-cli-plugin-vuetify@~2.4.0:
-  version "2.4.1"
-  resolved "https://registry.yarnpkg.com/vue-cli-plugin-vuetify/-/vue-cli-plugin-vuetify-2.4.1.tgz#a31a9ddb274c8e512aeca7dc2f29d828a18df0af"
-  integrity sha512-ZfhvQ13X41atsCSKdSGiHnSJlhAccv4QIFOZmd8kyq6NktpeeWlvQz/dEKBf6u1AWKmKdwiCDuxS2VNT9fxhOA==
+vue-cli-plugin-vuetify@~2.4.2:
+  version "2.4.2"
+  resolved "https://registry.yarnpkg.com/vue-cli-plugin-vuetify/-/vue-cli-plugin-vuetify-2.4.2.tgz#f5c54a853cd5b06633da4a508ff4aa5b6b6275e0"
+  integrity sha512-aJXkzz3CbN/D1/aJ53slsp8hGaruQHhj/mkNjsfpkqhGglLex7UBnvcDwi5+D1tNk+XlddANLgRe9tmCFMorVA==
   dependencies:
     null-loader "^3.0.0"
     semver "^7.1.2"
@@ -10844,10 +10844,10 @@ vuetify-loader@~1.7.0:
     file-loader "^6.2.0"
     loader-utils "^2.0.0"
 
-vuetify@2.5.3:
-  version "2.5.3"
-  resolved "https://registry.yarnpkg.com/vuetify/-/vuetify-2.5.3.tgz#9d703414a736879673c94550035adc177a6ca394"
-  integrity sha512-c0oX063PzWrIV29Mi7Pyi63OcF0FlCDJcgMvu0woTt4GL4yVmNQMh5hyKS5NEwlsS66HcjKJERMoY0JJc1bYGA==
+vuetify@2.5.9:
+  version "2.5.9"
+  resolved "https://registry.yarnpkg.com/vuetify/-/vuetify-2.5.9.tgz#b6e6d9fff4a1691858f3415eceb2a75ca706d211"
+  integrity sha512-rQaa8MDxnv449l+XCmFCN9bRQpCUT8mewW6yIc6DHiXh9bAneD6jXF023doK0KkcS8+vRSrtgBESsLYA6te+dg==
 
 w3c-hr-time@^1.0.1:
   version "1.0.2"
