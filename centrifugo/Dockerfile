@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.3
-FROM centrifugo/centrifugo:v2.8.6
+FROM centrifugo/centrifugo:v3.0.3
 
 RUN addgroup -S centrifugo && adduser -G centrifugo -S -H centrifugo
 

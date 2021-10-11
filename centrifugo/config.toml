@@ -1,4 +1,4 @@
-v3_use_offset = true
+allowed_origins = [ "*" ]
 anonymous = true
 client_anonymous = true
 
