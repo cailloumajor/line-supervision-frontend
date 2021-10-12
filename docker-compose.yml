@@ -23,6 +23,28 @@ services:
     volumes:
       - ./centrifugo/config.toml:/usr/local/etc/centrifugo.toml:ro
 
+  grafana:
+    image: grafana/grafana-oss:8.2.1
+    environment:
+      - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s:%(http_port)s/grafana/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      - GF_SERVER_ENABLE_GZIP=true
+      - GF_ANALYTICS_CHECK_FOR_UPDATES=false
+      - INFLUXDB_URL=http://influxdb:8086
+      # Following environment variables will be obtained from `.env` file
+      - INFLUXDB_ORG
+      - INFLUXDB_BUCKET
+      - INFLUXDB_READ_TOKEN
+    labels:
+      dozzle.enable: "true"
+      traefik.enable: "true"
+      traefik.http.routers.grafana.rule: "PathPrefix(`/grafana/`) || Path(`/grafana/`)"
+    networks:
+      - net-private
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/influxdb.yaml:/etc/grafana/provisioning/datasources/influxdb.yaml
+
   influxdb:
     image: influxdb:2.0.9
     environment:
@@ -147,4 +169,5 @@ networks:
   net-private:
 
 volumes:
+  grafana-data:
   influxdb_data:
