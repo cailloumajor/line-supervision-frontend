@@ -13,6 +13,9 @@
 
 	// Set *default* container specific settings.json values on container create.
 	"settings": {
+		"[html]": {
+			"editor.defaultFormatter": "esbenp.prettier-vscode"
+		},
 		"[javascript]": {
 			"editor.defaultFormatter": "esbenp.prettier-vscode"
 		},
