@@ -28,16 +28,21 @@
 		"[vue]": {
 			"editor.defaultFormatter": "esbenp.prettier-vscode"
 		},
-
 		"editor.formatOnPaste": true,
 		"editor.formatOnSave": true,
-
 		"editor.codeActionsOnSave": {
 			"source.fixAll": true
 		},
-
-		"vetur.format.defaultFormatter.html": "prettyhtml",
-		"vetur.format.defaultFormatter.js": "prettier-eslint"
+		"eslint.validate": [
+			"javascript",
+			"javascriptreact",
+			"typescript",
+			"vue"
+		],
+		"typescript.tsdk": "node_modules/typescript/lib",
+		"vetur.experimental.templateInterpolationService": true,
+		"vetur.format.enable": false,
+		"vetur.validation.template": false
 	},
 
 	// Add the IDs of extensions you want installed when the container is created.
