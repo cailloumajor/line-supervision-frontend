@@ -7,7 +7,8 @@
   "private": true,
   "scripts": {
     "lint": "eslint --ext .js,.ts,.vue ./",
-    "test": "echo \"No test specified\" && exit 0"
+    "test": "echo \"No test specified\" && exit 0",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@quasar/extras": "^1.0.0",
@@ -23,6 +24,8 @@
     "eslint": "^7.14.0",
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-vue": "^7.0.0",
+    "husky": ">=6",
+    "lint-staged": ">=10",
     "prettier": "2.4.1"
   },
   "browserslist": [
@@ -40,5 +43,9 @@
     "node": ">= 12.22.1",
     "npm": ">= 6.13.4",
     "yarn": ">= 1.21.1"
+  },
+  "lint-staged": {
+    "*.{js,ts,vue}": "eslint --cache --fix",
+    "*.{js,vue,ts,css,scss,html,json,md}": "prettier --write"
   }
 }
