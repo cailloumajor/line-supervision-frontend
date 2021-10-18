@@ -1,0 +1,9 @@
+# Use .editorconfig from VSCode development containers repository
+
+[*.json]
+indent_style = tab
+tab_width = 4
+
+[Dockerfile]
+indent_style = spaces
+indent_size = 4
