@@ -92,7 +92,7 @@ services:
     user: 2000:2000
 
   opcua-bridge:
-    image: ghcr.io/cailloumajor/opcua-webhmi-bridge:1.0.1
+    image: ghcr.io/cailloumajor/opcua-webhmi-bridge:1.0.2
     depends_on:
       - centrifugo
       - influxdb
