@@ -116,8 +116,7 @@ services:
       - ./certificates/key.pem:/tmp/certs/key.pem
 
   api-service:
-    build:
-      context: ./api-service
+    image: ghcr.io/cailloumajor/line-supervision-api-service:1.0.0
     depends_on:
       - influxdb
       - reverse-proxy
