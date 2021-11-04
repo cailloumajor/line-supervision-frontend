@@ -72,7 +72,7 @@ services:
       - influxdb_data:/var/lib/influxdb2
 
   log-viewer:
-    image: amir20/dozzle:v3.8.2
+    image: amir20/dozzle:v3.8.5
     depends_on:
       - docker-socket-proxy
       - reverse-proxy
