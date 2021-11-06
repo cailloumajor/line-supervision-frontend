@@ -26,7 +26,7 @@ services:
       - ./centrifugo/config.toml:/usr/local/etc/centrifugo.toml:ro
 
   grafana:
-    image: grafana/grafana-oss:8.2.1
+    image: grafana/grafana-oss:8.2.3
     depends_on:
       - influxdb
       - reverse-proxy
