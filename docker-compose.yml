@@ -82,8 +82,6 @@ services:
       - DOZZLE_FILTER=label=dozzle.enable=true
     expose:
       - "8080"
-    depends_on:
-      - docker-socket-proxy
     labels:
       traefik.enable: "true"
       traefik.http.routers.logging.rule: "PathPrefix(`/logs/`) || Path(`/logs`)"
