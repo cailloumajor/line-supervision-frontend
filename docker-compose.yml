@@ -43,7 +43,7 @@ services:
     labels:
       dozzle.enable: "true"
       traefik.enable: "true"
-      traefik.http.routers.grafana.rule: "PathPrefix(`/grafana/`) || Path(`/grafana/`)"
+      traefik.http.routers.grafana.rule: "PathPrefix(`/grafana/`) || Path(`/grafana`)"
     networks:
       - net-private
     volumes:
