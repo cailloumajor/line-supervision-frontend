@@ -6,8 +6,6 @@ services:
     build:
       context: ./centrifugo
     command: centrifugo --config /usr/local/etc/centrifugo.toml
-    depends_on:
-      - reverse-proxy
     environment:
       - CENTRIFUGO_PROXY_SUBSCRIBE_ENDPOINT=http://opcua-bridge:8008/centrifugo/subscribe
       # Following environment variables will be obtained from `.env` file
@@ -27,9 +25,6 @@ services:
 
   grafana:
     image: grafana/grafana-oss:8.2.3
-    depends_on:
-      - influxdb
-      - reverse-proxy
     environment:
       - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s:%(http_port)s/grafana/
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
@@ -52,8 +47,6 @@ services:
 
   influxdb:
     image: influxdb:2.0.9
-    depends_on:
-      - reverse-proxy
     environment:
       - INFLUXD_REPORTING_DISABLED=true
     healthcheck:
@@ -75,7 +68,6 @@ services:
     image: amir20/dozzle:v3.8.5
     depends_on:
       - docker-socket-proxy
-      - reverse-proxy
     environment:
       - DOCKER_HOST=tcp://docker-socket-proxy:2375
       - DOZZLE_BASE=/logs
@@ -91,9 +83,6 @@ services:
 
   opcua-bridge:
     image: ghcr.io/cailloumajor/opcua-webhmi-bridge:1.0.2
-    depends_on:
-      - centrifugo
-      - influxdb
     environment:
       - INFLUXDB_BASE_URL=http://influxdb:8086
       - CENTRIFUGO_API_URL=http://centrifugo:8000/api
@@ -115,9 +104,6 @@ services:
 
   api-service:
     image: ghcr.io/cailloumajor/line-supervision-api-service:1.1.1
-    depends_on:
-      - influxdb
-      - reverse-proxy
     environment:
       - TZ=Europe/Paris
       - UI_CUSTOMIZATION_FILE=/app/config_data/customization.toml
@@ -143,10 +129,6 @@ services:
   web:
     build:
       context: ./web
-    depends_on:
-      - api-service
-      - centrifugo
-      - reverse-proxy
     labels:
       dozzle.enable: "true"
       traefik.enable: "true"
