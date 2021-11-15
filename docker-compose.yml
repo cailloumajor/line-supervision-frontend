@@ -24,7 +24,7 @@ services:
       - ./centrifugo/config.toml:/usr/local/etc/centrifugo.toml:ro
 
   grafana:
-    image: grafana/grafana-oss:8.2.3
+    image: grafana/grafana-oss:8.2.4
     environment:
       - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s:%(http_port)s/grafana/
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
