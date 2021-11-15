@@ -153,7 +153,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
   reverse-proxy:
-    image: traefik:v2.5.3
+    image: traefik:v2.5.4
     depends_on:
       - docker-socket-proxy
     labels:
