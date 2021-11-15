@@ -18,7 +18,7 @@ COPY frontend/.browserslistrc \
 RUN yarn run build
 
 
-FROM caddy:2.4.5 AS final
+FROM caddy:2.4.6 AS final
 
 # hadolint ignore=DL3018
 RUN set -eux; \
