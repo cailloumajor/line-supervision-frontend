@@ -4,6 +4,8 @@ version: "2.1"
 services:
   centrifugo:
     restart: unless-stopped
+  grafana:
+    restart: unless-stopped
   influxdb:
     restart: unless-stopped
   log-viewer:
