@@ -10,3 +10,7 @@ insert_final_newline = true
 
 [*.{yml,yaml,json}]
 indent_size = 2
+
+[Caddyfile]
+indent_style = tab
+tab_width = 4
