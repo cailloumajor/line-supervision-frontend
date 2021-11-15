@@ -9,7 +9,7 @@ address = ":8000"
 address = ":8080"
 
 [log]
-level = "WARN"
+level = "INFO"
 
 [providers.docker]
 endpoint = "tcp://docker-socket-proxy:2375"
