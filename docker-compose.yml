@@ -1,5 +1,5 @@
 # Configuration common to development and production
-version: "2.1"
+version: "2.3"
 
 services:
   centrifugo:
@@ -51,6 +51,8 @@ services:
       - INFLUXD_REPORTING_DISABLED=true
     healthcheck:
       test: influx ping || exit 1
+      interval: 20s
+      start_period: 1m
     labels:
       dozzle.enable: "true"
       traefik.enable: "true"

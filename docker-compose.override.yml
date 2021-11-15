@@ -1,5 +1,5 @@
 # Production specific configuration
-version: "2.1"
+version: "2.3"
 
 services:
   centrifugo:
