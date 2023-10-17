@@ -1,9 +1,0 @@
-**/.git/
-**/.vscode/
-**/.env
-**/.gitignore
-**/.devcontainer*
-.dockerignore
-Dockerfile
-frontend/dist/
-frontend/node_modules/

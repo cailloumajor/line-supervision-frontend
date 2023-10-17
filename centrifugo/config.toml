@@ -1,8 +1,0 @@
-allowed_origins = [ "*" ]
-anonymous = true
-client_anonymous = true
-
-[[namespaces]]
-name = "proxied"
-anonymous = true
-proxy_subscribe = true
