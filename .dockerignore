@@ -1,0 +1,14 @@
+*
+
+!package.json
+!yarn.lock
+!public/
+!src/
+!.browserslistrc
+!.eslintignore
+!.eslintrc.js
+!.prettierrc
+!babel.config.js
+!tsconfig.json
+!vue.config.js
+!docker-run.sh
